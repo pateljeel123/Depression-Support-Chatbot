@@ -10,7 +10,7 @@ const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Backend API URL
-const API_URL = 'http://localhost:5000/api/chat';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/chat';
 
 const Chat = () => {
   const [messages, setMessages] = useState([]);
