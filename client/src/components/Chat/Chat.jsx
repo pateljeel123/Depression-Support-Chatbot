@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createClient } from '@supabase/supabase-js';
-import { FaArrowLeft, FaPaperPlane, FaSpinner } from 'react-icons/fa';
+import { FaArrowLeft, FaPaperPlane, FaSpinner, FaTrash } from 'react-icons/fa';
+import axios from 'axios';
 
 // Initialize Supabase client
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Backend API URL
+const API_URL = 'http://localhost:5000/api/chat';
 
 const Chat = () => {
   const [messages, setMessages] = useState([]);
@@ -15,7 +19,7 @@ const Chat = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
-  // Get current user on component mount
+  // Get current user on component mount and load chat history
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -25,19 +29,32 @@ const Chat = () => {
       }
       setUser(user);
       
-      // Load initial welcome message
-      setMessages([
-        {
-          id: 'welcome-1',
-          sender: 'bot',
-          text: `Hello! I'm your support companion. How are you feeling today?`,
-          timestamp: new Date().toISOString()
-        }
-      ]);
+      // Load chat history from localStorage
+      const savedMessages = localStorage.getItem(`chat_history_${user.id}`);
+      if (savedMessages) {
+        setMessages(JSON.parse(savedMessages));
+      } else {
+        // Load initial welcome message if no history
+        setMessages([
+          {
+            id: 'welcome-1',
+            sender: 'bot',
+            text: `Hello! I'm your support companion. How are you feeling today?`,
+            timestamp: new Date().toISOString()
+          }
+        ]);
+      }
     };
     
     getUser();
   }, [navigate]);
+
+  // Save messages to localStorage whenever messages change
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem(`chat_history_${user.id}`, JSON.stringify(messages));
+    }
+  }, [messages, user]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -61,28 +78,65 @@ const Chat = () => {
     setNewMessage('');
     setLoading(true);
     
-    // Simulate bot response (in a real app, this would call your AI service)
-    setTimeout(() => {
-      const botResponses = [
-        "I understand that must be difficult. Can you tell me more about how you're feeling?",
-        "Thank you for sharing that with me. What do you think triggered these feelings?",
-        "You're not alone in feeling this way. Many people experience similar emotions.",
-        "It sounds like you're going through a challenging time. Have you tried any coping strategies?",
-        "I'm here to support you. Would it help to talk about some positive coping mechanisms?"
-      ];
+    try {
+      // Call our backend API
+      const response = await axios.post(
+        API_URL,
+        {
+          messages: [
+            ...messages.map(msg => ({
+              role: msg.sender === 'user' ? 'user' : 'assistant',
+              content: msg.text
+            })),
+            {
+              role: 'user',
+              content: newMessage
+            }
+          ]
+        }
+      );
       
-      const randomResponse = botResponses[Math.floor(Math.random() * botResponses.length)];
+      // Extract the bot's response
+      const botResponse = response.data.choices[0].message.content;
       
       const botMessage = {
         id: `bot-${Date.now()}`,
         sender: 'bot',
-        text: randomResponse,
+        text: botResponse,
         timestamp: new Date().toISOString()
       };
       
       setMessages(prev => [...prev, botMessage]);
+    } catch (error) {
+      console.error('Error calling Mistral API:', error);
+      
+      // Fallback message in case of API error
+      const botMessage = {
+          id: `bot-${Date.now()}`,
+          sender: 'bot',
+          text: 'I apologize, but I\'m having trouble connecting right now. Could you please try again in a moment?',
+          timestamp: new Date().toISOString()
+        };
+      
+      setMessages(prev => [...prev, botMessage]);
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
+  };
+
+  const clearChatHistory = () => {
+    if (window.confirm('Are you sure you want to clear your chat history?')) {
+      // Keep only the welcome message
+      const welcomeMessage = {
+        id: 'welcome-1',
+        sender: 'bot',
+        text: `Hello! I'm your support companion. How are you feeling today?`,
+        timestamp: new Date().toISOString()
+      };
+      
+      setMessages([welcomeMessage]);
+      // This will trigger the useEffect to save to localStorage
+    }
   };
 
   return (
@@ -98,12 +152,21 @@ const Chat = () => {
           </button>
           <h1 className="text-xl font-semibold">Support Companion</h1>
         </div>
-        <button 
-          onClick={handleSignOut} 
-          className="bg-indigo-700 hover:bg-indigo-800 px-4 py-2 rounded-lg text-sm"
-        >
-          Sign Out
-        </button>
+        <div className="flex items-center">
+          <button 
+            onClick={clearChatHistory} 
+            className="mr-3 bg-red-500 hover:bg-red-600 px-3 py-2 rounded-lg text-sm flex items-center"
+            title="Clear chat history"
+          >
+            <FaTrash className="mr-1" /> Clear History
+          </button>
+          <button 
+            onClick={handleSignOut} 
+            className="bg-indigo-700 hover:bg-indigo-800 px-4 py-2 rounded-lg text-sm"
+          >
+            Sign Out
+          </button>
+        </div>
       </div>
       
       {/* Messages Container */}
