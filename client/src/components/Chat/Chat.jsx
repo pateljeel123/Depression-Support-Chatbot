@@ -156,7 +156,6 @@ const Chat = () => {
         // Initialize with a default conversation
         createNewConversation(user.id);
       }
-
       // Load saved section preference if available
       const savedSection = localStorage.getItem(`chat_section_${user.id}`);
       if (savedSection) {
@@ -166,65 +165,128 @@ const Chat = () => {
 
     getUser();
   }, [navigate]);
-
+  
   // Function to create a new conversation
   const createNewConversation = (userId) => {
     const newConversationId = `conv-${Date.now()}`;
     const newConversation = {
       id: newConversationId,
-      title: "New conversation",
+      title: 'New conversation',
       created_at: new Date().toISOString(),
-      section: currentSection,
+      section: currentSection
     };
-
+    
     const updatedConversations = [newConversation, ...conversations];
     setConversations(updatedConversations);
     setCurrentConversationId(newConversationId);
-
+    
     // Save to localStorage
-    localStorage.setItem(
-      `conversations_${userId}`,
-      JSON.stringify(updatedConversations)
-    );
+    localStorage.setItem(`conversations_${userId}`, JSON.stringify(updatedConversations));
     localStorage.setItem(`current_conversation_${userId}`, newConversationId);
-
+    
     // Create personalized welcome message based on user preferences
-    let welcomeText = `Hello${
-      user?.user_metadata?.full_name ? `, ${user.user_metadata.full_name}` : ""
-    }! I'm your support companion.`;
-
+    let welcomeText = `Hello${user?.user_metadata?.full_name ? `, ${user.user_metadata.full_name}` : ''}! I'm your support companion.`;
+    
     // Add personalized greeting based on communication style
-    if (user?.user_metadata?.communication_style === "empathetic") {
-      welcomeText += " I'm so glad you're here today. How are you feeling?";
-    } else if (user?.user_metadata?.communication_style === "direct") {
-      welcomeText += " What would you like to talk about today?";
-    } else if (user?.user_metadata?.communication_style === "analytical") {
-      welcomeText +=
-        " I'm here to help you explore your thoughts and feelings in a structured way.";
-    } else if (user?.user_metadata?.communication_style === "encouraging") {
-      welcomeText +=
-        " I believe in your strength and resilience. How can I support you today?";
+    if (user?.user_metadata?.communication_style === 'empathetic') {
+      welcomeText += " I'm so glad you're here today. How are you feeling?"; 
+    } else if (user?.user_metadata?.communication_style === 'direct') {
+      welcomeText += " What would you like to talk about today?"; 
+    } else if (user?.user_metadata?.communication_style === 'analytical') {
+      welcomeText += " I'm here to help you explore your thoughts and feelings in a structured way."; 
+    } else if (user?.user_metadata?.communication_style === 'encouraging') {
+      welcomeText += " I believe in your strength and resilience. How can I support you today?"; 
     } else {
-      welcomeText += " How are you feeling today?";
+      welcomeText += " How are you feeling today?"; 
     }
-
+    
     welcomeText += `\n\nYou can select different topics from the dropdown menu to get specialized support for:\n\n• Relationship Advice\n• Anxiety\n• Loneliness\n• Past Mental Trauma\n• No One to Talk (Gossip)\n\nI'm here to listen and support you.`;
-
+    
     const initialMessages = [
       {
-        id: "welcome-1",
-        sender: "bot",
+        id: 'welcome-1',
+        sender: 'bot',
         text: welcomeText,
-        timestamp: new Date().toISOString(),
-      },
+        timestamp: new Date().toISOString()
+      }
     ];
-
+    
     setMessages(initialMessages);
-    localStorage.setItem(
-      `chat_history_${userId}_${newConversationId}`,
-      JSON.stringify(initialMessages)
-    );
+    localStorage.setItem(`chat_history_${userId}_${newConversationId}`, JSON.stringify(initialMessages));
   };
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showSectionDropdown && !event.target.closest('.section-dropdown')) {
+        setShowSectionDropdown(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSectionDropdown]);
+
+  // Function to create a new conversation
+  // const createNewConversation = (userId) => {
+  //   const newConversationId = `conv-${Date.now()}`;
+  //   const newConversation = {
+  //     id: newConversationId,
+  //     title: "New conversation",
+  //     created_at: new Date().toISOString(),
+  //     section: currentSection,
+  //   };
+
+  //   const updatedConversations = [newConversation, ...conversations];
+  //   setConversations(updatedConversations);
+  //   setCurrentConversationId(newConversationId);
+
+  //   // Save to localStorage
+  //   localStorage.setItem(
+  //     `conversations_${userId}`,
+  //     JSON.stringify(updatedConversations)
+  //   );
+  //   localStorage.setItem(`current_conversation_${userId}`, newConversationId);
+
+  //   // Create personalized welcome message based on user preferences
+  //   let welcomeText = `Hello${
+  //     user?.user_metadata?.full_name ? `, ${user.user_metadata.full_name}` : ""
+  //   }! I'm your support companion.`;
+
+  //   // Add personalized greeting based on communication style
+  //   if (user?.user_metadata?.communication_style === "empathetic") {
+  //     welcomeText += " I'm so glad you're here today. How are you feeling?";
+  //   } else if (user?.user_metadata?.communication_style === "direct") {
+  //     welcomeText += " What would you like to talk about today?";
+  //   } else if (user?.user_metadata?.communication_style === "analytical") {
+  //     welcomeText +=
+  //       " I'm here to help you explore your thoughts and feelings in a structured way.";
+  //   } else if (user?.user_metadata?.communication_style === "encouraging") {
+  //     welcomeText +=
+  //       " I believe in your strength and resilience. How can I support you today?";
+  //   } else {
+  //     welcomeText += " How are you feeling today?";
+  //   }
+
+  //   welcomeText += `\n\nYou can select different topics from the dropdown menu to get specialized support for:\n\n• Relationship Advice\n• Anxiety\n• Loneliness\n• Past Mental Trauma\n• No One to Talk (Gossip)\n\nI'm here to listen and support you.`;
+
+  //   const initialMessages = [
+  //     {
+  //       id: "welcome-1",
+  //       sender: "bot",
+  //       text: welcomeText,
+  //       timestamp: new Date().toISOString(),
+  //     },
+  //   ];
+
+  //   setMessages(initialMessages);
+  //   localStorage.setItem(
+  //     `chat_history_${userId}_${newConversationId}`,
+  //     JSON.stringify(initialMessages)
+  //   );
+  // };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -284,7 +346,6 @@ const Chat = () => {
       }
     }
   }, [messages, user, currentConversationId, conversations]);
-
   // Save section preference to localStorage whenever it changes
   useEffect(() => {
     if (user) {
@@ -485,44 +546,44 @@ const Chat = () => {
   };
 
   // Function to update user preferences
-  const updateUserPreferences = async (newPreferences) => {
-    try {
-      // Update local state
-      setUserPreferences(newPreferences);
+  // const updateUserPreferences = async (newPreferences) => {
+  //   try {
+  //     // Update local state
+  //     setUserPreferences(newPreferences);
 
-      // Update user metadata in Supabase
-      const { error } = await supabase.auth.updateUser({
-        data: {
-          age: newPreferences.age,
-          gender: newPreferences.gender,
-          preferred_topics: newPreferences.topicsOfInterest,
-          communication_style: newPreferences.communicationStyle,
-        },
-      });
+  //     // Update user metadata in Supabase
+  //     const { error } = await supabase.auth.updateUser({
+  //       data: {
+  //         age: newPreferences.age,
+  //         gender: newPreferences.gender,
+  //         preferred_topics: newPreferences.topicsOfInterest,
+  //         communication_style: newPreferences.communicationStyle,
+  //       },
+  //     });
 
-      if (error) throw error;
+  //     if (error) throw error;
 
-      // Close the settings modal
-      setShowSettingsModal(false);
+  //     // Close the settings modal
+  //     setShowSettingsModal(false);
 
-      // Add a confirmation message to the chat
-      const botMessage = {
-        id: `bot-settings-${Date.now()}`,
-        sender: "bot",
-        text: "Your preferences have been updated! I'll use these to personalize our conversations.",
-        timestamp: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, botMessage]);
+  //     // Add a confirmation message to the chat
+  //     const botMessage = {
+  //       id: `bot-settings-${Date.now()}`,
+  //       sender: "bot",
+  //       text: "Your preferences have been updated! I'll use these to personalize our conversations.",
+  //       timestamp: new Date().toISOString(),
+  //     };
+  //     setMessages((prev) => [...prev, botMessage]);
 
-      // Scroll to the bottom to show the confirmation message
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
-    } catch (error) {
-      console.error("Error updating preferences:", error);
-      alert("Failed to update preferences. Please try again.");
-    }
-  };
+  //     // Scroll to the bottom to show the confirmation message
+  //     setTimeout(() => {
+  //       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  //     }, 100);
+  //   } catch (error) {
+  //     console.error("Error updating preferences:", error);
+  //     alert("Failed to update preferences. Please try again.");
+  //   }
+  // };
 
   // Function to save user preferences from the settings modal
   const saveUserPreferences = async () => {

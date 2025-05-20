@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createClient } from '@supabase/supabase-js';
+import { FaQuestionCircle } from 'react-icons/fa';
 
 // Initialize Supabase client
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
@@ -12,12 +13,37 @@ const Auth = ({ initialMode }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [age, setAge] = useState('');
+  const [gender, setGender] = useState('');
+  const [preferredTopics, setPreferredTopics] = useState([]);
+  const [communicationStyle, setCommunicationStyle] = useState('balanced');
+  const [showPreferences, setShowPreferences] = useState(false);
   const [isSignUp, setIsSignUp] = useState(initialMode === 'signup');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [formErrors, setFormErrors] = useState({});
   const navigate = useNavigate();
+  
+  // Available topics for preferences
+  const availableTopics = [
+    { id: 'relationship', name: 'Relationship Advice' },
+    { id: 'anxiety', name: 'Anxiety' },
+    { id: 'loneliness', name: 'Loneliness' },
+    { id: 'trauma', name: 'Past Mental Trauma' },
+    { id: 'gossip', name: 'No One to Talk' },
+    { id: 'self-care', name: 'Self-Care' },
+    { id: 'motivation', name: 'Motivation' }
+  ];
+  
+  // Communication style options
+  const communicationStyles = [
+    { id: 'direct', name: 'Direct and Straightforward' },
+    { id: 'empathetic', name: 'Warm and Empathetic' },
+    { id: 'balanced', name: 'Balanced' },
+    { id: 'analytical', name: 'Analytical and Detailed' },
+    { id: 'encouraging', name: 'Encouraging and Positive' }
+  ];
 
   // Reset form errors when switching between signup and signin
   useEffect(() => {
@@ -25,6 +51,11 @@ const Auth = ({ initialMode }) => {
     if (!isSignUp) {
       setName('');
       setConfirmPassword('');
+      setAge('');
+      setGender('');
+      setPreferredTopics([]);
+      setCommunicationStyle('balanced');
+      setShowPreferences(false);
     }
   }, [isSignUp]);
 
@@ -42,6 +73,13 @@ const Auth = ({ initialMode }) => {
       if (password.length < 6) {
         errors.password = 'Password must be at least 6 characters';
       }
+      
+      // Validate age if provided
+      if (age && (isNaN(age) || parseInt(age) < 13 || parseInt(age) > 120)) {
+        errors.age = 'Please enter a valid age (13-120)';
+      }
+      
+      // No validation for gender and preferredTopics as they're optional
     }
     
     if (!email.trim()) errors.email = 'Email is required';
@@ -72,6 +110,10 @@ const Auth = ({ initialMode }) => {
           options: {
             data: {
               full_name: name,
+              age: age || null,
+              gender: gender || null,
+              preferred_topics: preferredTopics,
+              communication_style: communicationStyle
             }
           }
         });
@@ -128,20 +170,111 @@ const Auth = ({ initialMode }) => {
         <form className="mt-8 space-y-6" onSubmit={handleAuth}>
           <div className="rounded-md shadow-sm space-y-3">
             {isSignUp && (
-              <div>
-                <label htmlFor="name" className="sr-only">Full Name</label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  autoComplete="name"
-                  className={`appearance-none rounded-md relative block w-full px-3 py-2 border ${formErrors.name ? 'border-red-500' : 'border-gray-300'} placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
-                  placeholder="Full Name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-                {formErrors.name && <p className="text-red-500 text-xs mt-1">{formErrors.name}</p>}
-              </div>
+              <>
+                <div>
+                  <label htmlFor="name" className="sr-only">Full Name</label>
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    autoComplete="name"
+                    className={`appearance-none rounded-md relative block w-full px-3 py-2 border ${formErrors.name ? 'border-red-500' : 'border-gray-300'} placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
+                    placeholder="Full Name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                  {formErrors.name && <p className="text-red-500 text-xs mt-1">{formErrors.name}</p>}
+                </div>
+                
+                <div className="mt-4">
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPreferences(!showPreferences)}
+                    className="flex items-center text-sm text-indigo-600 hover:text-indigo-500 mb-2"
+                  >
+                    {showPreferences ? 'Hide Personalization Options' : 'Show Personalization Options'}
+                    <FaQuestionCircle className="ml-1" title="These options help personalize your experience" />
+                  </button>
+                  
+                  {showPreferences && (
+                    <div className="space-y-3 p-3 bg-indigo-50 rounded-md">
+                      <p className="text-xs text-gray-600 mb-2">These preferences help us personalize your experience (all fields are optional)</p>
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label htmlFor="age" className="block text-xs font-medium text-gray-700 mb-1">Age</label>
+                          <input
+                            id="age"
+                            name="age"
+                            type="number"
+                            className={`appearance-none rounded-md relative block w-full px-3 py-2 border ${formErrors.age ? 'border-red-500' : 'border-gray-300'} placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                            placeholder="Your age"
+                            value={age}
+                            onChange={(e) => setAge(e.target.value)}
+                          />
+                          {formErrors.age && <p className="text-red-500 text-xs mt-1">{formErrors.age}</p>}
+                        </div>
+                        
+                        <div>
+                          <label htmlFor="gender" className="block text-xs font-medium text-gray-700 mb-1">Gender</label>
+                          <select
+                            id="gender"
+                            name="gender"
+                            className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            value={gender}
+                            onChange={(e) => setGender(e.target.value)}
+                          >
+                            <option value="">Prefer not to say</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="non-binary">Non-binary</option>
+                            <option value="other">Other</option>
+                          </select>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Preferred Communication Style</label>
+                        <select
+                          className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                          value={communicationStyle}
+                          onChange={(e) => setCommunicationStyle(e.target.value)}
+                        >
+                          {communicationStyles.map(style => (
+                            <option key={style.id} value={style.id}>{style.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Topics of Interest (Select multiple)</label>
+                        <div className="grid grid-cols-2 gap-1">
+                          {availableTopics.map(topic => (
+                            <div key={topic.id} className="flex items-center">
+                              <input
+                                id={`topic-${topic.id}`}
+                                type="checkbox"
+                                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                checked={preferredTopics.includes(topic.id)}
+                                onChange={() => {
+                                  if (preferredTopics.includes(topic.id)) {
+                                    setPreferredTopics(preferredTopics.filter(t => t !== topic.id));
+                                  } else {
+                                    setPreferredTopics([...preferredTopics, topic.id]);
+                                  }
+                                }}
+                              />
+                              <label htmlFor={`topic-${topic.id}`} className="ml-2 block text-xs text-gray-700">
+                                {topic.name}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
             )}
             <div>
               <label htmlFor="email-address" className="sr-only">Email address</label>
