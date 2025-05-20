@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  FaHeart, FaComments, FaChartLine, FaClipboardCheck, 
-  FaMoon, FaSignInAlt, FaUserPlus, FaArrowRight, 
+import {
+  FaHeart, FaComments, FaChartLine, FaClipboardCheck,
+  FaMoon, FaSignInAlt, FaUserPlus, FaArrowRight,
   FaQuoteLeft, FaChevronDown, FaChevronUp, FaLeaf
 } from 'react-icons/fa';
 import { GiBrain, GiMeditation, GiHeartBeats } from 'react-icons/gi';
@@ -66,7 +66,7 @@ const Home = ({ session }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50 font-sans">
-      {/* Navigation Bar */}
+      {/* NavBar */}
       <nav className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
@@ -78,25 +78,25 @@ const Home = ({ session }) => {
             </div>
             <div className="hidden md:block">
               <div className="ml-10 flex items-center space-x-4">
-                <button 
+                <button
                   onClick={() => window.scrollTo(0, 0)}
                   className="text-gray-900 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Home
                 </button>
-                <button 
+                <button
                   onClick={() => document.getElementById('features').scrollIntoView({ behavior: 'smooth' })}
                   className="text-gray-900 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Features
                 </button>
-                <button 
+                <button
                   onClick={() => document.getElementById('testimonials').scrollIntoView({ behavior: 'smooth' })}
                   className="text-gray-900 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Stories
                 </button>
-                <button 
+                <button
                   onClick={() => document.getElementById('resources').scrollIntoView({ behavior: 'smooth' })}
                   className="text-gray-900 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium"
                 >
@@ -148,7 +148,7 @@ const Home = ({ session }) => {
               </button>
               <button
                 onClick={() => document.getElementById('features').scrollIntoView({ behavior: 'smooth' })}
-                className="inline-flex items-center justify-center px-8 py-4 border-2 border-white text-lg font-medium rounded-full text-white hover:bg-white hover:bg-opacity-10 transition-all duration-300"
+                className="inline-flex items-center justify-center px-8 py-4 border-2 hover:text-[#7E11DF] border-white text-lg font-medium rounded-full text-white hover:bg-white hover:bg-opacity-10 transition-all duration-300"
               >
                 Learn How It Works
                 <FaChevronDown className="ml-2 animate-bounce" />
@@ -264,7 +264,7 @@ const Home = ({ session }) => {
               Discover how our community is finding hope and support.
             </p>
           </div>
-          
+
           <div className="mt-12 relative">
             <div className="relative overflow-hidden rounded-2xl bg-white shadow-xl">
               <div className="p-8">
@@ -312,7 +312,7 @@ const Home = ({ session }) => {
               Educational materials and additional support options.
             </p>
           </div>
-          
+
           <div className="mt-12">
             <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
               {/* Crisis Support Card */}
@@ -339,7 +339,7 @@ const Home = ({ session }) => {
                   </li>
                 </ul>
               </div>
-              
+
               {/* Articles Card */}
               <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-100 transform transition-all duration-300 hover:shadow-md">
                 <h3 className="text-xl font-semibold text-gray-900 flex items-center">
@@ -372,7 +372,7 @@ const Home = ({ session }) => {
                         <span className="text-blue-500 mr-2">•</span>
                         <span className="text-gray-700">Managing Stress at Work</span>
                       </li>
-                      <button 
+                      <button
                         onClick={() => setShowMore(false)}
                         className="text-blue-600 hover:text-blue-500 font-medium inline-flex items-center mt-2"
                       >
@@ -382,7 +382,7 @@ const Home = ({ session }) => {
                     </>
                   ) : (
                     <li>
-                      <button 
+                      <button
                         onClick={() => setShowMore(true)}
                         className="text-blue-600 hover:text-blue-500 font-medium inline-flex items-center"
                       >
@@ -393,7 +393,7 @@ const Home = ({ session }) => {
                   )}
                 </ul>
               </div>
-              
+
               {/* Community Card */}
               <div className="bg-gradient-to-br from-green-50 to-teal-50 p-6 rounded-xl border border-green-100 transform transition-all duration-300 hover:shadow-md">
                 <h3 className="text-xl font-semibold text-gray-900 flex items-center">
@@ -441,14 +441,14 @@ const Home = ({ session }) => {
           <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
             <button
               onClick={() => session ? navigate('/chat') : navigate('/login')}
-              className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-medium rounded-full shadow-lg text-indigo-600"
+              className="inline-flex items-center justify-center px-8 py-4 border bg-white border-transparent text-lg font-medium rounded-full shadow-lg text-indigo-600"
             >
               {session ? 'Continue Your Journey' : 'Get Started Now'}
               <FaArrowRight className="ml-2" />
             </button>
             <button
               onClick={() => document.getElementById('features').scrollIntoView({ behavior: 'smooth' })}
-              className="inline-flex items-center justify-center px-8 py-4 border-2 border-white text-lg font-medium rounded-full text-white hover:bg-white hover:bg-opacity-10 transition-all duration-300"
+              className="inline-flex items-center justify-center px-8 py-4 border-2 hover:text-[#7E11DF] border-white text-lg font-medium rounded-full text-white hover:bg-white hover:bg-opacity-10 transition-all duration-300"
             >
               Learn More First
             </button>
@@ -467,7 +467,7 @@ const Home = ({ session }) => {
               Frequently Asked Questions
             </h2>
           </div>
-          
+
           <div className="mt-12 space-y-6 max-w-3xl mx-auto">
             {[
               {
@@ -525,14 +525,14 @@ const Home = ({ session }) => {
                 </a>
               </div>
             </div>
-            
+
             <div>
               <h3 className="text-sm font-semibold text-gray-300 tracking-wider uppercase">
                 Support
               </h3>
               <ul className="mt-4 space-y-4">
                 <li>
-                  <button 
+                  <button
                     onClick={() => document.getElementById('resources').scrollIntoView({ behavior: 'smooth' })}
                     className="text-base text-gray-400 hover:text-white"
                   >
@@ -551,7 +551,7 @@ const Home = ({ session }) => {
                 </li>
               </ul>
             </div>
-            
+
             <div>
               <h3 className="text-sm font-semibold text-gray-300 tracking-wider uppercase">
                 Company
@@ -579,7 +579,7 @@ const Home = ({ session }) => {
                 </li>
               </ul>
             </div>
-            
+
             <div>
               <h3 className="text-sm font-semibold text-gray-300 tracking-wider uppercase">
                 Legal
@@ -603,7 +603,7 @@ const Home = ({ session }) => {
               </ul>
             </div>
           </div>
-          
+
           <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center">
             <p className="text-base text-gray-400">
               © {new Date().getFullYear()} MindCare. All rights reserved.
