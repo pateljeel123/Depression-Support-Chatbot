@@ -1,6 +1,6 @@
 # Depression Support Chatbot - Backend Server
 
-This is the backend server for the Depression Support Chatbot application. It handles API requests from the frontend and communicates with the Mistral AI API.
+This is the backend server for the Depression Support Chatbot application. It handles API requests from the frontend and communicates with the Mistral AI API. The server now uses an MVC (Model-View-Controller) architecture for better code organization and maintainability.
 
 ## Setup Instructions
 
@@ -39,6 +39,22 @@ npm run dev
 
 The server will start on port 5000 by default.
 
+## Project Structure
+
+The server now follows an MVC (Model-View-Controller) architecture:
+
+```
+server/
+├── config/         # Configuration files
+├── controllers/    # Request handlers
+├── middleware/     # Express middleware
+├── models/         # Data and business logic
+├── routes/         # Route definitions
+├── .env            # Environment variables (not in repo)
+├── server.js       # Application entry point
+└── package.json    # Project dependencies
+```
+
 ## API Endpoints
 
 ### Health Check
@@ -48,6 +64,14 @@ GET /
 ```
 
 Returns a simple message to confirm the API is running.
+
+## Emotional Intelligence
+
+The chatbot now features enhanced emotional intelligence capabilities:
+
+- **Emotion Detection**: Automatically detects emotions in user messages including sadness, anxiety, anger, loneliness, hopelessness, and suicidal thoughts
+- **Tailored Responses**: Provides customized responses based on the detected emotion
+- **Crisis Support**: Offers appropriate resources for users in crisis
 
 ### Chat
 
