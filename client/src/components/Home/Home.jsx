@@ -433,7 +433,6 @@ const Home = ({ session }) => {
       <section className="py-20 bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-extrabold sm:text-4xl">
-            
             Ready to prioritize your mental health?
           </h2>
           <p className="mt-4 max-w-3xl mx-auto text-xl text-indigo-100">
