@@ -8,6 +8,7 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+
 const Auth = ({ initialMode }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
