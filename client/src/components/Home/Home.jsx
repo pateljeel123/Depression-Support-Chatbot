@@ -7,8 +7,10 @@ import {
 } from 'react-icons/fa';
 import { GiBrain, GiMeditation, GiHeartBeats } from 'react-icons/gi';
 import { IoMdHappy, IoMdSad } from 'react-icons/io';
+import { useAuth } from '../../context/AuthContext';
 
-const Home = ({ session }) => {
+const Home = () => {
+  const { session, signOut } = useAuth();
   const [showMore, setShowMore] = useState(false);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const navigate = useNavigate();
@@ -105,20 +107,42 @@ const Home = ({ session }) => {
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <button
-                onClick={() => navigate('/login')}
-                className="inline-flex items-center px-4 py-2 border border-indigo-300 text-sm font-medium rounded-md text-indigo-700 bg-white hover:bg-indigo-50 focus:outline-none transition duration-150 ease-in-out"
-              >
-                <FaSignInAlt className="mr-2 h-4 w-4" />
-                Login
-              </button>
-              <button
-                onClick={() => session ? navigate('/chat') : navigate('/signup')}
-                className="ml-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
-              >
-                {session ? 'Go to Chat' : 'Sign Up'}
-                {!session && <FaUserPlus className="ml-2 h-4 w-4" />}
-              </button>
+              {!session ? (
+                <>
+                  <button
+                    onClick={() => navigate('/login')}
+                    className="inline-flex items-center px-4 py-2 border border-indigo-300 text-sm font-medium rounded-md text-indigo-700 bg-white hover:bg-indigo-50 focus:outline-none transition duration-150 ease-in-out"
+                  >
+                    <FaSignInAlt className="mr-2 h-4 w-4" />
+                    Login
+                  </button>
+                  <button
+                    onClick={() => navigate('/signup')}
+                    className="ml-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
+                  >
+                    Sign Up
+                    <FaUserPlus className="ml-2 h-4 w-4" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => navigate('/chat')}
+                    className="inline-flex items-center px-4 py-2 border border-indigo-300 text-sm font-medium rounded-md text-indigo-700 bg-white hover:bg-indigo-50 focus:outline-none transition duration-150 ease-in-out"
+                  >
+                    Go to Chat
+                  </button>
+                  <button
+                    onClick={() => {
+                      signOut();
+                      navigate('/');
+                    }}
+                    className="ml-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
