@@ -5,6 +5,7 @@ import {
   FiCopy, FiSearch, FiStar, FiFileText, FiUpload, FiSettings, FiUser 
 } from 'react-icons/fi'; // Added FiFileText, FiUpload, FiSettings, FiUser
 import { BsEmojiSmile, BsImage, BsMarkdown } from 'react-icons/bs'; // Added BsImage, BsMarkdown
+import Picker, { EmojiStyle } from 'emoji-picker-react';
 import { IoMdMic, IoMdMicOff } from 'react-icons/io';
 import { RiRobot2Line } from 'react-icons/ri'; // Added RiRobot2Line
 import { AiOutlineRobot, AiFillRobot } from 'react-icons/ai'; // Added AiOutlineRobot, AiFillRobot
@@ -21,6 +22,8 @@ import { ChatItem } from './components/ChatItem';
 import { PromptSuggestion } from './components/PromptSuggestion';
 import { ChatInputActions } from './components/ChatInputActions'; // Added this import
 import { MessageMenu } from './components/MessageMenu'; // Added this import
+import { CrisisResources } from './components/CrisisResources'; // Added this import
+import { VoiceVisualizer } from './components/VoiceVisualizer'; // Added for voice visualization
 
 const lightCodeTheme = themes.vsLight;
 const darkCodeTheme = themes.vsDark;
@@ -55,6 +58,19 @@ export default function Chat(){
   const [editingMessage, setEditingMessage] = useState(null); // For editing messages
   const [editedContent, setEditedContent] = useState(''); // For editing message content
   const [reactingToMessageId, setReactingToMessageId] = useState(null); // For message reactions
+  const [availableVoices, setAvailableVoices] = useState([]);
+  const emojiPickerRef = useRef(null); // Ref for emoji picker
+  const [isBotSpeaking, setIsBotSpeaking] = useState(false); // Added state for bot speaking indicator
+  const [audioLevel, setAudioLevel] = useState(0); // Added for voice visualization
+  const audioContextRef = useRef(null);
+  const analyserRef = useRef(null);
+  const microphoneSourceRef = useRef(null);
+  const animationFrameIdRef = useRef(null);
+
+  const handlePreferenceChange = (key, value) => {
+    setUserPreferences(prev => ({ ...prev, [key]: value }));
+  };
+
   const [userPreferences, setUserPreferences] = useState({
     animations: true,
     markdown: true,
@@ -62,7 +78,10 @@ export default function Chat(){
     syntaxHighlighting: true, // Added syntaxHighlighting
     username: '', // Added username
     email: '', // Added email
-    darkMode: window.matchMedia('(prefers-color-scheme: dark)').matches // Initialize darkMode preference
+    darkMode: window.matchMedia('(prefers-color-scheme: dark)').matches, // Initialize darkMode preference
+    ttsEnabled: false, // Added ttsEnabled for text-to-speech
+    ttsVoice: null, // Added ttsVoice
+    ttsSpeed: 1 // Added ttsSpeed (0.1 to 10, default 1)
   });
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/chat';
   
@@ -72,6 +91,7 @@ export default function Chat(){
   const inputRef = useRef(null);
   const chatInputRef = useRef(null); // Ref for the chat input area for drag and drop
   const fileInputRef = useRef(null);
+  const speechSynthesisRef = useRef(window.speechSynthesis);
   
   // Speech recognition
   const {
@@ -158,21 +178,179 @@ export default function Chat(){
     localStorage.setItem('settings', JSON.stringify(userPreferences));
   }, [userPreferences]);
 
+  // Handle click outside emoji picker to close it
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
+        // Check if the click was on the emoji toggle button itself.
+        // The stopPropagation in the toggle button's onClick should prevent this.
+        setShowEmojiPicker(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [emojiPickerRef, setShowEmojiPicker]);
+
+  // Function to speak text using browser's SpeechSynthesis API
+  const speakText = useCallback((text) => {
+    if (!userPreferences.ttsEnabled || !speechSynthesisRef.current) {
+      setIsBotSpeaking(false); // Ensure state is reset if TTS is not enabled or not available
+      return;
+    }
+
+    speechSynthesisRef.current.cancel(); // Cancel any ongoing speech
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    if (userPreferences.ttsVoice) {
+      const voices = speechSynthesisRef.current.getVoices();
+      const selectedVoice = voices.find(voice => voice.name === userPreferences.ttsVoice);
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+      }
+    }
+    utterance.rate = userPreferences.ttsSpeed || 1;
+
+    utterance.onstart = () => {
+      setIsBotSpeaking(true);
+    };
+    utterance.onend = () => {
+      setIsBotSpeaking(false);
+    };
+    utterance.onerror = (event) => {
+      setIsBotSpeaking(false);
+      console.error("Speech synthesis error", event);
+    };
+    
+    speechSynthesisRef.current.speak(utterance);
+  }, [userPreferences.ttsEnabled, userPreferences.ttsVoice, userPreferences.ttsSpeed]);
+
   // Handle speech recognition transcript
   useEffect(() => {
-    // Only update input if listening and transcript is non-empty
-    // This assumes transcript is the full recognized text for the current session
-    if (listening && transcript) {
+    // Update input with transcript. If listening stops, the final transcript remains.
+    if (transcript) {
       setInput(transcript);
     }
-    // If not listening, the transcript might be from the last session.
-    // resetTranscript() is called when starting to listen and after sending a message.
-  }, [transcript, listening]);
+  }, [transcript]);
+
+  // Get available voices for TTS
+  useEffect(() => {
+    const updateVoices = () => {
+      if (speechSynthesisRef.current) {
+        const voices = speechSynthesisRef.current.getVoices();
+        setAvailableVoices(voices);
+        // If no voice is selected and voices are available, select a default one
+        if (!userPreferences.ttsVoice && voices.length > 0) {
+          const defaultVoice = voices.find(v => v.default) || voices.find(v => v.lang.startsWith(navigator.language.split('-')[0])) || voices[0];
+          if (defaultVoice) {
+            handlePreferenceChange('ttsVoice', defaultVoice.name);
+          }
+        }
+      }
+    };
+
+    if (speechSynthesisRef.current) {
+        updateVoices(); // Initial call to get voices
+        if (speechSynthesisRef.current.onvoiceschanged !== undefined) {
+            speechSynthesisRef.current.onvoiceschanged = updateVoices;
+        }
+    }
+
+    return () => {
+      if (speechSynthesisRef.current && speechSynthesisRef.current.onvoiceschanged !== undefined) {
+        speechSynthesisRef.current.onvoiceschanged = null;
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [speechSynthesisRef]); // Rerun if speechSynthesisRef instance changes (should be stable after mount)
+
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Audio processing for visualizer
+  const startAudioProcessing = async () => {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+        analyserRef.current = audioContextRef.current.createAnalyser();
+        microphoneSourceRef.current = audioContextRef.current.createMediaStreamSource(stream);
+        microphoneSourceRef.current.connect(analyserRef.current);
+        analyserRef.current.fftSize = 256;
+        const bufferLength = analyserRef.current.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+
+        const updateAudioLevel = () => {
+          if (analyserRef.current && microphoneSourceRef.current && listening) {
+            analyserRef.current.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < bufferLength; i++) {
+              sum += dataArray[i];
+            }
+            const average = sum / bufferLength;
+            setAudioLevel(average / 128); // Normalize to 0-1 range (approx)
+            animationFrameIdRef.current = requestAnimationFrame(updateAudioLevel);
+          } else {
+            setAudioLevel(0); // Reset if not listening or refs are null
+            if (animationFrameIdRef.current) cancelAnimationFrame(animationFrameIdRef.current);
+          }
+        };
+        animationFrameIdRef.current = requestAnimationFrame(updateAudioLevel);
+      } catch (err) {
+        console.error('Error accessing microphone for visualizer:', err);
+        setAudioLevel(0);
+      }
+    } else {
+      console.warn('getUserMedia not supported or not available in this context (e.g. http)');
+      setAudioLevel(0);
+    }
+  };
+
+  const stopAudioProcessing = () => {
+    if (animationFrameIdRef.current) {
+      cancelAnimationFrame(animationFrameIdRef.current);
+      animationFrameIdRef.current = null;
+    }
+    if (microphoneSourceRef.current && microphoneSourceRef.current.mediaStream) {
+      microphoneSourceRef.current.mediaStream.getTracks().forEach(track => track.stop());
+    }
+    if (microphoneSourceRef.current) {
+        microphoneSourceRef.current.disconnect();
+        microphoneSourceRef.current = null;
+    }
+    if (analyserRef.current) {
+        analyserRef.current.disconnect();
+        analyserRef.current = null;
+    }
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+      audioContextRef.current.close().catch(e => console.error("Error closing AudioContext:", e));
+      audioContextRef.current = null;
+    }
+    setAudioLevel(0);
+  };
+
+  // Cleanup audio processing on component unmount
+  useEffect(() => {
+    return () => {
+      stopAudioProcessing();
+    };
+  }, []);
+
+  // Manage audio processing and mic banner based on listening state
+  useEffect(() => {
+    if (listening) {
+      setShowMic(true);
+      startAudioProcessing();
+    } else {
+      stopAudioProcessing();
+      setShowMic(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listening]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -211,6 +389,12 @@ export default function Chat(){
   // Handle canceling a reply
   const handleCancelReply = () => {
     setReplyingToMessage(null);
+  };
+
+  // Handle emoji selection
+  const onEmojiClick = (emojiData, event) => {
+    setInput(prevInput => prevInput + emojiData.emoji);
+    // setShowEmojiPicker(false); // Optionally close picker after selection
   };
 
   // Create a new chat
@@ -460,12 +644,10 @@ export default function Chat(){
       )
     );
 
-    setInput('');
-    setAttachments([]);
-    setAttachmentPreviews([]);
-    setReplyingToMessage(null); // Clear replying state after sending
+    // Optimistic updates done. Input, attachments, previews, and replyingToMessage will be cleared
+    // after successful AI response or error handling. isLoading, playSound also handled post-response.
+    setReplyingToMessage(null); // Clear replying state before sending API request
     setIsLoading(true);
-    playSound('send');
 
     try {
       // Prepare payload for the API
@@ -522,14 +704,25 @@ export default function Chat(){
         )
       );
 
+      setInput(''); // Clear input after successful send and AI processing
+      setAttachments([]);
+      setAttachmentPreviews([]);
+      resetTranscript(); // Clear transcript after successful send
+      playSound('send'); // Play sound after successful processing
+
+      if (userPreferences.ttsEnabled && assistantReply) {
+        speakText(assistantReply);
+      }
+
     } catch (error) {
       console.error('Error sending message to API:', error);
-      const errorMessageContent = error.message.includes('Failed to fetch') 
-        ? 'Sorry, I could not connect to the server. Please check your connection or if the server is running.'
-        : `Sorry, I encountered an error: ${error.message}. Please try again.`;
+      const errorMessageContent = error.message && error.message.includes('Failed to fetch') 
+        ? 'Sorry, I couldn\'t connect to the server. Please check your connection or if the server is running, and try again.'
+        : `Sorry, I encountered an error: ${error.message || 'Unknown error'}. Please try again.`;
       
       const errorMessage = createMessage('assistant', errorMessageContent);
       setMessages(prev => [...prev, errorMessage]);
+      // Don't clear input on error, allow user to retry/edit.
       setChats(prevChats =>
         prevChats.map(chat =>
           chat.id === activeChat
@@ -547,12 +740,14 @@ export default function Chat(){
   const toggleMic = () => {
     if (listening) {
       SpeechRecognition.stopListening();
+      // useEffect[listening] will handle stopAudioProcessing() and setShowMic(false)
     } else {
-      resetTranscript(); // Reset transcript before starting new recognition
+      setInput('');
+      resetTranscript();
       SpeechRecognition.startListening({ continuous: true, language: 'en-US' });
+      // useEffect[listening] will handle startAudioProcessing() and setShowMic(true)
     }
-    setShowMic(!listening); // Toggle showMic based on the new listening state
-    playSound('selectChat');
+    playSound('selectChat'); // Sound for mic toggle
   };
 
   // Toggle emoji picker
@@ -872,6 +1067,9 @@ export default function Chat(){
                 <FiSettings />
                 <span>Settings</span>
               </button>
+              <div className="mt-2">
+                <CrisisResources darkMode={darkMode} />
+              </div>
             </div>
           </motion.div>
         )}
@@ -1184,16 +1382,21 @@ export default function Chat(){
           )}
           
           {showMic && browserSupportsSpeechRecognition && (
-            <div className={`mb-4 p-3 rounded-lg flex items-center ${listening ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'} ${darkMode ? 'bg-gray-700' : ''}`}>
-              <div className="flex-1">
-                {listening ? 'Listening... Speak now' : 'Click the mic and start speaking'}
+            <div className={`mb-4 p-3 rounded-lg flex flex-col items-center ${listening ? (darkMode ? 'bg-red-900 bg-opacity-30' : 'bg-red-100') : (darkMode ? 'bg-gray-700' : 'bg-gray-100') }`}>
+              <div className={`w-full flex items-center justify-between mb-2 ${listening ? (darkMode ? 'text-red-300' : 'text-red-800') : (darkMode ? 'text-gray-300' : 'text-gray-800')}`}>
+                <span className="flex-1">
+                  {listening ? 'Listening... Speak now' : 'Click the mic and start speaking'}
+                </span>
+                <button
+                  onClick={toggleMic}
+                  className={`p-2 rounded-full ${listening ? (darkMode ? 'bg-red-600 text-white' : 'bg-red-500 text-white') : (darkMode ? 'bg-gray-600 text-gray-300' : 'bg-gray-200 text-gray-700')}`}
+                >
+                  {listening ? <IoMdMicOff size={20} /> : <IoMdMic size={20} />}
+                </button>
               </div>
-              <button
-                onClick={toggleMic}
-                className={`p-2 rounded-full ${listening ? 'bg-red-500 text-white' : 'bg-gray-200'} ${darkMode ? 'bg-gray-600' : ''}`}
-              >
-                {listening ? <IoMdMic size={20} /> : <IoMdMicOff size={20} />}
-              </button>
+              {listening && (
+                <VoiceVisualizer listening={listening} audioLevel={audioLevel} darkMode={darkMode} />
+              )}
             </div>
           )}
           
@@ -1208,7 +1411,12 @@ export default function Chat(){
             </div>
           )}
           <form onSubmit={handleSendMessage} className="flex items-end space-x-2">
-            <div className="flex-1 relative">
+            <div className={`flex-1 relative ${isBotSpeaking ? 'mb-5' : ''}`}>
+              {isBotSpeaking && (
+                <div className="absolute bottom-full left-0 right-0 mx-auto mb-1 text-center text-xs text-gray-500 dark:text-gray-400 animate-pulse p-1 bg-opacity-50 rounded-md">
+                  AI is speaking...
+                </div>
+              )}
               <textarea
                 ref={inputRef}
                 value={input}
@@ -1232,7 +1440,7 @@ export default function Chat(){
                 
                 <button
                   type="button"
-                  onClick={toggleEmojiPicker}
+                  onClick={(e) => { e.stopPropagation(); setShowEmojiPicker(!showEmojiPicker); }}
                   className={`p-1 rounded-full ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`}
                 >
                   <BsEmojiSmile size={20} />
@@ -1241,10 +1449,11 @@ export default function Chat(){
                 {browserSupportsSpeechRecognition && (
                   <button
                     type="button"
-                    onClick={toggleMic}
-                    className={`p-1 rounded-full ${showMic ? (darkMode ? 'text-indigo-400' : 'text-indigo-600') : (darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700')}`}
+                    onClick={toggleMic} 
+                    className={`p-1 rounded-full ${listening ? (darkMode ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-700') : (darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700')}`}
+                    title={listening ? 'Stop listening' : 'Start listening'}
                   >
-                    <IoMdMic size={20} />
+                    {listening ? <IoMdMicOff size={20} /> : <IoMdMic size={20} />}
                   </button>
                 )}
                 
@@ -1258,8 +1467,15 @@ export default function Chat(){
               </div>
               
               {showEmojiPicker && (
-                <div className="absolute right-0 bottom-12 z-10">
-                  <EmojiPicker onSelect={handleEmojiSelect} darkMode={darkMode} />
+                <div ref={emojiPickerRef} className="absolute right-0 bottom-12 z-50">
+                  <Picker
+                    onEmojiClick={onEmojiClick}
+                    autoFocusSearch={false}
+                    theme={darkMode ? 'dark' : 'light'}
+                    emojiStyle={EmojiStyle.NATIVE}
+                    lazyLoadEmojis={true}
+                    previewConfig={{ showPreview: false }}
+                  />
                 </div>
               )}
             </div>
@@ -1444,9 +1660,89 @@ const SettingsPanel = ({
                         checked={userPreferences.syntaxHighlighting}
                         onChange={() => setUserPreferences({...userPreferences, syntaxHighlighting: !userPreferences.syntaxHighlighting})}
                       />
-                      <div className={`w-11 h-6 rounded-full peer ${userPreferences.syntaxHighlighting ? 'bg-indigo-600' : 'bg-gray-200'} peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}></div>
+                      <div className={`w-11 h-6 rounded-full peer ${userPreferences.syntaxHighlighting ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-600'} peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}></div>
                     </label>
                   </div>
+                </div>
+              </div>
+
+              {/* TTS Settings UI */}
+              <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-medium mb-4">Text-to-Speech (TTS)</h3>
+                <div className="space-y-4">
+                  {/* TTS Enabled Toggle */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Enable TTS</p>
+                      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        Have AI responses read aloud.
+                      </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only peer" 
+                        checked={userPreferences.ttsEnabled}
+                        onChange={() => handlePreferenceChange('ttsEnabled', !userPreferences.ttsEnabled)}
+                      />
+                      <div className={`w-11 h-6 rounded-full peer ${userPreferences.ttsEnabled ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-600'} peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}></div>
+                    </label>
+                  </div>
+
+                  {userPreferences.ttsEnabled && (
+                    <AnimatePresence>
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden space-y-4 pt-4"
+                      >
+                        {availableVoices.length > 0 ? (
+                          <>
+                            {/* TTS Voice Select */}
+                            <div>
+                              <label htmlFor="ttsVoice" className={`block mb-2 font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Voice</label>
+                              <select
+                                id="ttsVoice"
+                                name="ttsVoice"
+                                value={userPreferences.ttsVoice || ''}
+                                onChange={(e) => handlePreferenceChange('ttsVoice', e.target.value)}
+                                className={`w-full p-2 rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'} border ${darkMode ? 'border-gray-600' : 'border-gray-300'} focus:ring-indigo-500 focus:border-indigo-500`}
+                              >
+                                <option value="" disabled>Select a voice</option>
+                                {availableVoices.map((voice) => (
+                                  <option key={voice.name} value={voice.name}>
+                                    {voice.name} ({voice.lang})
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            {/* TTS Speed Slider */}
+                            <div>
+                              <label htmlFor="ttsSpeed" className={`block mb-2 font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                Speed: {userPreferences.ttsSpeed.toFixed(1)}x
+                              </label>
+                              <input
+                                type="range"
+                                id="ttsSpeed"
+                                name="ttsSpeed"
+                                min="0.5"
+                                max="2"
+                                step="0.1"
+                                value={userPreferences.ttsSpeed}
+                                onChange={(e) => handlePreferenceChange('ttsSpeed', parseFloat(e.target.value))}
+                                className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 dark:accent-indigo-500 bg-gray-200 dark:bg-gray-600"
+                              />
+                            </div>
+                          </>
+                        ) : (
+                          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Loading voices or no voices available in your browser...</p>
+                        )}
+                      </motion.div>
+                    </AnimatePresence>
+                  )}
                 </div>
               </div>
             </div>
@@ -1913,3 +2209,6 @@ const EmojiPicker = ({ onSelect, darkMode }) => {
     </div>
   );
 }
+
+// i want add feature and more working is AI asistent audio voice chat and audio voice to voice reply from AI chat making perfect
+// I  want to create a seamless voice-to-voice chat experience with the AI assistant in Chat.jsx . I will focus on refining the existing Speech-to-Text (STT) and Text-to-Speech (TTS) functionalities. This involves ensuring that user speech is accurately transcribed and sent as input, and that the AI's text responses are automatically converted to speech. I'll also aim to improve the user interface for voice interaction, providing clear feedback during the speech input and output process to make it feel more natural and perfect.
