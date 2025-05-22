@@ -1,12 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createClient } from '@supabase/supabase-js';
 import { FaQuestionCircle } from 'react-icons/fa';
-
-// Initialize Supabase client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { supabase, createUserProfileInTable } from '../../services/supabaseClient';
 
 
 const Auth = ({ initialMode }) => {
@@ -120,7 +115,19 @@ const Auth = ({ initialMode }) => {
         });
 
         if (error) throw error;
-        setSuccessMessage('Registration successful! Please check your email for verification.');
+        
+        if (data.user) {
+          // Now, create a profile in the public.users table
+          await createUserProfileInTable(data.user.id, {
+            full_name: name,
+            age: age ? parseInt(age) : null,
+            gender: gender || null,
+            preferred_topics: preferredTopics,
+            communication_style: communicationStyle
+          });
+        }
+
+        setSuccessMessage('Registration successful! Please check your email for verification and profile created.');
         // Navigate to login page after successful signup
         setTimeout(() => navigate('/login'), 2000);
       } else {
@@ -151,7 +158,7 @@ const Auth = ({ initialMode }) => {
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             <span className="font-medium text-indigo-600 hover:text-indigo-500">
-              Depression Support - A Safe Space for Healing
+              Depression Support - A safe place for treatment
             </span>
           </p>
         </div>
@@ -248,7 +255,7 @@ const Auth = ({ initialMode }) => {
                       </div>
                       
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Topics of Interest (Select multiple)</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Topics of Interest (select multiple)</label>
                         <div className="grid grid-cols-2 gap-1">
                           {availableTopics.map(topic => (
                             <div key={topic.id} className="flex items-center">
@@ -338,7 +345,7 @@ const Auth = ({ initialMode }) => {
 
             <div className="text-sm">
               <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500">
-                Forgot your password?
+                Forgot password?
               </a>
             </div>
           </div>
