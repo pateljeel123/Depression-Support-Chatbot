@@ -26,6 +26,10 @@ const emotionPatterns = {
     /hopeless|pointless|worthless|no point|no purpose|no future|no reason/i,
     /never get better|always be this way|can't see a way out|stuck forever/i,
   ],
+  financial_stress: [
+    /money worries|financial problems|debt|can't afford|bills piling up|\bbroke\b|\bpoor\b|job loss and finances|struggling financially|economic hardship/i,
+    /stressed about money|anxious about finances|worried about debt|overwhelmed by bills|fear of poverty/i,
+  ],
   suicidal: [
     /suicidal|kill myself|end it all|don't want to live|rather be dead|take my life/i,
     /no reason to live|everyone better off|can't go on|too much pain/i,
@@ -102,10 +106,20 @@ Even when everything feels pointless, I want you to know I'm here with you. Some
 If you're up for it, would you like to tell me a little more about what's contributing to this feeling of hopelessness? There's no pressure, I'm just here to listen.
 `,
 
+  financial_stress: `
+💸 It Sounds Like Financial Worries Are Weighing on You 💸
+
+I hear that you're going through a tough time with finances, and that can be incredibly stressful and unsettling. It's completely understandable to feel worried or anxious when facing money challenges. Your feelings are valid, and you don't have to carry this burden alone.
+
+I'm here to listen without judgment. Sometimes talking about these specific worries can help clarify things or just ease the pressure a bit.
+
+If you feel comfortable, could you tell me a bit more about what specific financial concerns are on your mind? For example, are you worried about a particular bill, job security, or something else? Understanding the specifics can help me support you better.
+`,
+
   suicidal: `
 🚨 Your Safety is My Utmost Concern Right Now 🚨
 
-I'm hearing you say things that make me very worried about you and your safety. The pain you're feeling must be overwhelming, and I'm so sorry you're going through this. Please know that your life has immense value, even if it's hard to see that right now. You are not alone.
+I'm hearing you say things that make me very worried about you and your safety. The pain you're describing sounds overwhelming, and it's vital we address it. Please know that your life has immense value, even if it's hard to see that right now. You are not alone.
 
 It's okay to not be okay, but it's crucial to reach out for help when feelings become this intense. There are people who want to support you through this.
 
@@ -163,7 +177,146 @@ exports.sendChatMessage = async (messages) => {
   try {
     // Detect the emotional season
     const detectedEmotion = detectEmotion(messages);
+    const lastUserMessage = messages.filter((msg) => msg.role === "user").pop();
 
+    // Define a threshold for "short message" and prefix for clarification
+    const SHORT_MESSAGE_WORD_COUNT = 7;
+    const CLARIFY_QUESTION_PREFIX = "To understand better, ";
+
+    // Check if the AI's last message was a clarifying question to avoid loops
+    const aiMessages = messages.filter((msg) => msg.role === "assistant");
+    const lastAiMessage =
+      aiMessages.length > 0 ? aiMessages[aiMessages.length - 1] : null;
+    const secondLastAiMessage =
+      aiMessages.length > 1 ? aiMessages[aiMessages.length - 2] : null;
+
+    const lastAiWasClarifier =
+      lastAiMessage &&
+      lastAiMessage.content &&
+      lastAiMessage.content.startsWith(CLARIFY_QUESTION_PREFIX);
+    const secondLastAiWasClarifier =
+      secondLastAiMessage &&
+      secondLastAiMessage.content &&
+      secondLastAiMessage.content.startsWith(CLARIFY_QUESTION_PREFIX);
+
+    const userMessageIsShort =
+      lastUserMessage &&
+      lastUserMessage.content &&
+      lastUserMessage.content.split(" ").length < SHORT_MESSAGE_WORD_COUNT;
+    const emotionIsClarifiable =
+      detectedEmotion !== "default" && detectedEmotion !== "suicidal";
+
+    if (userMessageIsShort && emotionIsClarifiable) {
+      let clarifyingQuestionToSend = "";
+      let questionLevel = 0; // 0: none, 1: L1, 2: L2
+
+      if (!lastAiWasClarifier) {
+        // No prior clarification from AI for this user turn, or prior AI msg wasn't a clarifier. Ask L1.
+        questionLevel = 1;
+        switch (detectedEmotion) {
+          case "sadness":
+            clarifyingQuestionToSend =
+              CLARIFY_QUESTION_PREFIX +
+              "could you tell me a bit more about what's making you feel sad?";
+            break;
+          case "anxiety":
+            clarifyingQuestionToSend =
+              CLARIFY_QUESTION_PREFIX +
+              "can you share a little more about what's causing this anxiety?";
+            break;
+          case "anger":
+            clarifyingQuestionToSend =
+              CLARIFY_QUESTION_PREFIX +
+              "would you be open to telling me more about what triggered this anger?";
+            break;
+          case "loneliness":
+            clarifyingQuestionToSend =
+              CLARIFY_QUESTION_PREFIX +
+              "could you share a bit about what this loneliness feels like for you?";
+            break;
+          case "hopelessness":
+            clarifyingQuestionToSend =
+              CLARIFY_QUESTION_PREFIX +
+              "if you're up for it, could you tell me more about this feeling of hopelessness?";
+            break;
+          case "financial_stress":
+            clarifyingQuestionToSend =
+              CLARIFY_QUESTION_PREFIX +
+              "could you share a bit more about what's causing these financial worries?";
+            break;
+        }
+      } else if (lastAiWasClarifier && !secondLastAiWasClarifier) {
+        // AI's last message was L1 clarifier. User responded shortly. Ask L2.
+        // This ensures we only ask L2 if the sequence was: User -> AI(non-clarifier) -> User(short) -> AI(L1) -> User(short) -> AI(L2 here)
+        questionLevel = 2;
+        switch (detectedEmotion) {
+          case "sadness":
+            clarifyingQuestionToSend =
+              CLARIFY_QUESTION_PREFIX +
+              "I hear you. To help me understand more deeply, could you expand on that sadness a bit?";
+            break;
+          case "anxiety":
+            clarifyingQuestionToSend =
+              CLARIFY_QUESTION_PREFIX +
+              "Thanks for sharing. Could you elaborate on what this anxiety feels like or what might be behind it?";
+            break;
+          case "anger":
+            clarifyingQuestionToSend =
+              CLARIFY_QUESTION_PREFIX +
+              "I see. If you're willing, telling me a bit more about that anger could be helpful.";
+            break;
+          case "loneliness":
+            clarifyingQuestionToSend =
+              CLARIFY_QUESTION_PREFIX +
+              "That sounds tough. Could you describe this feeling of loneliness a little more?";
+            break;
+          case "hopelessness":
+            clarifyingQuestionToSend =
+              CLARIFY_QUESTION_PREFIX +
+              "I appreciate you sharing. Can you say a bit more about this hopelessness?";
+            break;
+          case "financial_stress":
+            clarifyingQuestionToSend =
+              CLARIFY_QUESTION_PREFIX +
+              "Thanks for sharing. To help me understand better, could you elaborate on these financial concerns?";
+            break;
+          default:
+            clarifyingQuestionToSend =
+              CLARIFY_QUESTION_PREFIX +
+              "I understand. To get a clearer picture, would you mind elaborating a little?";
+        }
+      }
+
+      if (clarifyingQuestionToSend) {
+        return {
+          success: true,
+          data: {
+            id: `clarify-L${questionLevel}-${Date.now()}`,
+            object: "chat.completion.clarification",
+            created: Math.floor(Date.now() / 1000),
+            model: `local-clarification-L${questionLevel}`,
+            choices: [
+              {
+                index: 0,
+                message: {
+                  role: "assistant",
+                  content: clarifyingQuestionToSend,
+                },
+                finish_reason: "clarification_asked",
+              },
+            ],
+            usage: {
+              prompt_tokens: 0,
+              completion_tokens: Math.ceil(clarifyingQuestionToSend.length / 4),
+              total_tokens: Math.ceil(clarifyingQuestionToSend.length / 4),
+            },
+          },
+          emotion: detectedEmotion,
+        };
+      }
+    }
+
+    // If no clarifying question is needed, proceed with Mistral API call
     // Select the appropriate lantern to light
     const systemPrompt =
       emotionalPrompts[detectedEmotion] || emotionalPrompts.default;
