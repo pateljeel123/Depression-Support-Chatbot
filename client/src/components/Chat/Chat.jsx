@@ -20,6 +20,7 @@ import { Tooltip } from './components/Tooltip';
 import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { ChatItem } from './components/ChatItem';
 import { PromptSuggestion } from './components/PromptSuggestion';
+import { WelcomePage } from './components/WelcomePage';
 import { ChatInputActions } from './components/ChatInputActions'; // Added this import
 import { MessageMenu } from './components/MessageMenu'; // Added this import
 import { CrisisResources } from './components/CrisisResources'; // Added this import
@@ -123,23 +124,23 @@ export default function Chat(){
           setMessages(activeChatData.messages);
         } else {
           // Chat exists or is the first chat, but has no messages or empty messages array
-          const welcomeMessage = createMessage('assistant', 'Hello! How can I assist you today?', currentActiveChatId);
-          setMessages([welcomeMessage]);
-          // Persist this welcome message to the chat object
+          // Don't add a welcome message to show the welcome page
+          setMessages([]);
+          // Persist empty messages array to the chat object
           setChats(prevChats => prevChats.map(c =>
             c.id === currentActiveChatId
-              ? { ...c, messages: [welcomeMessage] }
+              ? { ...c, messages: [] }
               : c
           ));
         }
       } else if (parsedChats.length === 0) {
         // No chats in localStorage, create a new one
-        const newChatInstance = createNewChat();
-        setActiveChat(newChatInstance.id);
-        const initialMessage = createMessage('assistant', 'Hello! How can I assist you today?', newChatInstance.id);
-        newChatInstance.messages = [initialMessage];
-        setChats([newChatInstance]);
-        setMessages([initialMessage]);
+      const newChatInstance = createNewChat();
+      setActiveChat(newChatInstance.id);
+      // Don't add an initial message to show the welcome page
+      newChatInstance.messages = [];
+      setChats([newChatInstance]);
+      setMessages([]);
       }
       // If parsedChats exist but currentActiveChatId is null (e.g. empty array from storage), do nothing for messages
 
@@ -403,11 +404,10 @@ export default function Chat(){
     
     setChats([newChat, ...chats]);
     setActiveChat(newChat.id);
-    const initialMessage = createMessage('assistant', 'Hello! How can I assist you today?');
-    initialMessage.chatId = newChat.id; // Assign chatId to the initial message
-    setMessages([initialMessage]);
-    // Also update the chat object itself to store its messages
-    setChats(prevChats => prevChats.map(c => c.id === newChat.id ? { ...c, messages: [initialMessage] } : c));
+    // Don't add an initial message to show the welcome page
+    setMessages([]);
+    // Also update the chat object itself to store empty messages array
+    setChats(prevChats => prevChats.map(c => c.id === newChat.id ? { ...c, messages: [] } : c));
     setInput('');
     setSidebarOpen(false);
     setAttachments([]);
@@ -427,12 +427,11 @@ export default function Chat(){
       setMessages(currentChat.messages);
     } else {
       // If no messages are stored for this chat, or messages array is empty,
-      // set a default initial message and persist it to the chat object.
-      const welcomeMessage = createMessage('assistant', `Switched to chat: ${currentChat?.title || 'New Chat'}. How can I help?`, null);
-      setMessages([welcomeMessage]);
+      // don't add a welcome message to show the welcome page
+      setMessages([]);
       if (currentChat) { // Ensure currentChat exists before trying to update it
         setChats(prevChats => prevChats.map(c => 
-          c.id === chatId ? { ...c, messages: [welcomeMessage] } : c
+          c.id === chatId ? { ...c, messages: [] } : c
         ));
       }
     }
@@ -944,37 +943,37 @@ export default function Chat(){
             animate={{ x: 0 }}
             exit={{ x: -300 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className={`w-64 md:w-72 flex-shrink-0 h-full overflow-y-auto ${darkMode ? 'bg-gray-800' : 'bg-white'} border-r ${darkMode ? 'border-gray-700' : 'border-gray-200'} fixed md:relative z-40`}
+            className={`w-full max-w-[85vw] sm:max-w-[320px] md:w-72 flex-shrink-0 h-full overflow-y-auto ${darkMode ? 'bg-gray-800' : 'bg-white'} border-r ${darkMode ? 'border-gray-700' : 'border-gray-200'} fixed md:relative z-40 shadow-xl md:shadow-none`}
           >
             <div className="p-4">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-6">
                 <h1 className="text-xl font-bold flex items-center">
                   <RiRobot2Line className="mr-2 text-indigo-500" />
-                  AI Assistant
+                  <span className="font-serif">Depression Support</span>
                 </h1>
                 <ThemeSwitcher darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
               </div>
               
               <button
                 onClick={handleNewChat}
-                className={`w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-lg mb-4 ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'} transition-all hover:shadow-md`}
+                className={`w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-lg mb-6 ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'} transition-all hover:shadow-md`}
               >
                 <FiPlus />
-                <span>New Chat</span>
+                <span className="font-medium">New Chat</span>
               </button>
               
-              <div className="relative mb-4">
+              <div className="relative mb-6">
                 <FiSearch className="absolute left-3 top-3 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search chats..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`w-full pl-10 pr-4 py-2 rounded-lg ${darkMode ? 'bg-gray-700 text-white placeholder-gray-400' : 'bg-gray-100 text-gray-900 placeholder-gray-500'} focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                  className={`w-full pl-10 pr-4 py-2.5 rounded-lg ${darkMode ? 'bg-gray-700 text-white placeholder-gray-400' : 'bg-gray-100 text-gray-900 placeholder-gray-500'} focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                 />
               </div>
               
-              <div className="flex border-b mb-2">
+              <div className="flex border-b mb-4">
                 <button
                   className={`flex-1 py-2 font-medium ${activeTab === 'chats' ? (darkMode ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-indigo-600 border-b-2 border-indigo-600') : (darkMode ? 'text-gray-400' : 'text-gray-500')}`}
                   onClick={() => setActiveTab('chats')}
@@ -994,10 +993,10 @@ export default function Chat(){
                   <>
                     {pinnedChats.length > 0 && (
                       <div className="mb-4">
-                        <h2 className="text-sm font-semibold px-2 mb-2 opacity-70 flex items-center">
+                        <h2 className="text-sm font-semibold px-2 mb-3 flex items-center font-serif">
                           <FiStar className="mr-1 text-yellow-500" /> Pinned Chats
                         </h2>
-                        <div className="space-y-1">
+                        <div className="space-y-1.5">
                           {chats.filter(chat => pinnedChats.includes(chat.id)).map((chat) => (
                             <ChatItem 
                               key={chat.id}
@@ -1019,12 +1018,12 @@ export default function Chat(){
                       </div>
                     )}
                     
-                    <h2 className="text-sm font-semibold px-2 mb-2 opacity-70">Recent Chats</h2>
+                    <h2 className="text-sm font-semibold px-2 mb-3 opacity-70 font-serif">Recent Chats</h2>
                     <Reorder.Group 
                       axis="y" 
                       values={filteredChats.filter(chat => !pinnedChats.includes(chat.id))} 
                       onReorder={(newOrder) => setChats([...pinnedChats.map(id => chats.find(c => c.id === id)), ...newOrder])}
-                      className="space-y-1"
+                      className="space-y-1.5"
                     >
                       {filteredChats.filter(chat => !pinnedChats.includes(chat.id)).map((chat) => (
                         <Reorder.Item key={chat.id} value={chat}>
@@ -1056,18 +1055,7 @@ export default function Chat(){
             </div>
             
             <div className={`p-4 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-              <button className="flex items-center space-x-2 w-full p-2 rounded-lg hover:bg-gray-700 hover:bg-opacity-30">
-                <FiUser />
-                <span>Account</span>
-              </button>
-              <button 
-                className="flex items-center space-x-2 w-full p-2 rounded-lg hover:bg-gray-700 hover:bg-opacity-30"
-                onClick={() => setActiveTab('settings')}
-              >
-                <FiSettings />
-                <span>Settings</span>
-              </button>
-              <div className="mt-2">
+              <div>
                 <CrisisResources darkMode={darkMode} />
               </div>
             </div>
@@ -1076,9 +1064,9 @@ export default function Chat(){
       </AnimatePresence>
 
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
+      <div className="flex-1 flex flex-col h-full overflow-hidden w-full">
         {/* Header */}
-        <header className={`p-4 flex items-center justify-between border-b ${darkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
+        <header className={`p-2 sm:p-4 flex items-center justify-between border-b ${darkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
           <div className="flex items-center">
             {!sidebarOpen && (
               <button
@@ -1088,58 +1076,23 @@ export default function Chat(){
                 <FiMenu size={20} />
               </button>
             )}
-            <h1 className="text-xl font-semibold flex items-center">
+            <h1 className="text-lg sm:text-xl font-semibold flex items-center truncate max-w-[200px] sm:max-w-md">
               {activeChat && chats.find(chat => chat.id === activeChat)?.title || 'New Chat'}
             </h1>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <Tooltip content="Current model: GPT-4">
-              <div className={`flex items-center px-3 py-1 rounded-full text-sm ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
-                <AiOutlineRobot className="mr-1" />
-                <span>GPT-4</span>
-              </div>
+               
             </Tooltip>
-            <button
-              onClick={toggleDarkMode}
-              className={`p-2 rounded-full ${darkMode ? 'bg-gray-700 text-yellow-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-            >
-              {darkMode ? <FiSun size={20} /> : <FiMoon size={20} />}
-            </button>
+            
           </div>
         </header>
 
         {/* Messages */}
-        <div className={`flex-1 overflow-y-auto p-4 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className={`flex-1 overflow-y-auto ${darkMode ? 'bg-gray-900' : 'bg-gray-50'} px-2 sm:px-4`}>
           {messages.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center p-8">
-              <AiFillRobot size={64} className="mb-4 text-indigo-500 opacity-80" />
-              <h2 className="text-2xl font-bold mb-2">How can I help you today?</h2>
-              <p className="max-w-md mb-6 opacity-70">
-                Ask me anything, from creative ideas to technical explanations. I'm here to assist!
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-lg">
-                <PromptSuggestion 
-                  text="Explain quantum computing in simple terms" 
-                  onClick={() => setInput("Explain quantum computing in simple terms")}
-                  darkMode={darkMode}
-                />
-                <PromptSuggestion 
-                  text="Suggest some creative birthday ideas" 
-                  onClick={() => setInput("Suggest some creative birthday ideas")}
-                  darkMode={darkMode}
-                />
-                <PromptSuggestion 
-                  text="Help me debug this Python code" 
-                  onClick={() => setInput("Help me debug this Python code")}
-                  darkMode={darkMode}
-                />
-                <PromptSuggestion 
-                  text="Write a professional email to a client" 
-                  onClick={() => setInput("Write a professional email to a client")}
-                  darkMode={darkMode}
-                />
-              </div>
-            </div>
+            <WelcomePage darkMode={darkMode} setInput={setInput} />
+
           ) : (
             <>
               {Object.entries(groupedMessages).map(([date, dateMessages]) => (
@@ -1156,10 +1109,10 @@ export default function Chat(){
                       className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} mb-4`}
                     >
                       <div
-                        className={`max-w-3xl rounded-lg p-4 relative group ${message.role === 'user' 
-                          ? (darkMode ? 'bg-indigo-600' : 'bg-indigo-500 text-white') 
-                          : (darkMode ? 'bg-gray-700' : 'bg-white border border-gray-200')}`}
-                      >
+                          className={`max-w-full sm:max-w-3xl rounded-lg p-4 sm:p-5 relative group ${message.role === 'user' 
+                            ? (darkMode ? 'bg-indigo-600' : 'bg-indigo-500 text-white') 
+                            : (darkMode ? 'bg-gray-700' : 'bg-white border border-gray-200 shadow-sm')}`}
+                        >
                         <div className="absolute top-1 right-1 flex opacity-0 group-hover:opacity-100 transition-opacity items-center z-10"> {/* Added z-10 */}
                           {/* MessageMenu is now primary, copy is within it if needed or handled by it */}
                           <MessageMenu
@@ -1213,7 +1166,7 @@ export default function Chat(){
                             </div>
                           </div>
                         ) : (
-                          <div className="prose prose-sm max-w-none break-words"> {/* Added break-words */}
+                          <div className="prose prose-sm max-w-none break-words text-sm sm:text-base font-light"> {/* Added break-words, responsive text, and lighter font */}
                             <Markdown
                               remarkPlugins={[remarkGfm]}
                               components={{
@@ -1289,7 +1242,7 @@ export default function Chat(){
                           {message.role === 'assistant' && (
                             <span className="flex items-center">
                               <AiOutlineRobot className="mr-1" />
-                              AI Assistant
+                              <span className="font-serif">AI Assistant</span>
                             </span>
                           )}
                         </div>
@@ -1339,11 +1292,11 @@ export default function Chat(){
         </div>
 
         {/* Input area */}
-        <div className={`p-4 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-t`}>
+        <div className={`p-2 sm:p-4 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-t`}>
           {attachments.length > 0 && (
-            <div className={`mb-4 p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+            <div className={`mb-4 p-2 sm:p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-medium">Attachments ({attachments.length})</h3>
+                <h3 className="text-xs sm:text-sm font-medium">Attachments ({attachments.length})</h3>
                 <button 
                   onClick={() => { setAttachments([]); setAttachmentPreviews([]); }}
                   className={`p-1 rounded-full ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-200'}`}
@@ -1351,29 +1304,30 @@ export default function Chat(){
                   <FiX size={16} />
                 </button>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1 sm:gap-2">
                 {attachments.map((file, index) => (
                   <div 
                     key={index} 
-                    className={`p-2 rounded flex items-center text-sm ${darkMode ? 'bg-gray-600' : 'bg-gray-200'}`}
+                    className={`p-1.5 sm:p-2 rounded flex items-center text-xs sm:text-sm ${darkMode ? 'bg-gray-600' : 'bg-gray-200'}`}
                   >
                     {attachmentPreviews.find(p => p.originalFile === file && p.type.startsWith('image/')) ? (
-                      <img src={attachmentPreviews.find(p => p.originalFile === file).url} alt={file.name} className="w-8 h-8 mr-2 rounded object-cover" />
+                      <img src={attachmentPreviews.find(p => p.originalFile === file).url} alt={file.name} className="w-6 h-6 sm:w-8 sm:h-8 mr-1.5 sm:mr-2 rounded object-cover" />
                     ) : file.type.startsWith('image/') ? (
-                      <BsImage className="mr-2 flex-shrink-0" />
+                      <BsImage className="mr-1.5 sm:mr-2 flex-shrink-0" />
                     ) : (
-                      <FiFileText className="mr-2 flex-shrink-0" />
+                      <FiFileText className="mr-1.5 sm:mr-2 flex-shrink-0" />
                     )}
-                    <span className="truncate max-w-[100px]">{file.name}</span>
+                    <span className="truncate max-w-[80px] sm:max-w-[100px]">{file.name}</span>
                     <button 
                       onClick={() => {
                         const fileToRemove = attachments[index];
                         setAttachments(prev => prev.filter((f) => f !== fileToRemove));
                         setAttachmentPreviews(prev => prev.filter(p => p.originalFile !== fileToRemove));
                       }}
-                      className="ml-2 p-1 rounded-full hover:bg-gray-500 hover:bg-opacity-30"
+                      className="ml-1 sm:ml-2 p-1 rounded-full hover:bg-gray-500 hover:bg-opacity-30"
                     >
-                      <FiX size={14} />
+                      <FiX size={12} className="sm:hidden" />
+                      <FiX size={14} className="hidden sm:block" />
                     </button>
                   </div>
                 ))}
@@ -1423,7 +1377,7 @@ export default function Chat(){
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Type a message..."
                 rows="1"
-                className={`w-full rounded-lg py-3 px-4 pr-12 resize-none ${darkMode ? 'bg-gray-700 text-white placeholder-gray-400' : 'bg-gray-100 text-gray-900 placeholder-gray-500'} focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                className={`w-full rounded-lg py-3 sm:py-3.5 px-4 sm:px-5 pr-12 resize-none text-sm sm:text-base font-light ${darkMode ? 'bg-gray-700 text-white placeholder-gray-400' : 'bg-gray-100 text-gray-900 placeholder-gray-500'} focus:outline-none focus:ring-1 focus:ring-indigo-500`}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -1431,7 +1385,7 @@ export default function Chat(){
                   }
                 }}
               />
-              <div className="absolute right-2 bottom-2 flex space-x-1">
+              <div className="absolute right-2 bottom-2 flex space-x-1 sm:space-x-2">
                 <FileUpload 
                   onFileUpload={handleFileUpload} 
                   darkMode={darkMode} 
@@ -1467,7 +1421,7 @@ export default function Chat(){
               </div>
               
               {showEmojiPicker && (
-                <div ref={emojiPickerRef} className="absolute right-0 bottom-12 z-50">
+                <div ref={emojiPickerRef} className="absolute right-0 bottom-12 z-50 max-w-[90vw] sm:max-w-full">
                   <Picker
                     onEmojiClick={onEmojiClick}
                     autoFocusSearch={false}
@@ -1475,6 +1429,8 @@ export default function Chat(){
                     emojiStyle={EmojiStyle.NATIVE}
                     lazyLoadEmojis={true}
                     previewConfig={{ showPreview: false }}
+                    width="100%"
+                    height="350px"
                   />
                 </div>
               )}
@@ -1492,7 +1448,7 @@ export default function Chat(){
             </motion.button>
           </form>
           
-          <div className={`text-xs mt-2 text-center ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+          <div className={`text-xs mt-3 text-center font-light italic ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
             AI Assistant may produce inaccurate information. Consider verifying important details.
           </div>
         </div>
@@ -1529,8 +1485,8 @@ const SettingsPanel = ({
         className={`relative rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
         onClick={e => e.stopPropagation()}
       >
-        <div className={`p-4 border-b flex items-center justify-between ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-          <h2 className="text-xl font-semibold flex items-center">
+        <div className={`p-5 border-b flex items-center justify-between ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+          <h2 className="text-xl font-semibold flex items-center font-serif">
             <FiSettings className="mr-2" />
             Settings
           </h2>
@@ -1567,7 +1523,7 @@ const SettingsPanel = ({
           {activeTab === 'preferences' ? (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium mb-4">Appearance</h3>
+                <h3 className="text-lg font-medium mb-5 font-serif">Appearance</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -1827,7 +1783,7 @@ const SettingsPanel = ({
             </div>
           ) : (
             <div className="space-y-6">
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 sm:space-x-4">
                 <div className={`w-16 h-16 rounded-full flex items-center justify-center ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} text-2xl font-bold`}>
                   {userPreferences.username?.charAt(0).toUpperCase() || 'U'}
                 </div>
@@ -2209,6 +2165,4 @@ const EmojiPicker = ({ onSelect, darkMode }) => {
     </div>
   );
 }
-
-// i want add feature and more working is AI asistent audio voice chat and audio voice to voice reply from AI chat making perfect
-// I  want to create a seamless voice-to-voice chat experience with the AI assistant in Chat.jsx . I will focus on refining the existing Speech-to-Text (STT) and Text-to-Speech (TTS) functionalities. This involves ensuring that user speech is accurately transcribed and sent as input, and that the AI's text responses are automatically converted to speech. I'll also aim to improve the user interface for voice interaction, providing clear feedback during the speech input and output process to make it feel more natural and perfect.
+ 

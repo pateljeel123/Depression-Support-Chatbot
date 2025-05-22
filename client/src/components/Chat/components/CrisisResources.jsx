@@ -1,44 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiPhoneCall, FiX, FiExternalLink } from 'react-icons/fi';
+import { FiLifeBuoy, FiX, FiExternalLink } from 'react-icons/fi';
 
-const resources = [
-  {
-    id: 1,
-    name: 'National Suicide Prevention Lifeline',
-    contact: '1-800-273-8255',
-    description: '24/7, free and confidential support for people in distress',
-    url: 'https://suicidepreventionlifeline.org/'
-  },
-  {
-    id: 2,
-    name: 'Crisis Text Line',
-    contact: 'Text HOME to 741741',
-    description: 'Free 24/7 support with a crisis counselor',
-    url: 'https://www.crisistextline.org/'
-  },
-  {
-    id: 3,
-    name: `SAMHSA's National Helpline`,
-    contact: '1-800-662-4357',
-    description: 'Treatment referral and information service (English and Spanish)',
-    url: 'https://www.samhsa.gov/find-help/national-helpline'
-  },
-  {
-    id: 4,
-    name: 'Veterans Crisis Line',
-    contact: '1-800-273-8255 (Press 1)',
-    description: 'Connect with caring, qualified responders with the Department of Veterans Affairs',
-    url: 'https://www.veteranscrisisline.net/'
-  },
-  {
-    id: 5,
-    name: 'The Trevor Project',
-    contact: '1-866-488-7386',
-    description: 'Crisis intervention and suicide prevention for LGBTQ young people',
-    url: 'https://www.thetrevorproject.org/'
-  }
-];
+const resources = [];
+
 
 export const CrisisResources = ({ darkMode }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -52,7 +17,7 @@ export const CrisisResources = ({ darkMode }) => {
         className={`p-2 rounded-full ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}`}
         aria-label="Crisis resources"
       >
-        <FiPhoneCall size={20} className={darkMode ? 'text-green-400' : 'text-green-600'} />
+        <FiLifeBuoy size={20} className={darkMode ? 'text-green-400' : 'text-green-600'} />
       </motion.button>
 
       <AnimatePresence>
@@ -96,7 +61,7 @@ export const CrisisResources = ({ darkMode }) => {
             </div>
             
             <div className={`mt-3 pt-2 border-t text-xs ${darkMode ? 'border-gray-700 text-gray-400' : 'border-gray-200 text-gray-500'}`}>
-              If you're in immediate danger, please call emergency services (911) right away.
+              If you're in immediate danger, please seek emergency services right away.
             </div>
           </motion.div>
         )}
