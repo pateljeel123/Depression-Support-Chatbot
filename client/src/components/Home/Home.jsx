@@ -592,71 +592,53 @@ const Home = () => {
         >
           <div className="text-center">
             <motion.h1
-              className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
+              className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.7, delay: 0.5, type: "spring", stiffness: 100 }}
             >
-              <span className="block">Your Mental Health</span>
-              <motion.span
-                className="block bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-yellow-100"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2, duration: 0.8 }}
-              >
-                Matters to Us
-              </motion.span>
+              You’re Not Alone. <span className="block sm:inline">And You Don’t Have to Struggle in Silence.</span>
             </motion.h1>
             <motion.p
-              className="mt-6 max-w-3xl mx-auto text-xl text-indigo-100"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-            >
-              A compassionate space where technology meets empathy. We're here
-              to support you 24/7 with personalized care and evidence-based
-              tools.
-            </motion.p>
-            <motion.div
-              className="mt-10 flex flex-col sm:flex-row justify-center gap-4"
+              className="mt-6 max-w-2xl mx-auto text-lg sm:text-xl md:text-2xl text-indigo-100"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.8 }}
+              transition={{ duration: 0.7, delay: 0.7 }}
+            >
+              Depression affects over 300 million people globally. If you're feeling lost, empty, or overwhelmed — you’re not broken. You're human. We’re here to guide you back to clarity, connection, and hope.
+            </motion.p>
+            <motion.div
+              className="mt-10 max-w-lg mx-auto grid grid-cols-1 sm:grid-cols-3 gap-4 md:mt-12"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.9, staggerChildren: 0.1 }}
             >
               <motion.button
-                onClick={() =>
-                  session ? navigate("/chat") : navigate("/login")
-                }
-                className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-medium rounded-full shadow-lg text-indigo-700 bg-yellow-400 hover:bg-yellow-300"
-                whileHover={{
-                  scale: 1.05,
-                  boxShadow: "0 10px 25px -5px rgba(234, 179, 8, 0.4)",
-                }}
+                onClick={() => navigate("/phq9")} // Assuming /phq9 for mental health check
+                className="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-indigo-700 bg-yellow-300 hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 shadow-lg transform transition-all duration-300 hover:scale-105"
+                whileHover={{ scale: 1.05, boxShadow: "0px 0px 20px rgba(253, 224, 71, 0.5)" }}
                 whileTap={{ scale: 0.95 }}
               >
-                {session ? "Continue Your Journey" : "Start Healing Today"}
-                <FaArrowRight className="ml-2" />
+                <FaClipboardCheck className="mr-2 h-5 w-5" />
+                Free Mental Health Check
               </motion.button>
               <motion.button
-                onClick={() =>
-                  document
-                    .getElementById("features")
-                    .scrollIntoView({ behavior: "smooth" })
-                }
-                className="inline-flex items-center justify-center px-8 py-4 border-2 hover:text-[#7E11DF] border-white text-lg font-medium rounded-full text-white hover:bg-white hover:bg-opacity-10"
-                whileHover={{
-                  scale: 1.05,
-                  backgroundColor: "rgba(255, 255, 255, 0.1)",
-                }}
+                onClick={() => navigate("/chat")}
+                className="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 shadow-lg transform transition-all duration-300 hover:scale-105"
+                whileHover={{ scale: 1.05, boxShadow: "0px 0px 20px rgba(34, 197, 94, 0.5)" }}
                 whileTap={{ scale: 0.95 }}
               >
-                Learn How It Works
-                <motion.div
-                  animate={{ y: [0, 5, 0] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                >
-                  <FaChevronDown className="ml-2" />
-                </motion.div>
+                <FaComments className="mr-2 h-5 w-5" />
+                Talk to MindCare AI
+              </motion.button>
+              <motion.button
+                onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+                className="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-indigo-700 bg-purple-300 hover:bg-purple-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 shadow-lg transform transition-all duration-300 hover:scale-105"
+                whileHover={{ scale: 1.05, boxShadow: "0px 0px 20px rgba(192, 132, 252, 0.5)" }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <GiBrain className="mr-2 h-5 w-5" />
+                Explore Self-Help Tools
               </motion.button>
             </motion.div>
           </div>
@@ -718,6 +700,177 @@ const Home = () => {
           </motion.div>
         </motion.div>
       </section>
+
+      {/* Section 2: Common Problems People Face Because of Depression */}
+      <motion.section 
+        id="common-problems"
+        className="py-20 bg-gray-50"
+        initial={{ opacity: 0}}
+        whileInView={{ opacity: 1}}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.8 }}
+      >
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.h2 
+            className="text-3xl font-extrabold text-gray-900 text-center mb-4"
+            initial={{ y: 20, opacity: 0}}
+            whileInView={{ y: 0, opacity: 1}}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            Depression isn’t just sadness. It affects every corner of your life.
+          </motion.h2>
+          <motion.p 
+            className="text-lg text-gray-600 text-center mb-12"
+            initial={{ y: 20, opacity: 0}}
+            whileInView={{ y: 0, opacity: 1}}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            Top Problems Faced:
+          </motion.p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[ 
+              { icon: "🛏️", title: "Sleep Issues", text: "Trouble falling asleep, oversleeping, or feeling tired all day" },
+              { icon: "🍽️", title: "Changes in Appetite", text: "Eating too much or too little, without enjoyment" },
+              { icon: "🙇‍♀️", title: "Low Energy & Motivation", text: "Difficulty getting out of bed or starting daily tasks" },
+              { icon: "💔", title: "Isolation", text: "Pulling away from friends, family, and social activities" },
+              { icon: "🧠", title: "Negative Thoughts", text: "Feeling worthless, hopeless, or excessively guilty" },
+              { icon: "💼", title: "Work/School Struggles", text: "Poor focus, memory issues, or lack of interest in tasks" },
+              { icon: "😟", title: "Physical Aches", text: "Unexplained pain or discomfort in the body" },
+              { icon: "💬", title: "Suicidal Thoughts", text: "Feeling like life isn’t worth living (If you are in crisis, please seek immediate help)" },
+            ].map((problem, index) => (
+              <motion.div 
+                key={index} 
+                className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+                initial={{ opacity: 0, y: 30, scale: 0.95}}
+                whileInView={{ opacity: 1, y: 0, scale: 1}}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.5, delay: index * 0.1 + 0.5 }}
+              >
+                <div className="text-4xl mb-4">{problem.icon}</div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">{problem.title}</h3>
+                <p className="text-gray-600 text-sm">{problem.text}</p>
+              </motion.div>
+            ))}
+          </div>
+          <motion.div 
+            className="text-center mt-12"
+            initial={{ opacity: 0, y: 20}}
+            whileInView={{ opacity: 1, y: 0}}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+          >
+            <p className="text-gray-700 mb-2">Not sure if what you're feeling is depression?</p>
+            <motion.button
+              onClick={() => navigate("/phq9")}
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Take the Depression Self-Screening Quiz <FaArrowRight className="ml-2 h-4 w-4" />
+            </motion.button>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      {/* Section 3: Why This Platform? */}
+      <motion.section 
+        id="why-platform"
+        className="py-20 bg-indigo-50"
+        initial={{ opacity: 0}}
+        whileInView={{ opacity: 1}}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.8 }}
+      >
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.h2 
+            className="text-3xl font-extrabold text-gray-900 text-center mb-12"
+            initial={{ y: 20, opacity: 0}}
+            whileInView={{ y: 0, opacity: 1}}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            Why Choose MindCare?
+          </motion.h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[ 
+              { icon: "🧠", title: "Evidence-Based Tools", text: "Guided by the latest psychology and neuroscience" },
+              { icon: "💬", title: "Private & Confidential", text: "No judgments, just safe conversations" },
+              { icon: "👂", title: "Real Human Support", text: "From trained therapists and empathetic listeners (AI-assisted for now)" },
+              { icon: "📱", title: "Easy Access", text: "Anytime, anywhere, at your pace" },
+            ].map((reason, index) => (
+              <motion.div 
+                key={index} 
+                className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 text-center"
+                initial={{ opacity: 0, y: 30, scale: 0.95}}
+                whileInView={{ opacity: 1, y: 0, scale: 1}}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.5, delay: index * 0.1 + 0.5 }}
+              >
+                <div className="text-5xl mb-4 inline-block p-3 bg-indigo-100 rounded-full text-indigo-600">{reason.icon}</div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">{reason.title}</h3>
+                <p className="text-gray-600 text-sm">{reason.text}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Section 4: What You Can Do Here */}
+      <motion.section 
+        id="what-to-do"
+        className="py-20 bg-white"
+        initial={{ opacity: 0}}
+        whileInView={{ opacity: 1}}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.8 }}
+      >
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.h2 
+            className="text-3xl font-extrabold text-gray-900 text-center mb-12"
+            initial={{ y: 20, opacity: 0}}
+            whileInView={{ y: 0, opacity: 1}}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            What You Can Do Here
+          </motion.h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[ 
+              { icon: <FaComments className="h-8 w-8 text-indigo-600"/>, title: "Chat with MindCare AI", text: "Get instant, empathetic support and guidance.", link: "/chat" },
+              { icon: <FaClipboardCheck className="h-8 w-8 text-green-600"/>, title: "Access Self-Help Workbooks", text: "Interactive guides for various mental health topics.", link: "/resources" },
+              { icon: <FaUserPlus className="h-8 w-8 text-blue-600"/>, title: "Join Anonymous Peer Groups", text: "Connect with others who understand. (Coming Soon)", link: "#" },
+              { icon: <FaChartLine className="h-8 w-8 text-yellow-600"/>, title: "Track Your Mood & Progress", text: "Visualize your journey and identify patterns.", link: "/mood-tracker" },
+              { icon: <GiBrain className="h-8 w-8 text-purple-600"/>, title: "Understand Your Symptoms", text: "Learn more about what you're experiencing.", link: "/learn" },
+              { icon: <FaHeart className="h-8 w-8 text-red-600"/>, title: "Get Tips for Family Support", text: "Help your loved ones understand and support you.", link: "/family-support" },
+            ].map((action, index) => (
+              <motion.div 
+                key={index} 
+                className="bg-gray-50 p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col items-center text-center"
+                initial={{ opacity: 0, y: 30, scale: 0.95}}
+                whileInView={{ opacity: 1, y: 0, scale: 1}}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.5, delay: index * 0.1 + 0.5 }}
+              >
+                <div className="p-3 rounded-full bg-white shadow-md mb-4">{action.icon}</div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">{action.title}</h3>
+                <p className="text-gray-600 text-sm mb-4 flex-grow">{action.text}</p>
+                <motion.button
+                  onClick={() => action.link === "#" ? null : navigate(action.link)}
+                  className={`mt-auto inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md ${action.link === "#" ? 'bg-gray-400 cursor-not-allowed' : 'text-white bg-indigo-600 hover:bg-indigo-700'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-sm`}
+                  whileHover={{ scale: action.link === "#" ? 1 : 1.05 }}
+                  whileTap={{ scale: action.link === "#" ? 1 : 0.95 }}
+                  disabled={action.link === "#"}
+                >
+                  {action.link === "#" ? "Coming Soon" : (action.title.startsWith("Chat") ? "Start Chatting" : "Learn More")}
+                  {action.link !== "#" && <FaArrowRight className="ml-2 h-4 w-4" />}
+                </motion.button>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
 
       {/* Features Section */}
       <section
