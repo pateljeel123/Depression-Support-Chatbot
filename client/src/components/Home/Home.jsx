@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, Suspense } from "react";
+import React, { useState, useEffect, useRef, Suspense, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FaHeart,
@@ -21,35 +21,16 @@ import { GiBrain, GiMeditation, GiHeartBeats } from "react-icons/gi";
 import { IoMdHappy, IoMdSad } from "react-icons/io";
 import { useAuth } from "../../context/AuthContext";
 import { motion, useAnimation, AnimatePresence } from "framer-motion";
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Stars, Float, useScroll } from "@react-three/drei";
-import * as THREE from "three";
-import { useFrame } from "@react-three/fiber";
+// Note: Most 3D elements (Canvas, OrbitControls, Stars, Float, BrainModel, FloatingIcon, FeatureModel)
+// have been removed or their usage significantly reduced to address performance issues and lags.
+// Framer Motion will be primarily used for animations.
 
-// in this code features section into update Ui is better then this Ui to improve section deivide 6 part to one by one left and then right side then repeat this circle type make it more and more attractive Ui and add scroll effect 3D animation add user-friendly make it
-// 3D Brain Component
-const BrainModel = () => {
+// Simplified icon component for features
+const FeatureIcon = ({ icon, color }) => {
   return (
-    <mesh>
-      <sphereGeometry args={[1, 32, 32]} />
-      <meshStandardMaterial color="#6366f1" roughness={0.2} metalness={0.1} />
-    </mesh>
-  );
-};
-
-// Floating Feature Icons
-const FloatingIcon = ({ icon, position, color }) => {
-  return (
-    <Float speed={3} rotationIntensity={1} floatIntensity={2}>
-      <mesh position={position}>
-        <sphereGeometry args={[0.2, 16, 16]} />
-        <meshStandardMaterial
-          color={color}
-          emissive={color}
-          emissiveIntensity={0.5}
-        />
-      </mesh>
-    </Float>
+    <div className={`p-4 rounded-full shadow-lg`} style={{ backgroundColor: color }}>
+      {React.cloneElement(icon, { className: "h-8 w-8 text-white" })}
+    </div>
   );
 };
 
@@ -57,27 +38,24 @@ const Home = () => {
   const { session, signOut } = useAuth();
   const [showMore, setShowMore] = useState(false);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
-  const [scrollY, setScrollY] = useState(0);
-  const controls = useAnimation();
+  const [isHovered, setIsHovered] = useState(false); // This state seems unused, consider removing if not needed for other parts.
+  const controls = useAnimation(); // Retained for other potential animations, but hero parallax is handled differently.
   const navigate = useNavigate();
   const heroRef = useRef(null);
+  const featuresRef = useRef(null); // Ref for scrolling to features section
 
+  // Parallax scroll effect for hero content
   useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
+    const handleHeroScroll = () => {
+      if (heroRef.current) {
+        const currentScrollY = window.scrollY;
+        // Apply a subtle parallax effect to the hero content
+        heroRef.current.style.transform = `translateY(${currentScrollY * 0.15}px)`;
+      }
     };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleHeroScroll);
+    return () => window.removeEventListener("scroll", handleHeroScroll);
   }, []);
-
-  useEffect(() => {
-    controls.start({
-      y: scrollY * -0.1,
-      transition: { type: "spring", stiffness: 300, damping: 30 },
-    });
-  }, [scrollY, controls]);
 
   const testimonials = [
     {
@@ -107,49 +85,51 @@ const Home = () => {
       description:
         "Talk to our compassionate AI companion anytime. Get immediate support in a safe, judgment-free space with responses tailored to your needs.",
       color: "#6366f1", // Indigo
-      model: "chat",
+      // model property removed
     },
     {
-      icon: <FaChartLine className="h-8 w-8 text-white" />,
+      icon: <FaChartLine />, // Pass icon component directly
       title: "Mood Tracking",
       description:
         "Visualize your emotional patterns with our intuitive mood tracker. Gain insights to better understand your mental health journey.",
       color: "#10b981", // Emerald
-      model: "graph",
+      // model property removed
     },
     {
-      icon: <FaClipboardCheck className="h-8 w-8 text-white" />,
+      icon: <FaClipboardCheck />, // Pass icon component directly
       title: "PHQ-9 Assessment",
       description:
         "Professional-grade depression screening with personalized feedback and progress tracking over time.",
       color: "#3b82f6", // Blue
-      model: "assessment",
+      // model property removed
     },
     {
-      icon: <GiHeartBeats className="h-8 w-8 text-white" />,
+      icon: <GiHeartBeats />, // Pass icon component directly
       title: "Personalized Support",
       description:
         "Receive customized recommendations including exercises, articles, and coping strategies based on your unique needs.",
       color: "#ec4899", // Pink
-      model: "heart",
+      // model property removed
     },
     {
-      icon: <GiMeditation className="h-8 w-8 text-white" />,
+      icon: <GiMeditation />, // Pass icon component directly
       title: "Mindfulness Tools",
       description:
         "Access guided meditations, breathing exercises, and relaxation techniques to reduce stress and anxiety.",
       color: "#f59e0b", // Amber
-      model: "meditation",
+      // model property removed
     },
     {
-      icon: <GiBrain className="h-8 w-8 text-white" />,
+      icon: <GiBrain />, // Pass icon component directly
       title: "Cognitive Exercises",
       description:
         "Interactive activities designed to challenge negative thought patterns and build resilience.",
       color: "#8b5cf6", // Violet
-      model: "brain",
+      // model property removed
     },
   ];
+  // Removed the duplicated features array. The 'model' property is no longer needed.
+
   // const features = [
   //   {
   //     icon: <FaComments className="h-8 w-8 text-white" />,
@@ -201,188 +181,95 @@ const Home = () => {
   //   },
   // ];
 
-  // 3D Models for each feature
-  const FeatureModel = ({ modelType, isActive }) => {
-    const meshRef = useRef();
-    const groupRef = useRef();
-    
-    useFrame(({ clock }) => {
-      if (meshRef.current) {
-        meshRef.current.rotation.y = clock.getElapsedTime() * 0.5;
-      }
-      if (groupRef.current && isActive) {
-        groupRef.current.position.y = Math.sin(clock.getElapsedTime() * 2) * 0.1;
-      }
-    });
+  // Removed FeatureModel component and complex scroll-based active feature logic.
+  // New FeatureCard component with IntersectionObserver will handle animations.
 
-    switch (modelType) {
-      case "chat":
-        return (
-          <group ref={groupRef}>
-            <Float speed={3} rotationIntensity={1} floatIntensity={2}>
-              <mesh ref={meshRef} position={[0, 0, 0]}>
-                <boxGeometry args={[1, 0.5, 0.2]} />
-                <meshStandardMaterial 
-                  color="#6366f1" 
-                  emissive="#6366f1"
-                  emissiveIntensity={isActive ? 0.5 : 0.2}
-                />
-                <mesh position={[0, 0.4, 0]} rotation={[0, 0, 0.2]}>
-                  <boxGeometry args={[0.8, 0.1, 0.2]} />
-                  <meshStandardMaterial color="#4f46e5" />
-                </mesh>
-              </mesh>
-            </Float>
-          </group>
-        );
-      case "graph":
-        return (
-          <group ref={groupRef}>
-            <Float speed={3} rotationIntensity={1} floatIntensity={2}>
-              <group ref={meshRef}>
-                {[0, 0.5, 1, 1.5, 2].map((x, i) => (
-                  <mesh key={i} position={[x - 1, Math.sin(x) * 0.5 - 0.2, 0]}>
-                    <cylinderGeometry args={[0.1, 0.1, 0.5 + x * 0.3, 8]} />
-                    <meshStandardMaterial 
-                      color="#10b981" 
-                      emissive="#10b981"
-                      emissiveIntensity={isActive ? 0.5 : 0.2}
-                    />
-                  </mesh>
-                ))}
-              </group>
-            </Float>
-          </group>
-        );
-      case "assessment":
-        return (
-          <group ref={groupRef}>
-            <Float speed={3} rotationIntensity={1} floatIntensity={2}>
-              <mesh ref={meshRef}>
-                <boxGeometry args={[1, 1.4, 0.1]} />
-                <meshStandardMaterial 
-                  color="#3b82f6" 
-                  emissive="#3b82f6"
-                  emissiveIntensity={isActive ? 0.5 : 0.2}
-                />
-                <mesh position={[0, 0, 0.06]}>
-                  <planeGeometry args={[0.9, 1.3]} />
-                  <meshStandardMaterial color="#ffffff" side={THREE.DoubleSide} />
-                </mesh>
-              </mesh>
-            </Float>
-          </group>
-        );
-      case "heart":
-        return (
-          <group ref={groupRef}>
-            <Float speed={3} rotationIntensity={1} floatIntensity={2}>
-              <mesh ref={meshRef}>
-                <sphereGeometry args={[0.8, 32, 32]} />
-                <meshStandardMaterial 
-                  color="#ec4899" 
-                  emissive="#ec4899"
-                  emissiveIntensity={isActive ? 0.5 : 0.2}
-                />
-                <mesh position={[0, 0, 0]}>
-                  <sphereGeometry args={[0.85, 32, 32]} />
-                  <meshStandardMaterial 
-                    color="#ec4899" 
-                    transparent 
-                    opacity={0.2} 
-                    wireframe
-                  />
-                </mesh>
-              </mesh>
-            </Float>
-          </group>
-        );
-      case "meditation":
-        return (
-          <group ref={groupRef}>
-            <Float speed={3} rotationIntensity={1} floatIntensity={2}>
-              <mesh ref={meshRef} rotation={[0, 0, Math.PI / 4]}>
-                <torusGeometry args={[0.6, 0.2, 16, 32]} />
-                <meshStandardMaterial 
-                  color="#f59e0b" 
-                  emissive="#f59e0b"
-                  emissiveIntensity={isActive ? 0.5 : 0.2}
-                />
-                <mesh position={[0, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
-                  <torusGeometry args={[0.6, 0.2, 16, 32]} />
-                  <meshStandardMaterial 
-                    color="#f59e0b" 
-                    transparent 
-                    opacity={0.5} 
-                  />
-                </mesh>
-              </mesh>
-            </Float>
-          </group>
-        );
-      case "brain":
-        return (
-          <group ref={groupRef}>
-            <Float speed={3} rotationIntensity={1} floatIntensity={2}>
-              <mesh ref={meshRef}>
-                <sphereGeometry args={[0.8, 32, 32]} />
-                <meshStandardMaterial 
-                  color="#8b5cf6" 
-                  emissive="#8b5cf6"
-                  emissiveIntensity={isActive ? 0.5 : 0.2}
-                  wireframe
-                />
-                <mesh position={[0, 0, 0]}>
-                  <sphereGeometry args={[0.85, 32, 32]} />
-                  <meshStandardMaterial 
-                    color="#8b5cf6" 
-                    transparent 
-                    opacity={0.3} 
-                  />
-                </mesh>
-              </mesh>
-            </Float>
-          </group>
-        );
-      default:
-        return null;
-    }
+  const useIntersectionObserver = (options) => {
+    const [entry, setEntry] = useState(null);
+    const [node, setNode] = useState(null);
+
+    const observer = useRef(null);
+
+    const setRef = useCallback((newNode) => {
+      if (observer.current) {
+        observer.current.disconnect();
+      }
+      if (newNode) {
+        observer.current = new IntersectionObserver(([entry]) => setEntry(entry), options);
+        observer.current.observe(newNode);
+      }
+      setNode(newNode);
+    }, [options]);
+
+    return [setRef, entry];
   };
 
-  
+  // New FeatureCard component for the alternating layout
+  const FeatureCard = ({ feature, index }) => {
+    const itemControls = useAnimation();
+    const [ref, entry] = useIntersectionObserver({ threshold: 0.2, triggerOnce: true });
 
-  // Scroll animation setup
-  const containerRef = useRef();
-  const [activeFeature, setActiveFeature] = useState(0);
-  
-  useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"]
-  });
-  // Update active feature based on scroll position
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      const section = document.getElementById('features');
-      if (section) {
-        const sectionTop = section.offsetTop;
-        const sectionHeight = section.offsetHeight;
-        const scrollProgress = (scrollPosition - sectionTop) / sectionHeight;
-        
-        const newActiveFeature = Math.min(
-          Math.floor(scrollProgress * features.length),
-          features.length - 1
-        );
-        
-        if (newActiveFeature !== activeFeature) {
-          setActiveFeature(newActiveFeature);
-        }
-      }
+    useEffect(() => {
+      if (entry?.isIntersecting) {
+        itemControls.start("visible");
+      } 
+    }, [itemControls, entry]);
+
+    const contentVariants = {
+      hidden: { opacity: 0, x: index % 2 === 0 ? -50 : 50, scale: 0.95 },
+      visible: { opacity: 1, x: 0, scale: 1, transition: { duration: 0.7, ease: "easeOut" } },
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [activeFeature, features.length]);
+    const imageVariants = {
+      hidden: { opacity: 0, scale: 0.8, rotate: index % 2 === 0 ? -5 : 5 },
+      visible: { opacity: 1, scale: 1, rotate: 0, transition: { duration: 0.7, ease: "easeOut", delay: 0.2 } },
+    };
+
+    return (
+      <motion.div
+        ref={ref}
+        className={`flex flex-col md:flex-row items-center justify-between gap-8 md:gap-16 py-12 md:py-16 ${index % 2 === 0 ? 'md:flex-row-reverse' : ''}`}
+        initial="hidden"
+        animate={itemControls} // Animate the whole card container if needed, or rely on inner elements
+      >
+        {/* Text Content */}
+        <motion.div 
+          className="md:w-1/2 text-center md:text-left"
+          variants={contentVariants}
+        >
+          <div className="inline-block mb-6">
+            <FeatureIcon icon={feature.icon} color={feature.color} />
+          </div>
+          <h3 className="text-3xl lg:text-4xl font-bold text-gray-800 mb-4">{feature.title}</h3>
+          <p className="text-gray-600 text-lg lg:text-xl leading-relaxed mb-6">{feature.description}</p>
+          <motion.button
+            onClick={() => navigate(feature.title.toLowerCase().includes('chat') ? '/chat' : '/resources')}
+            className="px-8 py-3 text-lg font-semibold rounded-lg text-white shadow-lg transition-transform duration-300 ease-out transform hover:scale-105 active:scale-95"
+            style={{ backgroundColor: feature.color }}
+            whileHover={{ boxShadow: `0px 10px 20px -5px ${feature.color}77`}}
+          >
+            Learn More <FaArrowRight className="inline ml-2" />
+          </motion.button>
+        </motion.div>
+        {/* Image/Visual Placeholder */}
+        <motion.div 
+          className="md:w-1/2 w-full h-64 sm:h-80 md:h-96 mt-8 md:mt-0 rounded-xl shadow-2xl overflow-hidden group relative bg-gray-200"
+          variants={imageVariants}
+        >
+          <img 
+            src={`https://source.unsplash.com/random/800x600?${feature.title.split(' ')[0].toLowerCase()}&sig=${index}`}
+            alt={feature.title}
+            className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+          />
+           <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-50 group-hover:opacity-75 transition-opacity duration-300"></div>
+           <div className="absolute bottom-4 left-4 p-2 bg-black/50 rounded">
+             {React.cloneElement(feature.icon, { className: "h-10 w-10 text-white opacity-80" })}
+           </div>
+        </motion.div>
+      </motion.div>
+    );
+  };
+
 
   const rotateTestimonial = () => {
     setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
@@ -442,68 +329,48 @@ const Home = () => {
       <section
         id="home"
         className="relative py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-indigo-500 to-purple-600 text-white overflow-hidden"
-        ref={heroRef}
+        // Removed ref={heroRef} from section, parallax is applied to the content div below
       >
-        <div className="absolute inset-0 z-0">
-          <Canvas>
-            <ambientLight intensity={0.5} />
-            <pointLight position={[10, 10, 10]} />
-            <OrbitControls
-              enableZoom={false}
-              enablePan={false}
-              enableRotate={false}
-            />
-            <Stars
-              radius={50}
-              depth={50}
-              count={5000}
-              factor={4}
-              saturation={0}
-              fade
-              speed={1}
-            />
-            <Float speed={2} rotationIntensity={1} floatIntensity={2}>
-              <BrainModel />
-            </Float>
-            <FloatingIcon
-              icon={<FaComments />}
-              position={[-2, 1, 0]}
-              color="#f59e0b"
-            />
-            <FloatingIcon
-              icon={<FaHeart />}
-              position={[2, -1, 0]}
-              color="#ec4899"
-            />
-            <FloatingIcon
-              icon={<GiBrain />}
-              position={[0, 2, 0]}
-              color="#3b82f6"
-            />
-          </Canvas>
+        {/* Video Background */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline // Important for mobile playback
+            className="w-full h-full object-cover filter brightness-75"
+            // Replace with your actual 4K video URL or local path if hosted in public folder
+            // Using a placeholder video from Pexels for demonstration
+            src="https://videos.pexels.com/video-files/3209828/3209828-uhd_3840_2160_25fps.mp4" 
+            poster="https://images.pexels.com/photos/1563356/pexels-photo-1563356.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260" // Poster image
+          >
+            Your browser does not support the video tag.
+          </video>
+          {/* Overlay to darken the video for better text readability - can be adjusted or removed if brightness filter on video is enough */}
+          <div className="absolute inset-0 bg-black opacity-40"></div>
         </div>
 
         <motion.div
-          className="relative z-10 max-w-7xl mx-auto"
-          animate={controls}
+          ref={heroRef} // This div will have the parallax effect
+          className="relative z-10 max-w-7xl mx-auto flex flex-col items-center justify-center min-h-[85vh] sm:min-h-[90vh] text-center px-4"
+          // Parallax is handled by direct style manipulation in useEffect
         >
-          <div className="text-center">
-            <motion.h1
-              className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.7, delay: 0.5, type: "spring", stiffness: 100 }}
-            >
-              You’re Not Alone. <span className="block sm:inline">And You Don’t Have to Struggle in Silence.</span>
-            </motion.h1>
-            <motion.p
-              className="mt-6 max-w-2xl mx-auto text-lg sm:text-xl md:text-2xl text-indigo-100"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.7 }}
-            >
-              Depression affects over 300 million people globally. If you're feeling lost, empty, or overwhelmed — you’re not broken. You're human. We’re here to guide you back to clarity, connection, and hope.
-            </motion.p>
+          <motion.h1
+            className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl text-white drop-shadow-xl"
+            initial={{ opacity: 0, scale: 0.8, y: -50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3, type: "spring", stiffness: 120, damping: 20 }}
+          >
+            You’re Not Alone. <br className="sm:hidden"/> <span className="block sm:inline text-yellow-300">Find Your Path to Light.</span>
+          </motion.h1>
+          <motion.p
+            className="mt-6 max-w-3xl mx-auto text-lg sm:text-xl md:text-2xl text-gray-200 drop-shadow-lg"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
+          >
+            Millions experience depression. If you feel lost, overwhelmed, or empty—you're not broken, you're human. We provide the tools and support to guide you towards clarity, connection, and renewed hope.
+          </motion.p>
             <motion.div
               className="mt-10 max-w-lg mx-auto grid grid-cols-1 sm:grid-cols-3 gap-4 md:mt-12"
               initial={{ opacity: 0, y: 20 }}
@@ -511,34 +378,31 @@ const Home = () => {
               transition={{ duration: 0.7, delay: 0.9, staggerChildren: 0.1 }}
             >
               <motion.button
-                onClick={() => navigate("/phq9")} // Assuming /phq9 for mental health check
-                className="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-indigo-700 bg-yellow-300 hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 shadow-lg transform transition-all duration-300 hover:scale-105"
-                whileHover={{ scale: 1.05, boxShadow: "0px 0px 20px rgba(253, 224, 71, 0.5)" }}
-                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate("/phq9")} 
+                className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 border-2 border-yellow-400 text-lg font-semibold rounded-lg text-yellow-400 bg-transparent hover:bg-yellow-400 hover:text-indigo-900 focus:outline-none focus:ring-4 focus:ring-yellow-300 shadow-xl transition-all duration-300 ease-out transform hover:scale-105 active:scale-95"
+                whileHover={{ boxShadow: "0px 0px 25px rgba(250, 204, 21, 0.7)" }}
               >
-                <FaClipboardCheck className="mr-2 h-5 w-5" />
+                <FaClipboardCheck className="mr-3 h-6 w-6" />
                 Free Mental Health Check
               </motion.button>
               <motion.button
                 onClick={() => navigate("/chat")}
-                className="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 shadow-lg transform transition-all duration-300 hover:scale-105"
-                whileHover={{ scale: 1.05, boxShadow: "0px 0px 20px rgba(34, 197, 94, 0.5)" }}
-                whileTap={{ scale: 0.95 }}
+                className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 border-2 border-transparent text-lg font-semibold rounded-lg text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-4 focus:ring-green-400 shadow-xl transition-all duration-300 ease-out transform hover:scale-105 active:scale-95"
+                whileHover={{ boxShadow: "0px 0px 25px rgba(16, 185, 129, 0.7)" }}
               >
-                <FaComments className="mr-2 h-5 w-5" />
+                <FaComments className="mr-3 h-6 w-6" />
                 Talk to MindCare AI
               </motion.button>
               <motion.button
-                onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-                className="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-indigo-700 bg-purple-300 hover:bg-purple-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 shadow-lg transform transition-all duration-300 hover:scale-105"
-                whileHover={{ scale: 1.05, boxShadow: "0px 0px 20px rgba(192, 132, 252, 0.5)" }}
-                whileTap={{ scale: 0.95 }}
+                onClick={() => featuresRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 border-2 border-purple-400 text-lg font-semibold rounded-lg text-purple-400 bg-transparent hover:bg-purple-400 hover:text-white focus:outline-none focus:ring-4 focus:ring-purple-300 shadow-xl transition-all duration-300 ease-out transform hover:scale-105 active:scale-95"
+                whileHover={{ boxShadow: "0px 0px 25px rgba(192, 132, 252, 0.7)" }}
               >
-                <GiBrain className="mr-2 h-5 w-5" />
+                <GiBrain className="mr-3 h-6 w-6" />
                 Explore Self-Help Tools
               </motion.button>
             </motion.div>
-          </div>
+          
 
           <motion.div
             className="mt-16 flex justify-center"
@@ -769,104 +633,41 @@ const Home = () => {
         </div>
       </motion.section>
 
-      {/* Features Section */}
-      <section
-      id="features"
-      className="py-12 md:py-20 bg-gradient-to-b from-purple-50 to-blue-50 overflow-hidden"
-      ref={containerRef}
+      {/* New Features Section - Alternating Layout */}
+    <section 
+      id="features" 
+      ref={featuresRef} 
+      className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-50 to-gray-100 overflow-hidden"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16 md:mb-24">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-16 md:mb-20">
           <motion.h2 
-            className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight"
-            initial={{ opacity: 0, y: -20 }}
+            className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 tracking-tight mb-4"
+            initial={{ opacity: 0, y: -30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.5 }}
-            transition={{ duration: 0.7 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
           >
-            Features Designed for <span className="text-indigo-600">You</span>
+            Tools Designed for <span className="text-indigo-600">Your Wellbeing</span>
           </motion.h2>
           <motion.p 
-            className="mt-4 text-xl text-gray-600 max-w-2xl mx-auto"
+            className="mt-4 text-xl lg:text-2xl text-gray-700 max-w-3xl mx-auto leading-relaxed"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.5 }}
-            transition={{ duration: 0.7, delay: 0.2 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
           >
-            Explore interactive tools that support your mental well-being journey, brought to life with engaging 3D visuals.
+            Explore interactive resources and compassionate support systems, crafted to empower your mental health journey with clarity and ease.
           </motion.p>
         </div>
 
-        <div className="space-y-20 md:space-y-32">
+        <div className="space-y-16 md:space-y-24">
           {features.map((feature, index) => (
-            <motion.div
-              key={feature.title}
-              className={`flex flex-col items-center md:min-h-[60vh] lg:min-h-[70vh] ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'}`}
-              style={{ perspective: '1000px', transformStyle: 'preserve-3d' }} // Added for 3D effect
-              variants={featureItemVariants(index)}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.35 }} // Adjusted viewport amount
-            >
-              {/* Text Content */}
-              <motion.div 
-                className={`md:w-1/2 p-6 md:p-10 text-center ${index % 2 === 0 ? 'md:text-left' : 'md:text-right'}`}
-                variants={{
-                  hidden: { opacity: 0, y: 30, scale: 0.95 }, // Adjusted variants
-                  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.7, ease: "easeOut" } }
-                }}
-              >
-                <motion.div
-                  className="inline-block p-3 md:p-4 rounded-full mb-6 shadow-lg"
-                  style={{ backgroundColor: feature.color, boxShadow: `0 10px 30px -8px ${feature.color}AA, 0 6px 15px -10px ${feature.color}88` }}
-                  // Removed initial/animate/transition from here as parent handles it with stagger
-                >
-                  {React.cloneElement(feature.icon, { className: "h-8 w-8 md:h-10 md:w-10 text-white" })}
-                </motion.div>
-                <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 tracking-tight">{feature.title}</h3>
-                <p className="text-lg text-gray-700 leading-relaxed mb-6 md:mb-8">{feature.description}</p>
-                <motion.button
-                  onClick={() => session ? navigate("/chat") : navigate("/login")}
-                  className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2"
-                  style={{ backgroundColor: feature.color }}
-                  whileHover={{ scale: 1.05, boxShadow: `0 12px 25px -8px ${feature.color}77` }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                >
-                  Explore {feature.title.split(' ')[0]} <FaArrowRight className="ml-2" />
-                </motion.button>
-              </motion.div>
-
-              {/* 3D Model */} 
-              <motion.div 
-                className="w-full md:w-1/2 h-72 md:h-96 lg:h-[500px] flex items-center justify-center p-4 relative mt-8 md:mt-0"
-                variants={{
-                  hidden: { opacity: 0, scale: 0.85, y: 20 }, // Adjusted variants
-                  visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
-                }}
-              >
-                <Canvas camera={{ position: [0, 0.5, 4], fov: 40 }} className="rounded-lg">
-                  <ambientLight intensity={0.8} />
-                  <directionalLight 
-                    position={[4, 6, 3]} 
-                    intensity={1.8} 
-                    castShadow 
-                    shadow-mapSize-width={1024}
-                    shadow-mapSize-height={1024}
-                    shadow-camera-far={50}
-                    shadow-camera-left={-10}
-                    shadow-camera-right={10}
-                    shadow-camera-top={10}
-                    shadow-camera-bottom={-10}
-                  />
-                  <pointLight position={[-4, -3, -4]} intensity={1} color={feature.color} />
-                  <Suspense fallback={null}>
-                    <FeatureModel modelType={feature.model} isActive={activeFeature === index} />
-                  </Suspense>
-                  <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={index % 2 === 0 ? 0.3 : -0.3} enablePan={false} minPolarAngle={Math.PI / 3.5} maxPolarAngle={Math.PI * 2.5 / 3} />
-                </Canvas>
-              </motion.div>
-            </motion.div>
+            <FeatureCard 
+              key={feature.title} 
+              feature={feature} 
+              index={index} 
+            />
           ))}
         </div>
       </div>

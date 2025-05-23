@@ -1440,6 +1440,7 @@ export default function Chat(){
               disabled={!input.trim() && attachments.length === 0 || isLoading}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={(e) => handleSendMessage(e)}
               className={`p-3 rounded-lg ${(!input.trim() && attachments.length === 0 || isLoading) 
                 ? (darkMode ? 'bg-gray-600 text-gray-400' : 'bg-gray-200 text-gray-400') 
                 : (darkMode ? 'bg-indigo-600 text-white hover:bg-indigo-500' : 'bg-indigo-500 text-white hover:bg-indigo-600')}`}
