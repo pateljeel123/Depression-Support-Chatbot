@@ -19,7 +19,7 @@ const getCurrentUser = async () => {
 
 
 // Function to ensure 'users' table exists with necessary columns
-const ensureUsersTableExists = async () => {
+const ensureAiChatTableExists = async () => {
   // Supabase doesn't have a direct way to list tables or check if a table exists via client SDK for security reasons.
   // We will attempt to create it, and if it exists, it should not error out or handle the error gracefully.
   // A more robust way would be to use Supabase Edge Functions or a backend to manage schema migrations.
@@ -27,10 +27,10 @@ const ensureUsersTableExists = async () => {
 
   // The creation of tables is typically done via the Supabase Dashboard SQL editor or migrations.
   // However, to demonstrate the concept, we can try a select query and handle the error if the table doesn't exist.
-  // console.log("Checking if 'users' table exists or needs creation (conceptual).");
+  // console.log("Checking if 'AiChat' table exists or needs creation (conceptual).");
   // Actual table creation SQL (run this in Supabase SQL Editor):
   /*
-  CREATE TABLE IF NOT EXISTS public.users (
+  CREATE TABLE IF NOT EXISTS public.AiChat (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     full_name TEXT,
     age INTEGER,
@@ -42,27 +42,27 @@ const ensureUsersTableExists = async () => {
   );
 
   -- RLS Policies (example, adjust as needed)
-  ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE public.AiChat ENABLE ROW LEVEL SECURITY;
 
-  CREATE POLICY "Users can insert their own profile." ON public.users
+  CREATE POLICY "Users can insert their own profile." ON public.AiChat
   FOR INSERT WITH CHECK (auth.uid() = id);
 
-  CREATE POLICY "Users can update their own profile." ON public.users
+  CREATE POLICY "Users can update their own profile." ON public.AiChat
   FOR UPDATE USING (auth.uid() = id);
 
-  CREATE POLICY "Users can view their own profile." ON public.users
+  CREATE POLICY "Users can view their own profile." ON public.AiChat
   FOR SELECT USING (auth.uid() = id);
   */
   // Since we can't create tables directly from client-side JS securely,
   // we assume the table is created via Supabase Studio or a migration script.
   // This function will now primarily serve as a placeholder or for logging.
-  console.log("Ensure 'users' table is created in Supabase with columns: id (FK to auth.users), full_name, age, gender, preferred_topics, communication_style, created_at, updated_at.");
+  console.log("Ensure 'AiChat' table is created in Supabase with columns: id (FK to auth.users), full_name, age, gender, preferred_topics, communication_style, created_at, updated_at.");
 };
 
-// Function to create a user profile in the 'users' table
+// Function to create a user profile in the 'AiChat' table
 const createUserProfileInTable = async (userId, profileData) => {
   const { data, error } = await supabase
-    .from('users')
+    .from('AiChat')
     .insert([
       {
         id: userId,
@@ -84,6 +84,6 @@ const createUserProfileInTable = async (userId, profileData) => {
 export {
   supabase,
   getCurrentUser,
-  ensureUsersTableExists, // Exporting for potential use in app initialization
+  ensureAiChatTableExists, // Exporting for potential use in app initialization
   createUserProfileInTable
 };
