@@ -7,11 +7,13 @@ export const WelcomePage = ({ darkMode, setInput }) => {
   const [showAllQuestions, setShowAllQuestions] = useState(false);
   
   const questions = [
-    "Are you stressed about money?",
-    "Are you happy with your recent grades?",
-    "Do you feel supported in your relationship?",
-    "Is work stressing you out?",
-    "Is your family life peaceful?"
+    "How have things been going for you lately?",
+    "Can you walk me through what a typical day looks like for you these days?",
+    "Have there been any activities or moments recently that you've found enjoyable—or has that been difficult?",
+    "Have you been spending time with anyone close to you, or have you found yourself more on your own?",
+    "Is there anything that's been on your mind a lot or causing you stress lately?",
+    "Who do you feel most supported by right now—or is support feeling a bit out of reach?",
+    "We all face ups and downs—has anything in particular felt especially heavy or hard to manage lately?"
   ];
 
   // Auto-rotate questions every 4 seconds unless all questions are shown

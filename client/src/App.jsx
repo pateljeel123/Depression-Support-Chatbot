@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Auth from './components/Auth/Auth'
 import Home from './components/Home/Home'
 import Chat from './components/Chat/Chat'
+import Navbar from './components/Navbar/Navbar'
 import './App.css'
 import { AuthProvider, useAuth } from './context/AuthContext'
 
@@ -26,6 +27,7 @@ const App = () => {
     <AuthProvider>
       <BrowserRouter>
         <div className="app-container">
+          <Navbar />
           <Routes>
             <Route 
               path="/" 
