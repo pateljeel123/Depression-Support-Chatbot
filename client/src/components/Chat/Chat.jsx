@@ -87,6 +87,29 @@ export default function Chat() {
   const animationFrameIdRef = useRef(null);
   const [isHistoryExpanded, setIsHistoryExpanded] = useState(true); // For chat history toggle
 
+  // Effect to hide scrollbars globally
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.innerHTML = `
+      body, html {
+        overflow: hidden !important;
+      }
+      ::-webkit-scrollbar {
+        display: none !important; /* For Webkit browsers */
+      }
+      * {
+        scrollbar-width: none; /* For Firefox */
+        -ms-overflow-style: none; /* For IE and Edge */
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Cleanup function to remove the style when the component unmounts
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []); // Empty dependency array ensures this runs only once on mount
+
   const handleClearCurrentChat = () => {
     if (activeChat) {
       setMessages([]); // Basic clear
@@ -1017,7 +1040,6 @@ export default function Chat() {
         // Handle UI to indicate message failed to save, potentially revert optimistic update or show error
       }
     }
-
     // Bot response logic (using existing API call structure)
     const tempBotMessageId = Date.now().toString() + "-bot";
     const botPlaceholderMessage = {
@@ -1447,44 +1469,47 @@ export default function Chat() {
                 } border-r ${darkMode ? "border-gray-700" : "border-gray-200"
                 } fixed md:relative z-40 shadow-xl md:shadow-none`}
             >
-              <div className="p-4 flex flex-col h-full">
-                <button
-                  onClick={handleNewChat}
-                  className={`w-full flex items-center justify-center space-x-2 py-2.5 px-4 rounded-md mb-4 text-sm font-semibold ${ // Adjusted styling
-                    darkMode
-                      ? "bg-indigo-600 hover:bg-indigo-700 text-white"
-                      : "bg-slate-900 hover:bg-slate-800 text-white" // Dark button for light mode as in image
-                    } transition-colors shadow-sm`}
-                >
-                  <FiPlus size={18} />
-                  <span>New Chat</span>
-                </button>
+              {/* Restructured sidebar with fixed header and footer, scrollable chat history */}
+              <div className="flex flex-col h-full">
+                {/* Fixed top section */}
+                <div className="p-4">
+                  <button
+                    onClick={handleNewChat}
+                    className={`w-full flex items-center justify-center space-x-2 py-2.5 px-4 rounded-md mb-4 text-sm font-semibold ${
+                      darkMode
+                        ? "bg-indigo-600 hover:bg-indigo-700 text-white"
+                        : "bg-slate-900 hover:bg-slate-800 text-white"
+                      } transition-colors shadow-sm`}
+                  >
+                    <FiPlus size={18} />
+                    <span>New Chat</span>
+                  </button>
 
-                {/* Search input - kept for functionality */}
-                <div className="relative mb-4">
-                  <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" size={16} />
-                  <input
-                    type="text"
-                    placeholder="Search chats..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className={`w-full pl-10 pr-4 py-2 rounded-md text-sm ${darkMode
-                        ? "bg-gray-700 text-gray-200 placeholder-gray-400 border border-gray-600 focus:ring-indigo-500 focus:border-indigo-500"
-                        : "bg-gray-100 text-gray-800 placeholder-gray-500 border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
-                      } outline-none`}
-                  />
+                  {/* Search input */}
+                  <div className="relative mb-4">
+                    <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" size={16} />
+                    <input
+                      type="text"
+                      placeholder="Search chats..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className={`w-full pl-10 pr-4 py-2 rounded-md text-sm ${darkMode
+                          ? "bg-gray-700 text-gray-200 placeholder-gray-400 border border-gray-600 focus:ring-indigo-500 focus:border-indigo-500"
+                          : "bg-gray-100 text-gray-800 placeholder-gray-500 border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+                        } outline-none`}
+                    />
+                  </div>
                 </div>
-
-                {/* Chat History Section */}
-                <div className="flex-grow overflow-y-auto mb-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
-                  <div className="flex items-center justify-between px-1 mb-2 mt-2">
+                
+                {/* Scrollable Chat History Section */}
+                <div className="px-4 flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
+                  <div className="flex items-center justify-between px-1 mb-2">
                     <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                       Chat History
                     </h2>
                     <button
                       onClick={() => setIsHistoryExpanded(!isHistoryExpanded)}
                       className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 p-1 rounded-md">
-                      {/* Replace with actual icon e.g. <FiChevronDown /> or <FiChevronUp /> */}
                       {isHistoryExpanded ? <FiChevronUp size={16} /> : <FiChevronDown size={16} />}
                     </button>
                   </div>
@@ -1503,38 +1528,36 @@ export default function Chat() {
                           handleStartEdit={handleStartEdit}
                           handleSaveEdit={handleSaveEdit}
                           handleDeleteChat={handleDeleteChat}
-                          // Props for new UI style in ChatItem (to be implemented in ChatItem.jsx)
                           isNewUI={true}
-                          timestamp={chat.createdAt} // Ensure chat objects have createdAt
+                          timestamp={chat.createdAt}
                         />
                       ))}
                     </div>
                   )}
                 </div>
-                {/* End Chat History Section */}
-              </div> {/* This closes the main content div of sidebar, footer will be outside or after flex-grow */}
-
-              {/* Sidebar Footer Navigation */}
-              <div className={`p-3 border-t ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
-                <nav className="space-y-1 mb-3">
-                  {[{ name: "Dashboard", icon: FiGrid, href: "#" }, { name: "Profile", icon: FiUser, href: "#" }].map(item => (
-                    <a
-                      key={item.name}
-                      href={item.href}
-                      className={`flex items-center space-x-3 px-2.5 py-2 rounded-md text-sm font-medium transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-700 hover:text-white" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}>
-                      <item.icon size={18} className={`${darkMode ? "text-gray-400" : "text-gray-500"}`} />
-                      <span>{item.name}</span>
-                    </a>
-                  ))}
-                  <button
-                    onClick={toggleDarkMode}
-                    className={`w-full flex items-center space-x-3 px-2.5 py-2 rounded-md text-sm font-medium transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-700 hover:text-white" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}>
-                    {darkMode ? <FiSun size={18} className="text-yellow-400" /> : <FiMoon size={18} className="text-indigo-500" />}
-                    <span>{darkMode ? "Light Mode" : "Dark Mode"}</span>
-                  </button>
-                </nav>
-                <div className={`px-1.5 py-1 text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
-                  Logged in as <span className="font-semibold">{userPreferences.username || "Bertha Roy"}</span>
+                
+                {/* Fixed Footer Navigation */}
+                <div className={`mt-auto p-3 border-t ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
+                  <nav className="space-y-1 mb-3">
+                    {[{ name: "Dashboard", icon: FiGrid, href: "#" }, { name: "Profile", icon: FiUser, href: "#" }].map(item => (
+                      <a
+                        key={item.name}
+                        href={item.href}
+                        className={`flex items-center space-x-3 px-2.5 py-2 rounded-md text-sm font-medium transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-700 hover:text-white" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}>
+                        <item.icon size={18} className={`${darkMode ? "text-gray-400" : "text-gray-500"}`} />
+                        <span>{item.name}</span>
+                      </a>
+                    ))}
+                    <button
+                      onClick={toggleDarkMode}
+                      className={`w-full flex items-center space-x-3 px-2.5 py-2 rounded-md text-sm font-medium transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-700 hover:text-white" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}>
+                      {darkMode ? <FiSun size={18} className="text-yellow-400" /> : <FiMoon size={18} className="text-indigo-500" />}
+                      <span>{darkMode ? "Light Mode" : "Dark Mode"}</span>
+                    </button>
+                  </nav>
+                  <div className={`px-1.5 py-1 text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                    Logged in as <span className="font-semibold">{userPreferences.username || "Bertha Roy"}</span>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -1559,9 +1582,9 @@ export default function Chat() {
               >
                 <FiMenu size={22} />
               </button>
-              <h1 className="ml-2.5 text-md font-semibold flex items-center text-gray-800 dark:text-gray-100">
+              <h1 className="ml-2.5 text-md font-semibold flex items-center text-gray-900 dark:text-gray-100">
                 {/* Optional: Icon for NiveshPath AI, e.g., <RiRobot2Line className="mr-2" /> */}
-                NiveshPath AI {/* Static title from image */}
+                MindCare {/* Static title from image */}
               </h1>
             </div>
             <div className="flex items-center space-x-3">
