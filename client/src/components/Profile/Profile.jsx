@@ -68,51 +68,62 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-sky-100 dark:from-slate-900 dark:to-sky-900 flex items-center justify-center p-4 font-sans">
-      <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-xl shadow-2xl overflow-hidden transform transition-all hover:scale-105 duration-300 ease-in-out">
-        <div className="p-8">
-          <div className="text-center mb-8">
-            {/* Profile Picture Placeholder */}
-            <div className="w-32 h-32 rounded-full bg-gradient-to-r from-sky-400 to-blue-500 dark:from-sky-600 dark:to-blue-700 mx-auto mb-4 flex items-center justify-center shadow-lg ring-4 ring-white dark:ring-slate-700">
-              <span className="text-5xl text-white font-semibold">
-                {userData.name ? userData.name.charAt(0).toUpperCase() : 'U'}
-              </span>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4 sm:p-6 lg:p-8 font-sans">
+      <div className="w-full max-w-lg bg-white dark:bg-slate-800 rounded-lg shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+        {/* Header Section */}
+        <div className="bg-slate-100 dark:bg-slate-700 p-6 sm:p-8 border-b border-slate-200 dark:border-slate-600">
+          <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
+            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-indigo-600 dark:to-purple-700 flex items-center justify-center text-white text-4xl sm:text-5xl font-semibold shadow-md ring-4 ring-white dark:ring-slate-800 flex-shrink-0">
+              {userData.name ? userData.name.charAt(0).toUpperCase() : 'P'}
             </div>
-            <h1 className="text-3xl font-bold text-slate-800 dark:text-white">{userData.name}</h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">{userData.email}</p>
+            <div className="text-center sm:text-left">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white tracking-tight">{userData.name}</h1>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{userData.email}</p>
+            </div>
           </div>
+        </div>
 
-          <div className="space-y-6">
+        {/* Profile Details Section */}
+        <div className="p-6 sm:p-8 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="fullName" className="text-sm font-medium text-slate-600 dark:text-slate-300 block mb-1">Full Name</label>
-              <p id="fullName" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-200 shadow-sm">
+              <label htmlFor="fullName" className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5">Full Name</label>
+              <p id="fullName" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-md text-slate-700 dark:text-slate-200 text-sm">
                 {userData.name}
               </p>
             </div>
-
             <div>
-              <label htmlFor="emailAddress" className="text-sm font-medium text-slate-600 dark:text-slate-300 block mb-1">Email Address</label>
-              <p id="emailAddress" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-200 shadow-sm">
+              <label htmlFor="emailAddress" className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5">Email Address</label>
+              <p id="emailAddress" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-md text-slate-700 dark:text-slate-200 text-sm">
                 {userData.email}
               </p>
             </div>
-
-            <div className="pt-4">
-              <button
-                onClick={handleChangePassword}
-                className="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-opacity-75 transition-all duration-150 ease-in-out transform hover:-translate-y-0.5"
-              >
-                Change Password
-              </button>
-            </div>
           </div>
-
-          <div className="mt-8 text-center">
-            <p className="text-xs text-slate-400 dark:text-slate-500">
-              Joined: {session?.user?.created_at ? new Date(session.user.created_at).toLocaleDateString() : 'N/A'}
+          
+          <div>
+            <label htmlFor="joinedDate" className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5">Joined Date</label>
+            <p id="joinedDate" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-md text-slate-700 dark:text-slate-200 text-sm">
+              {session?.user?.created_at ? new Date(session.user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}
             </p>
           </div>
+
+          {/* Actions Section */}
+          <div className="pt-6 border-t border-slate-200 dark:border-slate-600">
+            <button
+              onClick={handleChangePassword}
+              className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white font-medium py-2.5 px-6 rounded-md shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800 transition-colors duration-150 ease-in-out"
+            >
+              Change Password
+            </button>
+          </div>
         </div>
+        
+        {/* Footer (Optional) */}
+        {/* <div className="p-4 bg-slate-50 dark:bg-slate-700/30 border-t border-slate-200 dark:border-slate-600 text-center">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Manage your profile settings.
+          </p>
+        </div> */}
       </div>
     </div>
   );

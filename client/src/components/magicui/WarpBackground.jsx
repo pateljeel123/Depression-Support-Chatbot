@@ -46,8 +46,9 @@ export const WarpBackground = ({
   beamDelayMin = 0,
   beamDuration = 3,
   gridColor = "var(--border)",
-  ...props
+  ...rest
 } /* Removed : React.FC<WarpBackgroundProps> */) => {
+  const { darkMode, particleColor, warpFactor, ...props } = rest;
   const generateBeams = useCallback(() => {
     const beams = [];
     const cellsPerSide = Math.floor(100 / beamSize);
