@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Auth from './components/Auth/Auth'
 import Home from './components/Home/Home'
-import Chat from './components/Chat/Chat'
+import Chat from './components/Chat/Chat';
+import Profile from './components/Profile/Profile'; // Import the Profile component
 import Navbar from './components/Navbar/Navbar'
 import './App.css'
 import { AuthProvider, useAuth } from './context/AuthContext'
@@ -22,8 +23,14 @@ const ProtectedRoute = ({ children }) => {
 };
 
 const App = () => {
+  // Apply the font to the entire app by adding to the root element or body
+  // For this example, we'll assume a main wrapper div in App.jsx
+  // If your structure is different, you might apply this to document.body directly
+  // or to a more specific top-level component wrapper.
 
   return (
+    // Add font-sans to the main wrapper div
+    <div className="font-sans">
     <AuthProvider>
       <BrowserRouter>
         <div className="app-container">
@@ -45,9 +52,17 @@ const App = () => {
               path="/chat" 
               element={
                 <ProtectedRoute>
-                  <Chat />
+                        <Chat />
                 </ProtectedRoute>
               } 
+            />
+            <Route 
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
             />
             <Route 
               path="*" 
@@ -57,6 +72,7 @@ const App = () => {
         </div>
       </BrowserRouter>
     </AuthProvider>
+    </div>
   )
 }
 

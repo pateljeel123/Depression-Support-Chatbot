@@ -48,8 +48,19 @@ export const ChatItem = ({
       `}
     >
       {isNewUI && (
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          {/* Placeholder for potential actions like delete, pin for new UI if needed */}
+        <div className="absolute top-2 right-2 flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Tooltip content="Delete chat">
+            <button 
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent chat selection
+                handleDeleteChat(chat.id, e);
+              }}
+              className={`p-1.5 rounded-full ${darkMode ? 'hover:bg-red-500 hover:text-white' : 'hover:bg-red-100 hover:text-red-500'}`}
+            >
+              <FiTrash2 size={14} />
+            </button>
+          </Tooltip>
+          {/* Placeholder for other potential actions like pin for new UI if needed */}
           {/* Example: <FiMoreHorizontal size={16} /> */}
         </div>
       )}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, Reorder } from "framer-motion"; // Added Reorder
+import { Link } from "react-router-dom"; // Added Link for navigation
 import {
   FiSend,
   FiPlus,
@@ -54,10 +55,7 @@ export default function Chat() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [darkMode, setDarkMode] = useState(() => {
-    // Check user's preferred color scheme
-    return window.matchMedia("(prefers-color-scheme: dark)").matches;
-  });
+  const [darkMode, setDarkMode] = useState(false); // Default to light mode (false)
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [editingChatId, setEditingChatId] = useState(null);
   const [editTitle, setEditTitle] = useState("");
@@ -127,9 +125,9 @@ export default function Chat() {
     markdown: true,
     soundEffects: true,
     syntaxHighlighting: true, // Added syntaxHighlighting
-    username: "", // Added username
+    username: "", // This will store the full name
     email: "", // Added email
-    darkMode: window.matchMedia("(prefers-color-scheme: dark)").matches, // Initialize darkMode preference
+    darkMode: false, // Default to light mode (false)
     ttsEnabled: false, // Added ttsEnabled for text-to-speech
     ttsVoice: null, // Added ttsVoice
     ttsSpeed: 1, // Added ttsSpeed (0.1 to 10, default 1)
@@ -380,7 +378,7 @@ export default function Chat() {
     ]
   );
 
-  // Effect 1: Fetch user and then trigger data loading
+  // Effect 1: Fetch user and then trigger data loading, also set username and email
   useEffect(() => {
     const fetchUserAndLoadData = async () => {
       const {
@@ -395,9 +393,15 @@ export default function Chat() {
 
       if (user) {
         setUserID(user.id);
-        // Data fetching will be triggered by the useEffect depending on userID
+        setUserPreferences(prev => ({
+          ...prev,
+          username: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+          email: user.email || '',
+        }));
+        // Data fetching for chats will be triggered by the useEffect depending on userID
       } else {
         console.log("No user logged in. Loading data from localStorage.");
+        setUserPreferences(prev => ({ ...prev, username: '', email: '' })); // Clear user specific prefs
         loadDataFromLocalStorage();
       }
     };
@@ -735,16 +739,44 @@ export default function Chat() {
   );
 
   // Delete a chat
-  const handleDeleteChat = (chatId, e) => {
+  const handleDeleteChat = async (chatId, e) => {
     e.stopPropagation();
     const updatedChats = chats.filter((chat) => chat.id !== chatId);
     setChats(updatedChats);
 
+    if (userID) {
+      try {
+        // First, delete all messages associated with the chat session
+        const { error: messagesError } = await supabase
+          .from('messages')
+          .delete()
+          .eq('session_id', chatId);
+        if (messagesError) throw messagesError;
+
+        // Then, delete the chat session itself
+        const { error: sessionError } = await supabase
+          .from('sessions')
+          .delete()
+          .eq('id', chatId)
+          .eq('user_id', userID);
+        if (sessionError) throw sessionError;
+
+      } catch (error) {
+        console.error('Error deleting chat from Supabase:', error);
+        // Optionally, revert local state changes or notify user
+      }
+    }
+
     if (activeChat === chatId) {
       if (updatedChats.length > 0) {
         setActiveChat(updatedChats[0].id);
+        // Fetch messages for the new active chat if not already loaded
+        const newActiveChatDetails = updatedChats.find(c => c.id === updatedChats[0].id);
+        if (newActiveChatDetails && (!newActiveChatDetails.messages || newActiveChatDetails.messages.length === 0)) {
+          fetchMessagesForChat(updatedChats[0].id);
+        }
       } else {
-        handleNewChat();
+        await handleNewChat(); // Ensure handleNewChat completes if it's async
       }
     }
     playSound("delete");
@@ -998,6 +1030,28 @@ export default function Chat() {
     setAttachmentPreviews([]);
     setReplyingToMessage(null);
     playSound("send");
+
+    // Check if this is the first message in a new chat and set title
+    const currentChatDetails = chats.find(chat => chat.id === activeChat);
+    if (currentChatDetails && currentChatDetails.title === "New Chat" && userMessageContent) {
+      const newTitle = userMessageContent.split(' ').slice(0, 5).join(' ') + (userMessageContent.split(' ').length > 5 ? '...' : '');
+      setChats(prevChats =>
+        prevChats.map(chat =>
+          chat.id === activeChat ? { ...chat, title: newTitle } : chat
+        )
+      );
+      if (userID) {
+        try {
+          await supabase
+            .from('sessions')
+            .update({ session_title: newTitle })
+            .eq('id', activeChat)
+            .eq('user_id', userID);
+        } catch (error) {
+          console.error('Error updating chat title in Supabase:', error);
+        }
+      }
+    }
 
     // Save user message to Supabase
     let dbUserMessageId = tempUserMessageId;
@@ -1539,14 +1593,14 @@ export default function Chat() {
                 {/* Fixed Footer Navigation */}
                 <div className={`mt-auto p-3 border-t ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
                   <nav className="space-y-1 mb-3">
-                    {[{ name: "Dashboard", icon: FiGrid, href: "#" }, { name: "Profile", icon: FiUser, href: "#" }].map(item => (
-                      <a
+                    {[{ name: "Dashboard", icon: FiGrid, href: "/" }, { name: "Profile", icon: FiUser, href: "/profile" }].map(item => (
+                      <Link
                         key={item.name}
-                        href={item.href}
+                        to={item.href} // Changed href to to for Link component
                         className={`flex items-center space-x-3 px-2.5 py-2 rounded-md text-sm font-medium transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-700 hover:text-white" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}>
                         <item.icon size={18} className={`${darkMode ? "text-gray-400" : "text-gray-500"}`} />
                         <span>{item.name}</span>
-                      </a>
+                      </Link>
                     ))}
                     <button
                       onClick={toggleDarkMode}
@@ -1556,7 +1610,7 @@ export default function Chat() {
                     </button>
                   </nav>
                   <div className={`px-1.5 py-1 text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
-                    Logged in as <span className="font-semibold">{userPreferences.username || "Bertha Roy"}</span>
+                    Logged in as <span className="font-semibold">{userPreferences.username || userPreferences.email || "Guest"}</span>
                   </div>
                 </div>
               </div>
@@ -2117,8 +2171,10 @@ export default function Chat() {
               onSubmit={handleSendMessage}
               className="flex items-end space-x-2"
             >
-              <div className={`flex-1 relative ${isBotSpeaking ? "mb-5" : ""}`}>
-                {isBotSpeaking && (
+              {/* Outer div for width control */}
+              <div className="flex-grow w-4/5 max-w-[80%]">
+                <div className={`relative ${isBotSpeaking ? "mb-5" : ""}`}> {/* Removed flex-1, width is controlled by parent */}
+                  {isBotSpeaking && (
                   <div className="absolute bottom-full left-0 right-0 mx-auto mb-1 text-center text-xs text-gray-500 dark:text-gray-400 animate-pulse p-1 bg-opacity-50 rounded-md">
                     AI is speaking...
                   </div>
@@ -2129,10 +2185,12 @@ export default function Chat() {
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Type a message..."
                   rows="1"
-                  className={`w-full rounded-lg py-3 sm:py-3.5 px-4 sm:px-5 pr-12 resize-none text-sm sm:text-base font-light ${darkMode
-                      ? "bg-gray-700 text-white placeholder-gray-400"
-                      : "bg-gray-100 text-gray-900 placeholder-gray-500"
-                    } focus:outline-none focus:ring-1 focus:ring-indigo-500`}
+                  className={`w-full py-2.5 px-3.5 pr-12 rounded-lg border ${darkMode
+                      ? "bg-gray-750 border-gray-600 text-gray-100 placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500 shadow-md"
+                      : "bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
+                    } resize-none focus:outline-none focus:ring-1 transition-all duration-150 ease-in-out hover:shadow-lg text-sm sm:text-base leading-relaxed scrollbar-thin ${darkMode ? 'scrollbar-thumb-gray-500 scrollbar-track-gray-700' : 'scrollbar-thumb-gray-300 scrollbar-track-gray-100'}`}
+                  disabled={isLoading || isBotSpeaking}
+                  style={{ minHeight: '42px', maxHeight: '140px' }} /* Slightly reduced min/max height */
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
@@ -2213,6 +2271,7 @@ export default function Chat() {
                   </div>
                 )}
               </div>
+              </div> {/* Closing tag for the flex-grow w-4/5 max-w-[80%] div */}
               <motion.button
                 type="submit"
                 disabled={
