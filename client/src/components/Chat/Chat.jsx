@@ -16,6 +16,9 @@ import {
   FiUpload,
   FiSettings,
   FiUser,
+  FiGrid, // Added for Dashboard icon
+  FiChevronDown, // Added for history toggle
+  FiChevronUp, // Added for history toggle
 } from "react-icons/fi"; // Added FiFileText, FiUpload, FiSettings, FiUser
 import { BsEmojiSmile, BsImage, BsMarkdown } from "react-icons/bs"; // Added BsImage, BsMarkdown
 import Picker, { EmojiStyle } from "emoji-picker-react";
@@ -82,6 +85,15 @@ export default function Chat() {
   const analyserRef = useRef(null);
   const microphoneSourceRef = useRef(null);
   const animationFrameIdRef = useRef(null);
+  const [isHistoryExpanded, setIsHistoryExpanded] = useState(true); // For chat history toggle
+
+  const handleClearCurrentChat = () => {
+    if (activeChat) {
+      setMessages([]); // Basic clear
+      // TODO: Add more robust clearing logic (e.g., from DB or localStorage)
+      console.log(`Chat cleared for session: ${activeChat}`);
+    }
+  };
 
   const handlePreferenceChange = (key, value) => {
     setUserPreferences((prev) => ({ ...prev, [key]: value }));
@@ -144,6 +156,16 @@ export default function Chat() {
   const [userID, setUserID] = useState(null);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
+  // Helper functions
+  const createNewChat = useCallback(() => {
+    return {
+      id: Date.now().toString(),
+      title: "New Chat",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  }, []); // Added empty dependency array for useCallback
+
   // Helper: Load data from localStorage (fallback or for non-logged-in users)
   const loadDataFromLocalStorage = useCallback(
     () => {
@@ -194,9 +216,7 @@ export default function Chat() {
       }
       setInitialLoadComplete(true);
     },
-    [
-      /* createNewChat might need to be a dep if not stable */
-    ]
+    [createNewChat]
   );
 
   // Helper: Fetch chat messages from Supabase for a given chat ID
@@ -218,16 +238,16 @@ export default function Chat() {
 
         const loadedMessages = chatMessages
           ? chatMessages.map((m) => ({
-              id: m.id,
-              chatId: m.session_id,
-              role: m.sender_role,
-              content: m.content,
-              timestamp: m.created_at,
-              replyTo: m.response_to,
-              reactions: {},
-              attachments: [],
-              starred: false,
-            }))
+            id: m.id,
+            chatId: m.session_id,
+            role: m.sender_role,
+            content: m.content,
+            timestamp: m.created_at,
+            replyTo: m.response_to,
+            reactions: {},
+            attachments: [],
+            starred: false,
+          }))
           : [];
 
         setMessages(loadedMessages);
@@ -244,6 +264,56 @@ export default function Chat() {
       }
     },
     [userID]
+  );
+
+  // Create a new chat
+  const handleNewChat = useCallback(
+    async (isInitialSetup = false) => {
+      setIsLoading(true);
+      let newChatData;
+      const localNewChat = createNewChat(); // Create basic structure locally first
+
+      if (userID) {
+        try {
+          const { data, error } = await supabase
+            .from("sessions")
+            .insert({ user_id: userID, session_title: localNewChat.title })
+            .select()
+            .single();
+
+          if (error) throw error;
+
+          newChatData = {
+            id: data.id,
+            title: data.session_title,
+            createdAt: data.created_at,
+            messages: [],
+          };
+        } catch (error) {
+          console.error("Error creating new chat in Supabase:", error);
+          // Fallback to local-only chat creation if Supabase fails
+          newChatData = { ...localNewChat, messages: [] };
+        }
+      } else {
+        // No user logged in, create chat locally
+        newChatData = { ...localNewChat, messages: [] };
+      }
+
+      setChats((prevChats) => [newChatData, ...prevChats]);
+      setActiveChat(newChatData.id);
+      setMessages([]); // New chat starts with no messages displayed
+
+      if (!isInitialSetup) {
+        setInput("");
+        setSidebarOpen(false);
+        setAttachments([]);
+        setAttachmentPreviews([]);
+        playSound("newChat");
+      }
+      setIsLoading(false);
+      return newChatData; // Return the new chat data for potential chaining
+    },
+    [userID, chats, createNewChat, playSound] // Assuming playSound is stable or defined earlier
   );
 
   // Helper: Fetch all chat sessions for the current user from Supabase
@@ -282,7 +352,8 @@ export default function Chat() {
     },
     [
       fetchMessagesForChat,
-      loadDataFromLocalStorage /* handleNewChat dep added later */,
+      loadDataFromLocalStorage,
+      handleNewChat // Ensure handleNewChat is stable (e.g., wrapped in useCallback)
     ]
   );
 
@@ -317,7 +388,7 @@ export default function Chat() {
       fetchChatsFromSupabase(userID);
     }
     // If no userID, loadDataFromLocalStorage would have been called by the previous useEffect
-  }, [userID, fetchChatsFromSupabase, initialLoadComplete]);
+  }, [userID, fetchChatsFromSupabase, initialLoadComplete, handleNewChat]); // Added handleNewChat
 
   // Effect 3: Load settings and dark mode from localStorage (runs once)
   useEffect(() => {
@@ -562,36 +633,26 @@ export default function Chat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Helper functions
-  const createNewChat = () => {
-    return {
-      id: Date.now().toString(),
-      title: "New Chat",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-  };
-
   const createMessage = (
+    chatId,
     role,
     content,
     replyToId = null,
-    attachmentsData = []
+    attachments = []
   ) => {
-    // This function is now primarily for local message object creation before DB insertion or for non-DB use.
-    // Supabase will generate its own primary key 'id' for messages.
-    // The 'id' generated here can be a temporary client-side ID for optimistic updates.
     return {
-      id: Date.now().toString(), // Temporary client-side ID
-      chatId: activeChat, // This will be 'session_id' in Supabase
+      id: Date.now().toString(), // Consider crypto.randomUUID() for better uniqueness
+      chatId,
       role,
       content,
       timestamp: new Date().toISOString(),
+      replyToId,
       reactions: {},
-      attachments: attachmentsData, // Store relevant attachment info (e.g., name, type, URL if uploaded)
+      attachments,
       starred: false,
     };
   };
+  // Added empty dependency array for useCallback
 
   // Handle starting a reply
   const handleStartReply = (message) => {
@@ -610,65 +671,9 @@ export default function Chat() {
     // setShowEmojiPicker(false); // Optionally close picker after selection
   };
 
-  // Create a new chat
-  const handleNewChat = useCallback(
-    async (isInitialSetup = false) => {
-      setIsLoading(true);
-      let newChatData;
-      const localNewChat = createNewChat(); // Create basic structure locally first
+  // Note: handleNewChat has been moved before fetchChatsFromSupabase to resolve initialization error.
+  // The useEffect that was here, which also depended on handleNewChat, will now correctly find it defined.
 
-      if (userID) {
-        try {
-          const { data, error } = await supabase
-            .from("sessions")
-            .insert({ user_id: userID, session_title: localNewChat.title })
-            .select()
-            .single();
-
-          if (error) throw error;
-
-          newChatData = {
-            id: data.id,
-            title: data.session_title,
-            createdAt: data.created_at,
-            messages: [],
-          };
-        } catch (error) {
-          console.error("Error creating new chat in Supabase:", error);
-          // Fallback to local-only chat creation if Supabase fails
-          newChatData = { ...localNewChat, messages: [] };
-        }
-      } else {
-        // No user logged in, create chat locally
-        newChatData = { ...localNewChat, messages: [] };
-      }
-
-      setChats((prevChats) => [newChatData, ...prevChats]);
-      setActiveChat(newChatData.id);
-      setMessages([]); // New chat starts with no messages displayed
-
-      if (!isInitialSetup) {
-        setInput("");
-        setSidebarOpen(false);
-        setAttachments([]);
-        setAttachmentPreviews([]);
-        playSound("newChat");
-      }
-      setIsLoading(false);
-      return newChatData; // Return the new chat data for potential chaining
-    },
-    [userID, chats, createNewChat, playSound]
-  );
-
-  // Add handleNewChat to the dependency array of fetchChatsFromSupabase
-  // This requires moving createNewChat and playSound to be stable or wrapped in useCallback if they cause re-renders.
-  // For now, assuming they are stable or their change is intended.
-  useEffect(() => {
-    if (userID && !initialLoadComplete) {
-      fetchChatsFromSupabase(userID);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userID, fetchChatsFromSupabase, initialLoadComplete, handleNewChat]); // Added handleNewChat here
 
   // Select a chat from history
   const handleSelectChat = useCallback(
@@ -777,12 +782,12 @@ export default function Chat() {
       prevMessages.map((msg) =>
         msg.id === messageId
           ? {
-              ...msg,
-              reactions: {
-                ...(msg.reactions || {}),
-                [reactionEmoji]: (msg.reactions?.[reactionEmoji] || 0) + 1,
-              },
-            }
+            ...msg,
+            reactions: {
+              ...(msg.reactions || {}),
+              [reactionEmoji]: (msg.reactions?.[reactionEmoji] || 0) + 1,
+            },
+          }
           : msg
       )
     );
@@ -790,20 +795,20 @@ export default function Chat() {
       prevChats.map((chat) =>
         chat.id === activeChat
           ? {
-              ...chat,
-              messages: chat.messages.map((msg) =>
-                msg.id === messageId
-                  ? {
-                      ...msg,
-                      reactions: {
-                        ...(msg.reactions || {}),
-                        [reactionEmoji]:
-                          (msg.reactions?.[reactionEmoji] || 0) + 1,
-                      },
-                    }
-                  : msg
-              ),
-            }
+            ...chat,
+            messages: chat.messages.map((msg) =>
+              msg.id === messageId
+                ? {
+                  ...msg,
+                  reactions: {
+                    ...(msg.reactions || {}),
+                    [reactionEmoji]:
+                      (msg.reactions?.[reactionEmoji] || 0) + 1,
+                  },
+                }
+                : msg
+            ),
+          }
           : chat
       )
     );
@@ -826,10 +831,10 @@ export default function Chat() {
       prevMessages.map((msg) =>
         msg.id === messageId
           ? {
-              ...msg,
-              content: editedContent,
-              updatedAt: new Date().toISOString(),
-            }
+            ...msg,
+            content: editedContent,
+            updatedAt: new Date().toISOString(),
+          }
           : msg
       )
     );
@@ -837,18 +842,18 @@ export default function Chat() {
       prevChats.map((chat) =>
         chat.id === activeChat
           ? {
-              ...chat,
-              messages: (chat.messages || []).map((msg) =>
-                msg.id === messageId
-                  ? {
-                      ...msg,
-                      content: editedContent,
-                      updatedAt: new Date().toISOString(),
-                    }
-                  : msg
-              ),
-              updatedAt: new Date().toISOString(),
-            }
+            ...chat,
+            messages: (chat.messages || []).map((msg) =>
+              msg.id === messageId
+                ? {
+                  ...msg,
+                  content: editedContent,
+                  updatedAt: new Date().toISOString(),
+                }
+                : msg
+            ),
+            updatedAt: new Date().toISOString(),
+          }
           : chat
       )
     );
@@ -905,11 +910,11 @@ export default function Chat() {
       prevChats.map((chat) =>
         chat.id === activeChat
           ? {
-              ...chat,
-              messages: (chat.messages || []).filter(
-                (msg) => msg.id !== messageId
-              ),
-            }
+            ...chat,
+            messages: (chat.messages || []).filter(
+              (msg) => msg.id !== messageId
+            ),
+          }
           : chat
       )
     );
@@ -952,10 +957,10 @@ export default function Chat() {
       prevChats.map((chat) =>
         chat.id === activeChat
           ? {
-              ...chat,
-              messages: [...(chat.messages || []), userMessageForUI],
-              updatedAt: new Date().toISOString(),
-            }
+            ...chat,
+            messages: [...(chat.messages || []), userMessageForUI],
+            updatedAt: new Date().toISOString(),
+          }
           : chat
       )
     );
@@ -997,13 +1002,13 @@ export default function Chat() {
           prevChats.map((c) =>
             c.id === activeChat
               ? {
-                  ...c,
-                  messages: c.messages.map((m) =>
-                    m.id === tempUserMessageId
-                      ? { ...m, id: dbUserMessageId }
-                      : m
-                  ),
-                }
+                ...c,
+                messages: c.messages.map((m) =>
+                  m.id === tempUserMessageId
+                    ? { ...m, id: dbUserMessageId }
+                    : m
+                ),
+              }
               : c
           )
         );
@@ -1028,10 +1033,10 @@ export default function Chat() {
       prevChats.map((chat) =>
         chat.id === activeChat
           ? {
-              ...chat,
-              messages: [...(chat.messages || []), botPlaceholderMessage],
-              updatedAt: new Date().toISOString(),
-            }
+            ...chat,
+            messages: [...(chat.messages || []), botPlaceholderMessage],
+            updatedAt: new Date().toISOString(),
+          }
           : chat
       )
     );
@@ -1039,11 +1044,14 @@ export default function Chat() {
     try {
       // Construct history for API, using potentially updated user message ID from Supabase
       const historyForPayload = messages
-        .map((m) =>
-          m.id === tempUserMessageId ? { ...m, id: dbUserMessageId } : m
-        ) // Use DB ID if available
-        .slice(-20) // Keep it consistent with original logic
-        .map((msg) => ({ role: msg.role, content: msg.content }));
+      .map((m) =>
+        m.id === tempUserMessageId ? { ...m, id: dbUserMessageId } : m
+      )
+      .slice(-20)
+      .map((msg) => ({
+        role: msg.role === "ai" ? "assistant" : msg.role, // Normalize invalid role
+        content: msg.content,
+      }));
 
       // Add the current user message (with potentially DB ID) to the history if not already there due to async state updates
       const finalUserMessageForPayload = {
@@ -1077,8 +1085,8 @@ export default function Chat() {
           }));
         throw new Error(
           errorData.error?.message ||
-            errorData.message ||
-            `API request failed with status ${response.status}`
+          errorData.message ||
+          `API request failed with status ${response.status}`
         );
       }
 
@@ -1114,11 +1122,11 @@ export default function Chat() {
         prevMessages.map((msg) =>
           msg.id === tempBotMessageId
             ? {
-                ...msg,
-                id: dbBotMessageId,
-                content: assistantReply,
-                timestamp: botResponseTimestamp,
-              }
+              ...msg,
+              id: dbBotMessageId,
+              content: assistantReply,
+              timestamp: botResponseTimestamp,
+            }
             : msg
         )
       );
@@ -1130,11 +1138,11 @@ export default function Chat() {
               messages: (chat.messages || []).map((msg) =>
                 msg.id === tempBotMessageId
                   ? {
-                      ...msg,
-                      id: dbBotMessageId,
-                      content: assistantReply,
-                      timestamp: botResponseTimestamp,
-                    }
+                    ...msg,
+                    id: dbBotMessageId,
+                    content: assistantReply,
+                    timestamp: botResponseTimestamp,
+                  }
                   : msg
               ),
               updatedAt: new Date().toISOString(),
@@ -1149,9 +1157,8 @@ export default function Chat() {
       // playSound("receive"); // Sound was already played with send
     } catch (error) {
       console.error("Error fetching bot response:", error);
-      const errorContent = `Error: ${
-        error.message || "Could not get a response."
-      }`;
+      const errorContent = `Error: ${error.message || "Could not get a response."
+        }`;
       // Update placeholder with error message
       setMessages((prevMessages) =>
         prevMessages.map((msg) =>
@@ -1414,17 +1421,15 @@ export default function Chat() {
         />
       )}
       <div
-        className={`flex h-screen ${
-          darkMode
+        className={`flex h-screen ${darkMode
             ? "dark bg-gray-900 text-gray-100"
             : "bg-gray-50 text-gray-900"
-        }`}
+          }`}
       >
         {/* Mobile sidebar toggle */}
         <button
-          className={`md:hidden fixed top-4 left-4 z-50 p-2 rounded-full ${
-            darkMode ? "bg-gray-700 text-white" : "bg-white text-gray-800"
-          } shadow-lg transition-transform hover:scale-110`}
+          className={`md:hidden fixed top-4 left-4 z-50 p-2 rounded-full ${darkMode ? "bg-gray-700 text-white" : "bg-white text-gray-800"
+            } shadow-lg transition-transform hover:scale-110`}
           onClick={() => setSidebarOpen(!sidebarOpen)}
         >
           {sidebarOpen ? <FiX size={24} /> : <FiMenu size={24} />}
@@ -1438,171 +1443,98 @@ export default function Chat() {
               animate={{ x: 0 }}
               exit={{ x: -300 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className={`w-full max-w-[85vw] sm:max-w-[320px] md:w-72 flex-shrink-0 h-full overflow-y-auto ${
-                darkMode ? "bg-gray-800" : "bg-white"
-              } border-r ${
-                darkMode ? "border-gray-700" : "border-gray-200"
-              } fixed md:relative z-40 shadow-xl md:shadow-none`}
+              className={`w-full max-w-[85vw] sm:max-w-[320px] md:w-72 flex-shrink-0 h-full overflow-y-auto ${darkMode ? "bg-gray-800" : "bg-white"
+                } border-r ${darkMode ? "border-gray-700" : "border-gray-200"
+                } fixed md:relative z-40 shadow-xl md:shadow-none`}
             >
-              <div className="p-4">
-                <div className="flex items-center justify-between mb-6">
-                  <h1 className="text-xl font-bold flex items-center">
-                    <RiRobot2Line className="mr-2 text-indigo-500" />
-                    <span className="font-serif">Depression Support</span>
-                  </h1>
-                  <ThemeSwitcher
-                    darkMode={darkMode}
-                    toggleDarkMode={toggleDarkMode}
-                  />
-                </div>
-
+              <div className="p-4 flex flex-col h-full">
                 <button
                   onClick={handleNewChat}
-                  className={`w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-lg mb-6 ${
+                  className={`w-full flex items-center justify-center space-x-2 py-2.5 px-4 rounded-md mb-4 text-sm font-semibold ${ // Adjusted styling
                     darkMode
-                      ? "bg-gray-700 hover:bg-gray-600"
-                      : "bg-gray-100 hover:bg-gray-200"
-                  } transition-all hover:shadow-md`}
+                      ? "bg-indigo-600 hover:bg-indigo-700 text-white"
+                      : "bg-slate-900 hover:bg-slate-800 text-white" // Dark button for light mode as in image
+                    } transition-colors shadow-sm`}
                 >
-                  <FiPlus />
-                  <span className="font-medium">New Chat</span>
+                  <FiPlus size={18} />
+                  <span>New Chat</span>
                 </button>
 
-                <div className="relative mb-6">
-                  <FiSearch className="absolute left-3 top-3 text-gray-400" />
+                {/* Search input - kept for functionality */}
+                <div className="relative mb-4">
+                  <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" size={16} />
                   <input
                     type="text"
                     placeholder="Search chats..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className={`w-full pl-10 pr-4 py-2.5 rounded-lg ${
-                      darkMode
-                        ? "bg-gray-700 text-white placeholder-gray-400"
-                        : "bg-gray-100 text-gray-900 placeholder-gray-500"
-                    } focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    className={`w-full pl-10 pr-4 py-2 rounded-md text-sm ${darkMode
+                        ? "bg-gray-700 text-gray-200 placeholder-gray-400 border border-gray-600 focus:ring-indigo-500 focus:border-indigo-500"
+                        : "bg-gray-100 text-gray-800 placeholder-gray-500 border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+                      } outline-none`}
                   />
                 </div>
 
-                <div className="flex border-b mb-4">
-                  <button
-                    className={`flex-1 py-2 font-medium ${
-                      activeTab === "chats"
-                        ? darkMode
-                          ? "text-indigo-400 border-b-2 border-indigo-400"
-                          : "text-indigo-600 border-b-2 border-indigo-600"
-                        : darkMode
-                        ? "text-gray-400"
-                        : "text-gray-500"
-                    }`}
-                    onClick={() => setActiveTab("chats")}
-                  >
-                    Chats
-                  </button>
-                  <button
-                    className={`flex-1 py-2 font-medium ${
-                      activeTab === "saved"
-                        ? darkMode
-                          ? "text-indigo-400 border-b-2 border-indigo-400"
-                          : "text-indigo-600 border-b-2 border-indigo-600"
-                        : darkMode
-                        ? "text-gray-400"
-                        : "text-gray-500"
-                    }`}
-                    onClick={() => setActiveTab("saved")}
-                  >
-                    Saved
-                  </button>
-                </div>
-
-                <div className="mt-4">
-                  {activeTab === "chats" ? (
-                    <>
-                      {pinnedChats.length > 0 && (
-                        <div className="mb-4">
-                          <h2 className="text-sm font-semibold px-2 mb-3 flex items-center font-serif">
-                            <FiStar className="mr-1 text-yellow-500" /> Pinned
-                            Chats
-                          </h2>
-                          <div className="space-y-1.5">
-                            {chats
-                              .filter((chat) => pinnedChats.includes(chat.id))
-                              .map((chat) => (
-                                <ChatItem
-                                  key={chat.id}
-                                  chat={chat}
-                                  activeChat={activeChat}
-                                  darkMode={darkMode}
-                                  editingChatId={editingChatId}
-                                  editTitle={editTitle}
-                                  setEditTitle={setEditTitle}
-                                  handleSelectChat={handleSelectChat}
-                                  handleStartEdit={handleStartEdit}
-                                  handleSaveEdit={handleSaveEdit}
-                                  handleDeleteChat={handleDeleteChat}
-                                  handleTogglePin={handleTogglePin}
-                                  pinnedChats={pinnedChats}
-                                />
-                              ))}
-                          </div>
-                        </div>
-                      )}
-
-                      <h2 className="text-sm font-semibold px-2 mb-3 opacity-70 font-serif">
-                        Recent Chats
-                      </h2>
-                      <Reorder.Group
-                        axis="y"
-                        values={filteredChats.filter(
-                          (chat) => !pinnedChats.includes(chat.id)
-                        )}
-                        onReorder={(newOrder) =>
-                          setChats([
-                            ...pinnedChats.map((id) =>
-                              chats.find((c) => c.id === id)
-                            ),
-                            ...newOrder,
-                          ])
-                        }
-                        className="space-y-1.5"
-                      >
-                        {filteredChats
-                          .filter((chat) => !pinnedChats.includes(chat.id))
-                          .map((chat) => (
-                            <Reorder.Item key={chat.id} value={chat}>
-                              <ChatItem
-                                chat={chat}
-                                activeChat={activeChat}
-                                darkMode={darkMode}
-                                editingChatId={editingChatId}
-                                editTitle={editTitle}
-                                setEditTitle={setEditTitle}
-                                handleSelectChat={handleSelectChat}
-                                handleStartEdit={handleStartEdit}
-                                handleSaveEdit={handleSaveEdit}
-                                handleDeleteChat={handleDeleteChat}
-                                handleTogglePin={handleTogglePin}
-                                pinnedChats={pinnedChats}
-                              />
-                            </Reorder.Item>
-                          ))}
-                      </Reorder.Group>
-                    </>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <FiStar size={24} className="mx-auto mb-2" />
-                      <p>Your saved messages will appear here</p>
+                {/* Chat History Section */}
+                <div className="flex-grow overflow-y-auto mb-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
+                  <div className="flex items-center justify-between px-1 mb-2 mt-2">
+                    <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                      Chat History
+                    </h2>
+                    <button
+                      onClick={() => setIsHistoryExpanded(!isHistoryExpanded)}
+                      className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 p-1 rounded-md">
+                      {/* Replace with actual icon e.g. <FiChevronDown /> or <FiChevronUp /> */}
+                      {isHistoryExpanded ? <FiChevronUp size={16} /> : <FiChevronDown size={16} />}
+                    </button>
+                  </div>
+                  {isHistoryExpanded && (
+                    <div className="space-y-1">
+                      {filteredChats.map((chat) => (
+                        <ChatItem
+                          key={chat.id}
+                          chat={chat}
+                          activeChat={activeChat}
+                          darkMode={darkMode}
+                          editingChatId={editingChatId}
+                          editTitle={editTitle}
+                          setEditTitle={setEditTitle}
+                          handleSelectChat={handleSelectChat}
+                          handleStartEdit={handleStartEdit}
+                          handleSaveEdit={handleSaveEdit}
+                          handleDeleteChat={handleDeleteChat}
+                          // Props for new UI style in ChatItem (to be implemented in ChatItem.jsx)
+                          isNewUI={true}
+                          timestamp={chat.createdAt} // Ensure chat objects have createdAt
+                        />
+                      ))}
                     </div>
                   )}
                 </div>
-              </div>
+                {/* End Chat History Section */}
+              </div> {/* This closes the main content div of sidebar, footer will be outside or after flex-grow */}
 
-              <div
-                className={`p-4 border-t ${
-                  darkMode ? "border-gray-700" : "border-gray-200"
-                }`}
-              >
-                <div>
-                  <CrisisResources darkMode={darkMode} />
+              {/* Sidebar Footer Navigation */}
+              <div className={`p-3 border-t ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
+                <nav className="space-y-1 mb-3">
+                  {[{ name: "Dashboard", icon: FiGrid, href: "#" }, { name: "Profile", icon: FiUser, href: "#" }].map(item => (
+                    <a
+                      key={item.name}
+                      href={item.href}
+                      className={`flex items-center space-x-3 px-2.5 py-2 rounded-md text-sm font-medium transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-700 hover:text-white" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}>
+                      <item.icon size={18} className={`${darkMode ? "text-gray-400" : "text-gray-500"}`} />
+                      <span>{item.name}</span>
+                    </a>
+                  ))}
+                  <button
+                    onClick={toggleDarkMode}
+                    className={`w-full flex items-center space-x-3 px-2.5 py-2 rounded-md text-sm font-medium transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-700 hover:text-white" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}>
+                    {darkMode ? <FiSun size={18} className="text-yellow-400" /> : <FiMoon size={18} className="text-indigo-500" />}
+                    <span>{darkMode ? "Light Mode" : "Dark Mode"}</span>
+                  </button>
+                </nav>
+                <div className={`px-1.5 py-1 text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                  Logged in as <span className="font-semibold">{userPreferences.username || "Bertha Roy"}</span>
                 </div>
               </div>
             </motion.div>
@@ -1613,40 +1545,45 @@ export default function Chat() {
         <div className="flex-1 flex flex-col h-full overflow-hidden w-full">
           {/* Header */}
           <header
-            className={`p-2 sm:p-4 flex items-center justify-between border-b ${
+            className={`p-3.5 flex items-center justify-between border-b ${ // Adjusted padding
               darkMode
-                ? "border-gray-700 bg-gray-800"
+                ? "border-gray-700 bg-gray-800" // Darker header for dark mode
                 : "border-gray-200 bg-white"
-            }`}
+              }`}
           >
             <div className="flex items-center">
-              {!sidebarOpen && (
-                <button
-                  onClick={() => setSidebarOpen(true)}
-                  className={`p-2 mr-2 rounded-full ${
-                    darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
+              <button // Hamburger menu to toggle sidebar
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className={`p-2 rounded-full transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-700" : "text-gray-600 hover:bg-gray-100"
                   }`}
-                >
-                  <FiMenu size={20} />
-                </button>
-              )}
-
-              <h1 className="text-lg sm:text-xl font-semibold flex items-center truncate max-w-[200px] sm:max-w-md">
-                {(activeChat &&
-                  chats.find((chat) => chat.id === activeChat)?.title) ||
-                  "New Chat"}
+              >
+                <FiMenu size={22} />
+              </button>
+              <h1 className="ml-2.5 text-md font-semibold flex items-center text-gray-800 dark:text-gray-100">
+                {/* Optional: Icon for NiveshPath AI, e.g., <RiRobot2Line className="mr-2" /> */}
+                NiveshPath AI {/* Static title from image */}
               </h1>
             </div>
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              <Tooltip content="Current model: GPT-4"></Tooltip>
+            <div className="flex items-center space-x-3">
+              <span className={`text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                {userPreferences.username || "Bertha Roy"} {/* User name */}
+              </span>
+              <button
+                onClick={handleClearCurrentChat}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${darkMode
+                    ? "border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-gray-200"
+                    : "border-gray-300 text-gray-600 hover:bg-gray-100 hover:text-gray-800"
+                  }`}
+              >
+                Clear
+              </button>
             </div>
           </header>
 
           {/* Messages */}
           <div
-            className={`flex-1 overflow-y-auto ${
-              darkMode ? "bg-gray-900" : "bg-gray-50"
-            } px-2 sm:px-4`}
+            className={`flex-1 overflow-y-auto ${darkMode ? "bg-gray-900" : "bg-gray-50"
+              } px-2 sm:px-4`}
           >
             {messages.length === 0 ? (
               <WelcomePage darkMode={darkMode} setInput={setInput} />
@@ -1655,9 +1592,8 @@ export default function Chat() {
                 {Object.entries(groupedMessages).map(([date, dateMessages]) => (
                   <div key={date} className="mb-6">
                     <div
-                      className={`text-center mb-4 text-sm ${
-                        darkMode ? "text-gray-400" : "text-gray-500"
-                      }`}
+                      className={`text-center mb-4 text-sm ${darkMode ? "text-gray-400" : "text-gray-500"
+                        }`}
                     >
                       {formatDate(dateMessages[0].timestamp)}
                     </div>
@@ -1667,22 +1603,20 @@ export default function Chat() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3 }}
-                        className={`flex ${
-                          message.role === "user"
+                        className={`flex ${message.role === "user"
                             ? "justify-end"
                             : "justify-start"
-                        } mb-4`}
+                          } mb-4`}
                       >
                         <div
-                          className={`max-w-full sm:max-w-3xl rounded-lg p-4 sm:p-5 relative group ${
-                            message.role === "user"
+                          className={`max-w-full sm:max-w-3xl rounded-lg p-4 sm:p-5 relative group ${message.role === "user"
                               ? darkMode
                                 ? "bg-indigo-600"
                                 : "bg-indigo-500 text-white"
                               : darkMode
-                              ? "bg-gray-700"
-                              : "bg-white border border-gray-200 shadow-sm"
-                          }`}
+                                ? "bg-gray-700"
+                                : "bg-white border border-gray-200 shadow-sm"
+                            }`}
                         >
                           <div className="absolute top-1 right-1 flex opacity-0 group-hover:opacity-100 transition-opacity items-center z-10">
                             {" "}
@@ -1698,26 +1632,24 @@ export default function Chat() {
                               onShare={() => handleShareMessage(message)} // Connect to handleShareMessage
                               onReply={() => handleStartReply(message)}
                               onReact={() => handleReact(message.id)}
+                              onSpeak={() => speakText(message.content)} // Added TTS functionality
                             />
                           </div>
 
                           {message.replyTo &&
                             messages.find((m) => m.id === message.replyTo) && (
                               <div
-                                className={`mb-1.5 px-2 py-1 text-xs rounded-md ${
-                                  darkMode
+                                className={`mb-1.5 px-2 py-1 text-xs rounded-md ${darkMode
                                     ? "bg-black bg-opacity-20"
                                     : "bg-gray-100"
-                                } border-l-2 ${
-                                  darkMode
+                                  } border-l-2 ${darkMode
                                     ? "border-gray-500"
                                     : "border-gray-300"
-                                }`}
+                                  }`}
                               >
                                 <p
-                                  className={`font-medium text-xs ${
-                                    darkMode ? "text-gray-400" : "text-gray-600"
-                                  }`}
+                                  className={`font-medium text-xs ${darkMode ? "text-gray-400" : "text-gray-600"
+                                    }`}
                                 >
                                   Replying to{" "}
                                   {messages.find(
@@ -1740,7 +1672,7 @@ export default function Chat() {
                             )}
                           {/* Conditional rendering for editing or displaying message content */}
                           {editingMessage &&
-                          editingMessage.id === message.id ? (
+                            editingMessage.id === message.id ? (
                             <div className="mt-2 w-full">
                               <textarea
                                 value={editedContent}
@@ -1753,11 +1685,10 @@ export default function Chat() {
                                     handleSaveEditMessage(message.id);
                                   }
                                 }}
-                                className={`w-full p-2 border rounded text-sm ${
-                                  darkMode
+                                className={`w-full p-2 border rounded text-sm ${darkMode
                                     ? "bg-gray-600 border-gray-500 text-white"
                                     : "bg-white border-gray-300 text-gray-900"
-                                } focus:ring-indigo-500 focus:border-indigo-500`}
+                                  } focus:ring-indigo-500 focus:border-indigo-500`}
                                 rows="3"
                                 autoFocus
                               />
@@ -1767,11 +1698,10 @@ export default function Chat() {
                                     setEditingMessage(null);
                                     setEditedContent("");
                                   }}
-                                  className={`px-3 py-1 rounded text-xs ${
-                                    darkMode
+                                  className={`px-3 py-1 rounded text-xs ${darkMode
                                       ? "bg-gray-500 hover:bg-gray-400"
                                       : "bg-gray-200 hover:bg-gray-300"
-                                  }`}
+                                    }`}
                                 >
                                   Cancel
                                 </button>
@@ -1779,11 +1709,10 @@ export default function Chat() {
                                   onClick={() =>
                                     handleSaveEditMessage(message.id)
                                   }
-                                  className={`px-3 py-1 rounded text-xs ${
-                                    darkMode
+                                  className={`px-3 py-1 rounded text-xs ${darkMode
                                       ? "bg-indigo-500 hover:bg-indigo-400 text-white"
                                       : "bg-indigo-600 hover:bg-indigo-700 text-white"
-                                  }`}
+                                    }`}
                                 >
                                   Save Changes
                                 </button>
@@ -1809,11 +1738,10 @@ export default function Chat() {
                                     return !inline && match ? (
                                       <div className="relative">
                                         <div
-                                          className={`absolute top-2 right-2 text-xs ${
-                                            darkMode
+                                          className={`absolute top-2 right-2 text-xs ${darkMode
                                               ? "text-gray-400"
                                               : "text-gray-500"
-                                          }`}
+                                            }`}
                                         >
                                           {match[1]}
                                         </div>
@@ -1838,22 +1766,20 @@ export default function Chat() {
                                               )
                                             )
                                           }
-                                          className={`absolute bottom-2 right-2 text-xs px-2 py-1 rounded ${
-                                            darkMode
+                                          className={`absolute bottom-2 right-2 text-xs px-2 py-1 rounded ${darkMode
                                               ? "bg-gray-600 hover:bg-gray-500"
                                               : "bg-gray-200 hover:bg-gray-300"
-                                          }`}
+                                            }`}
                                         >
                                           Copy
                                         </button>
                                       </div>
                                     ) : (
                                       <code
-                                        className={`${className} ${
-                                          darkMode
+                                        className={`${className} ${darkMode
                                             ? "bg-gray-600"
                                             : "bg-gray-200"
-                                        } px-1 py-0.5 rounded`}
+                                          } px-1 py-0.5 rounded`}
                                         {...props}
                                       >
                                         {children}
@@ -1875,18 +1801,17 @@ export default function Chat() {
                                   (attachment, index) => (
                                     <div
                                       key={index}
-                                      className={`p-1.5 rounded text-xs mb-1 ${
-                                        message.role === "user"
+                                      className={`p-1.5 rounded text-xs mb-1 ${message.role === "user"
                                           ? darkMode
                                             ? "bg-indigo-700"
                                             : "bg-indigo-600"
                                           : darkMode
-                                          ? "bg-gray-600"
-                                          : "bg-gray-100 border"
-                                      }`}
+                                            ? "bg-gray-600"
+                                            : "bg-gray-100 border"
+                                        }`}
                                     >
                                       {attachment.previewUrl &&
-                                      attachment.type.startsWith("image/") ? (
+                                        attachment.type.startsWith("image/") ? (
                                         <img
                                           src={attachment.previewUrl}
                                           alt={attachment.name}
@@ -1934,15 +1859,13 @@ export default function Chat() {
                                     onClick={() =>
                                       addReactionToMessage(message.id, emoji)
                                     }
-                                    className={`px-1.5 py-0.5 text-xs rounded-full transition-colors ${
-                                      darkMode
+                                    className={`px-1.5 py-0.5 text-xs rounded-full transition-colors ${darkMode
                                         ? "bg-gray-600 hover:bg-gray-500"
                                         : "bg-gray-200 hover:bg-gray-300"
-                                    } ${
-                                      darkMode
+                                      } ${darkMode
                                         ? "text-gray-300"
                                         : "text-gray-700"
-                                    }`}
+                                      }`}
                                   >
                                     {emoji} {count > 1 ? count : ""}
                                   </button>
@@ -1951,13 +1874,12 @@ export default function Chat() {
                             </div>
                           )}
                         <div
-                          className={`text-xs mt-2 flex justify-between ${
-                            message.role === "user"
+                          className={`text-xs mt-2 flex justify-between ${message.role === "user"
                               ? "text-indigo-200"
                               : darkMode
-                              ? "text-gray-400"
-                              : "text-gray-500"
-                          }`}
+                                ? "text-gray-400"
+                                : "text-gray-500"
+                            }`}
                         >
                           <span>{formatTimestamp(message.timestamp)}</span>
                           {message.role === "assistant" && (
@@ -1984,11 +1906,10 @@ export default function Chat() {
                 {reactingToMessageId && (
                   <div
                     ref={reactionPickerRef}
-                    className={`absolute z-30 p-2 rounded-lg shadow-xl flex space-x-1 ${
-                      darkMode
+                    className={`absolute z-30 p-2 rounded-lg shadow-xl flex space-x-1 ${darkMode
                         ? "bg-gray-700 border border-gray-600"
                         : "bg-white border border-gray-300"
-                    }`}
+                      }`}
                     style={{ bottom: "80px", right: "20px" }} // Example fixed position, ideally dynamic
                   >
                     {["👍", "❤️", "😂", "😮", "😢", "🙏", "🎉"].map((emoji) => (
@@ -1998,18 +1919,16 @@ export default function Chat() {
                           addReactionToMessage(reactingToMessageId, emoji);
                           setReactingToMessageId(null);
                         }}
-                        className={`p-1.5 rounded-full text-xl transition-transform hover:scale-125 ${
-                          darkMode ? "hover:bg-gray-600" : "hover:bg-gray-200"
-                        }`}
+                        className={`p-1.5 rounded-full text-xl transition-transform hover:scale-125 ${darkMode ? "hover:bg-gray-600" : "hover:bg-gray-200"
+                          }`}
                       >
                         {emoji}
                       </button>
                     ))}
                     <button
                       onClick={() => setReactingToMessageId(null)}
-                      className={`p-1 ml-1 rounded-full ${
-                        darkMode ? "hover:bg-gray-500" : "hover:bg-gray-300"
-                      }`}
+                      className={`p-1 ml-1 rounded-full ${darkMode ? "hover:bg-gray-500" : "hover:bg-gray-300"
+                        }`}
                     >
                       <FiX size={16} />
                     </button>
@@ -2021,17 +1940,15 @@ export default function Chat() {
 
           {/* Input area */}
           <div
-            className={`p-2 sm:p-4 ${
-              darkMode
+            className={`p-2 sm:p-4 ${darkMode
                 ? "bg-gray-800 border-gray-700"
                 : "bg-white border-gray-200"
-            } border-t`}
+              } border-t`}
           >
             {attachments.length > 0 && (
               <div
-                className={`mb-4 p-2 sm:p-3 rounded-lg ${
-                  darkMode ? "bg-gray-700" : "bg-gray-100"
-                }`}
+                className={`mb-4 p-2 sm:p-3 rounded-lg ${darkMode ? "bg-gray-700" : "bg-gray-100"
+                  }`}
               >
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-xs sm:text-sm font-medium">
@@ -2042,9 +1959,8 @@ export default function Chat() {
                       setAttachments([]);
                       setAttachmentPreviews([]);
                     }}
-                    className={`p-1 rounded-full ${
-                      darkMode ? "hover:bg-gray-600" : "hover:bg-gray-200"
-                    }`}
+                    className={`p-1 rounded-full ${darkMode ? "hover:bg-gray-600" : "hover:bg-gray-200"
+                      }`}
                   >
                     <FiX size={16} />
                   </button>
@@ -2053,9 +1969,8 @@ export default function Chat() {
                   {attachments.map((file, index) => (
                     <div
                       key={index}
-                      className={`p-1.5 sm:p-2 rounded flex items-center text-xs sm:text-sm ${
-                        darkMode ? "bg-gray-600" : "bg-gray-200"
-                      }`}
+                      className={`p-1.5 sm:p-2 rounded flex items-center text-xs sm:text-sm ${darkMode ? "bg-gray-600" : "bg-gray-200"
+                        }`}
                     >
                       {attachmentPreviews.find(
                         (p) =>
@@ -2101,26 +2016,24 @@ export default function Chat() {
 
             {showMic && browserSupportsSpeechRecognition && (
               <div
-                className={`mb-4 p-3 rounded-lg flex flex-col items-center ${
-                  listening
+                className={`mb-4 p-3 rounded-lg flex flex-col items-center ${listening
                     ? darkMode
                       ? "bg-red-900 bg-opacity-30"
                       : "bg-red-100"
                     : darkMode
-                    ? "bg-gray-700"
-                    : "bg-gray-100"
-                }`}
+                      ? "bg-gray-700"
+                      : "bg-gray-100"
+                  }`}
               >
                 <div
-                  className={`w-full flex items-center justify-between mb-2 ${
-                    listening
+                  className={`w-full flex items-center justify-between mb-2 ${listening
                       ? darkMode
                         ? "text-red-300"
                         : "text-red-800"
                       : darkMode
-                      ? "text-gray-300"
-                      : "text-gray-800"
-                  }`}
+                        ? "text-gray-300"
+                        : "text-gray-800"
+                    }`}
                 >
                   <span className="flex-1">
                     {listening
@@ -2129,15 +2042,14 @@ export default function Chat() {
                   </span>
                   <button
                     onClick={toggleMic}
-                    className={`p-2 rounded-full ${
-                      listening
+                    className={`p-2 rounded-full ${listening
                         ? darkMode
                           ? "bg-red-600 text-white"
                           : "bg-red-500 text-white"
                         : darkMode
-                        ? "bg-gray-600 text-gray-300"
-                        : "bg-gray-200 text-gray-700"
-                    }`}
+                          ? "bg-gray-600 text-gray-300"
+                          : "bg-gray-200 text-gray-700"
+                      }`}
                   >
                     {listening ? (
                       <IoMdMicOff size={20} />
@@ -2158,11 +2070,10 @@ export default function Chat() {
 
             {replyingToMessage && (
               <div
-                className={`mb-2 p-2 rounded-lg text-sm flex justify-between items-center shadow ${
-                  darkMode
+                className={`mb-2 p-2 rounded-lg text-sm flex justify-between items-center shadow ${darkMode
                     ? "bg-gray-700 text-gray-300"
                     : "bg-gray-100 text-gray-700"
-                }`}
+                  }`}
               >
                 <div className="flex-grow overflow-hidden">
                   <span className="text-xs opacity-80">Replying to:</span>{" "}
@@ -2172,9 +2083,8 @@ export default function Chat() {
                 </div>
                 <button
                   onClick={() => setReplyingToMessage(null)}
-                  className={`ml-2 p-1 rounded-full ${
-                    darkMode ? "hover:bg-gray-600" : "hover:bg-gray-300"
-                  }`}
+                  className={`ml-2 p-1 rounded-full ${darkMode ? "hover:bg-gray-600" : "hover:bg-gray-300"
+                    }`}
                 >
                   <FiX size={16} />
                 </button>
@@ -2196,11 +2106,10 @@ export default function Chat() {
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Type a message..."
                   rows="1"
-                  className={`w-full rounded-lg py-3 sm:py-3.5 px-4 sm:px-5 pr-12 resize-none text-sm sm:text-base font-light ${
-                    darkMode
+                  className={`w-full rounded-lg py-3 sm:py-3.5 px-4 sm:px-5 pr-12 resize-none text-sm sm:text-base font-light ${darkMode
                       ? "bg-gray-700 text-white placeholder-gray-400"
                       : "bg-gray-100 text-gray-900 placeholder-gray-500"
-                  } focus:outline-none focus:ring-1 focus:ring-indigo-500`}
+                    } focus:outline-none focus:ring-1 focus:ring-indigo-500`}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
@@ -2221,11 +2130,10 @@ export default function Chat() {
                       e.stopPropagation();
                       setShowEmojiPicker(!showEmojiPicker);
                     }}
-                    className={`p-1 rounded-full ${
-                      darkMode
+                    className={`p-1 rounded-full ${darkMode
                         ? "text-gray-400 hover:text-gray-300"
                         : "text-gray-500 hover:text-gray-700"
-                    }`}
+                      }`}
                   >
                     <BsEmojiSmile size={20} />
                   </button>
@@ -2234,15 +2142,14 @@ export default function Chat() {
                     <button
                       type="button"
                       onClick={toggleMic}
-                      className={`p-1 rounded-full ${
-                        listening
+                      className={`p-1 rounded-full ${listening
                           ? darkMode
                             ? "text-red-400 hover:text-red-300"
                             : "text-red-600 hover:text-red-700"
                           : darkMode
-                          ? "text-gray-400 hover:text-gray-300"
-                          : "text-gray-500 hover:text-gray-700"
-                      }`}
+                            ? "text-gray-400 hover:text-gray-300"
+                            : "text-gray-500 hover:text-gray-700"
+                        }`}
                       title={listening ? "Stop listening" : "Start listening"}
                     >
                       {listening ? (
@@ -2255,11 +2162,10 @@ export default function Chat() {
 
                   <button
                     type="button"
-                    className={`p-1 rounded-full ${
-                      darkMode
+                    className={`p-1 rounded-full ${darkMode
                         ? "text-gray-400 hover:text-gray-300"
                         : "text-gray-500 hover:text-gray-700"
-                    }`}
+                      }`}
                     title="Supports Markdown"
                   >
                     <BsMarkdown size={20} />
@@ -2292,24 +2198,22 @@ export default function Chat() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={(e) => handleSendMessage(e)}
-                className={`p-3 rounded-lg ${
-                  (!input.trim() && attachments.length === 0) || isLoading
+                className={`p-3 rounded-lg ${(!input.trim() && attachments.length === 0) || isLoading
                     ? darkMode
                       ? "bg-gray-600 text-gray-400"
                       : "bg-gray-200 text-gray-400"
                     : darkMode
-                    ? "bg-indigo-600 text-white hover:bg-indigo-500"
-                    : "bg-indigo-500 text-white hover:bg-indigo-600"
-                }`}
+                      ? "bg-indigo-600 text-white hover:bg-indigo-500"
+                      : "bg-indigo-500 text-white hover:bg-indigo-600"
+                  }`}
               >
                 <FiSend size={20} />
               </motion.button>
             </form>
 
             <div
-              className={`text-xs mt-3 text-center font-light italic ${
-                darkMode ? "text-gray-500" : "text-gray-400"
-              }`}
+              className={`text-xs mt-3 text-center font-light italic ${darkMode ? "text-gray-500" : "text-gray-400"
+                }`}
             >
               AI Assistant may produce inaccurate information. Consider
               verifying important details.
@@ -2338,24 +2242,21 @@ const SettingsPanel = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${
-        darkMode ? "bg-gray-900 bg-opacity-80" : "bg-gray-500 bg-opacity-50"
-      }`}
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${darkMode ? "bg-gray-900 bg-opacity-80" : "bg-gray-500 bg-opacity-50"
+        }`}
       onClick={onClose}
     >
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 20, opacity: 0 }}
-        className={`relative rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col ${
-          darkMode ? "bg-gray-800" : "bg-white"
-        }`}
+        className={`relative rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col ${darkMode ? "bg-gray-800" : "bg-white"
+          }`}
         onClick={(e) => e.stopPropagation()}
       >
         <div
-          className={`p-5 border-b flex items-center justify-between ${
-            darkMode ? "border-gray-700" : "border-gray-200"
-          }`}
+          className={`p-5 border-b flex items-center justify-between ${darkMode ? "border-gray-700" : "border-gray-200"
+            }`}
         >
           <h2 className="text-xl font-semibold flex items-center font-serif">
             <FiSettings className="mr-2" />
@@ -2363,9 +2264,8 @@ const SettingsPanel = ({
           </h2>
           <button
             onClick={onClose}
-            className={`p-2 rounded-full ${
-              darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
-            }`}
+            className={`p-2 rounded-full ${darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
+              }`}
           >
             <FiX size={20} />
           </button>
@@ -2373,43 +2273,40 @@ const SettingsPanel = ({
 
         <div className="flex border-b">
           <button
-            className={`flex-1 py-3 font-medium ${
-              activeTab === "preferences"
+            className={`flex-1 py-3 font-medium ${activeTab === "preferences"
                 ? darkMode
                   ? "text-indigo-400 border-b-2 border-indigo-400"
                   : "text-indigo-600 border-b-2 border-indigo-600"
                 : darkMode
-                ? "text-gray-400"
-                : "text-gray-500"
-            }`}
+                  ? "text-gray-400"
+                  : "text-gray-500"
+              }`}
             onClick={() => setActiveTab("preferences")}
           >
             Preferences
           </button>
           <button
-            className={`flex-1 py-3 font-medium ${
-              activeTab === "model"
+            className={`flex-1 py-3 font-medium ${activeTab === "model"
                 ? darkMode
                   ? "text-indigo-400 border-b-2 border-indigo-400"
                   : "text-indigo-600 border-b-2 border-indigo-600"
                 : darkMode
-                ? "text-gray-400"
-                : "text-gray-500"
-            }`}
+                  ? "text-gray-400"
+                  : "text-gray-500"
+              }`}
             onClick={() => setActiveTab("model")}
           >
             Model Settings
           </button>
           <button
-            className={`flex-1 py-3 font-medium ${
-              activeTab === "account"
+            className={`flex-1 py-3 font-medium ${activeTab === "account"
                 ? darkMode
                   ? "text-indigo-400 border-b-2 border-indigo-400"
                   : "text-indigo-600 border-b-2 border-indigo-600"
                 : darkMode
-                ? "text-gray-400"
-                : "text-gray-500"
-            }`}
+                  ? "text-gray-400"
+                  : "text-gray-500"
+              }`}
             onClick={() => setActiveTab("account")}
           >
             Account
@@ -2428,9 +2325,8 @@ const SettingsPanel = ({
                     <div>
                       <p className="font-medium">Dark Mode</p>
                       <p
-                        className={`text-sm ${
-                          darkMode ? "text-gray-400" : "text-gray-500"
-                        }`}
+                        className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"
+                          }`}
                       >
                         Toggle between light and dark theme
                       </p>
@@ -2443,9 +2339,8 @@ const SettingsPanel = ({
                         onChange={toggleMainDarkMode} // Use the passed main toggle function
                       />
                       <div
-                        className={`w-11 h-6 rounded-full peer ${
-                          darkMode ? "bg-indigo-600" : "bg-gray-200"
-                        } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}
+                        className={`w-11 h-6 rounded-full peer ${darkMode ? "bg-indigo-600" : "bg-gray-200"
+                          } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}
                       ></div>
                     </label>
                   </div>
@@ -2454,9 +2349,8 @@ const SettingsPanel = ({
                     <div>
                       <p className="font-medium">Animations</p>
                       <p
-                        className={`text-sm ${
-                          darkMode ? "text-gray-400" : "text-gray-500"
-                        }`}
+                        className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"
+                          }`}
                       >
                         Enable/disable UI animations
                       </p>
@@ -2474,11 +2368,10 @@ const SettingsPanel = ({
                         }
                       />
                       <div
-                        className={`w-11 h-6 rounded-full peer ${
-                          userPreferences.animations
+                        className={`w-11 h-6 rounded-full peer ${userPreferences.animations
                             ? "bg-indigo-600"
                             : "bg-gray-200"
-                        } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}
+                          } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}
                       ></div>
                     </label>
                   </div>
@@ -2487,9 +2380,8 @@ const SettingsPanel = ({
                     <div>
                       <p className="font-medium">Sound Effects</p>
                       <p
-                        className={`text-sm ${
-                          darkMode ? "text-gray-400" : "text-gray-500"
-                        }`}
+                        className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"
+                          }`}
                       >
                         Enable/disable interface sounds
                       </p>
@@ -2507,11 +2399,10 @@ const SettingsPanel = ({
                         }
                       />
                       <div
-                        className={`w-11 h-6 rounded-full peer ${
-                          userPreferences.soundEffects
+                        className={`w-11 h-6 rounded-full peer ${userPreferences.soundEffects
                             ? "bg-indigo-600"
                             : "bg-gray-200"
-                        } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}
+                          } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}
                       ></div>
                     </label>
                   </div>
@@ -2525,9 +2416,8 @@ const SettingsPanel = ({
                     <div>
                       <p className="font-medium">Markdown Support</p>
                       <p
-                        className={`text-sm ${
-                          darkMode ? "text-gray-400" : "text-gray-500"
-                        }`}
+                        className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"
+                          }`}
                       >
                         Render markdown in messages
                       </p>
@@ -2545,11 +2435,10 @@ const SettingsPanel = ({
                         }
                       />
                       <div
-                        className={`w-11 h-6 rounded-full peer ${
-                          userPreferences.markdown
+                        className={`w-11 h-6 rounded-full peer ${userPreferences.markdown
                             ? "bg-indigo-600"
                             : "bg-gray-200"
-                        } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}
+                          } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}
                       ></div>
                     </label>
                   </div>
@@ -2558,9 +2447,8 @@ const SettingsPanel = ({
                     <div>
                       <p className="font-medium">Code Syntax Highlighting</p>
                       <p
-                        className={`text-sm ${
-                          darkMode ? "text-gray-400" : "text-gray-500"
-                        }`}
+                        className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"
+                          }`}
                       >
                         Enable syntax highlighting for code blocks
                       </p>
@@ -2579,11 +2467,10 @@ const SettingsPanel = ({
                         }
                       />
                       <div
-                        className={`w-11 h-6 rounded-full peer ${
-                          userPreferences.syntaxHighlighting
+                        className={`w-11 h-6 rounded-full peer ${userPreferences.syntaxHighlighting
                             ? "bg-indigo-600"
                             : "bg-gray-200 dark:bg-gray-600"
-                        } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}
+                          } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}
                       ></div>
                     </label>
                   </div>
@@ -2601,9 +2488,8 @@ const SettingsPanel = ({
                     <div>
                       <p className="font-medium">Enable TTS</p>
                       <p
-                        className={`text-sm ${
-                          darkMode ? "text-gray-400" : "text-gray-500"
-                        }`}
+                        className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"
+                          }`}
                       >
                         Have AI responses read aloud.
                       </p>
@@ -2614,18 +2500,17 @@ const SettingsPanel = ({
                         className="sr-only peer"
                         checked={userPreferences.ttsEnabled}
                         onChange={() =>
-                          handlePreferenceChange(
-                            "ttsEnabled",
-                            !userPreferences.ttsEnabled
-                          )
+                          setUserPreferences(prev => ({
+                            ...prev,
+                            ttsEnabled: !prev.ttsEnabled,
+                          }))
                         }
                       />
                       <div
-                        className={`w-11 h-6 rounded-full peer ${
-                          userPreferences.ttsEnabled
+                        className={`w-11 h-6 rounded-full peer ${userPreferences.ttsEnabled
                             ? "bg-indigo-600"
                             : "bg-gray-200 dark:bg-gray-600"
-                        } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}
+                          } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}
                       ></div>
                     </label>
                   </div>
@@ -2645,9 +2530,8 @@ const SettingsPanel = ({
                             <div>
                               <label
                                 htmlFor="ttsVoice"
-                                className={`block mb-2 font-medium ${
-                                  darkMode ? "text-gray-300" : "text-gray-700"
-                                }`}
+                                className={`block mb-2 font-medium ${darkMode ? "text-gray-300" : "text-gray-700"
+                                  }`}
                               >
                                 Voice
                               </label>
@@ -2656,20 +2540,18 @@ const SettingsPanel = ({
                                 name="ttsVoice"
                                 value={userPreferences.ttsVoice || ""}
                                 onChange={(e) =>
-                                  handlePreferenceChange(
-                                    "ttsVoice",
-                                    e.target.value
-                                  )
+                                  setUserPreferences(prev => ({
+                                    ...prev,
+                                    ttsVoice: e.target.value,
+                                  }))
                                 }
-                                className={`w-full p-2 rounded-lg ${
-                                  darkMode
+                                className={`w-full p-2 rounded-lg ${darkMode
                                     ? "bg-gray-700 text-white"
                                     : "bg-gray-100 text-gray-900"
-                                } border ${
-                                  darkMode
+                                  } border ${darkMode
                                     ? "border-gray-600"
                                     : "border-gray-300"
-                                } focus:ring-indigo-500 focus:border-indigo-500`}
+                                  } focus:ring-indigo-500 focus:border-indigo-500`}
                               >
                                 <option value="" disabled>
                                   Select a voice
@@ -2686,9 +2568,8 @@ const SettingsPanel = ({
                             <div>
                               <label
                                 htmlFor="ttsSpeed"
-                                className={`block mb-2 font-medium ${
-                                  darkMode ? "text-gray-300" : "text-gray-700"
-                                }`}
+                                className={`block mb-2 font-medium ${darkMode ? "text-gray-300" : "text-gray-700"
+                                  }`}
                               >
                                 Speed: {userPreferences.ttsSpeed.toFixed(1)}x
                               </label>
@@ -2701,10 +2582,10 @@ const SettingsPanel = ({
                                 step="0.1"
                                 value={userPreferences.ttsSpeed}
                                 onChange={(e) =>
-                                  handlePreferenceChange(
-                                    "ttsSpeed",
-                                    parseFloat(e.target.value)
-                                  )
+                                  setUserPreferences(prev => ({
+                                    ...prev,
+                                    ttsSpeed: parseFloat(e.target.value),
+                                  }))
                                 }
                                 className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 dark:accent-indigo-500 bg-gray-200 dark:bg-gray-600"
                               />
@@ -2712,9 +2593,8 @@ const SettingsPanel = ({
                           </>
                         ) : (
                           <p
-                            className={`text-sm ${
-                              darkMode ? "text-gray-400" : "text-gray-500"
-                            }`}
+                            className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"
+                              }`}
                           >
                             Loading voices or no voices available in your
                             browser...
@@ -2733,9 +2613,8 @@ const SettingsPanel = ({
                 <div className="space-y-4">
                   <div>
                     <label
-                      className={`block mb-2 font-medium ${
-                        darkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
+                      className={`block mb-2 font-medium ${darkMode ? "text-gray-300" : "text-gray-700"
+                        }`}
                     >
                       Model Version
                     </label>
@@ -2747,13 +2626,11 @@ const SettingsPanel = ({
                           model: e.target.value,
                         })
                       }
-                      className={`w-full p-2 rounded-lg ${
-                        darkMode
+                      className={`w-full p-2 rounded-lg ${darkMode
                           ? "bg-gray-700 text-white"
                           : "bg-gray-100 text-gray-900"
-                      } border ${
-                        darkMode ? "border-gray-600" : "border-gray-300"
-                      }`}
+                        } border ${darkMode ? "border-gray-600" : "border-gray-300"
+                        }`}
                     >
                       <option value="gpt-4">GPT-4 (Most Capable)</option>
                       <option value="gpt-4-turbo">GPT-4 Turbo (Faster)</option>
@@ -2765,9 +2642,8 @@ const SettingsPanel = ({
 
                   <div>
                     <label
-                      className={`block mb-2 font-medium ${
-                        darkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
+                      className={`block mb-2 font-medium ${darkMode ? "text-gray-300" : "text-gray-700"
+                        }`}
                     >
                       Temperature: {modelSettings.temperature}
                     </label>
@@ -2791,9 +2667,8 @@ const SettingsPanel = ({
                       <span>Creative</span>
                     </div>
                     <p
-                      className={`text-sm mt-1 ${
-                        darkMode ? "text-gray-400" : "text-gray-500"
-                      }`}
+                      className={`text-sm mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"
+                        }`}
                     >
                       Controls randomness: Lower values for more focused
                       responses, higher values for more creativity.
@@ -2802,9 +2677,8 @@ const SettingsPanel = ({
 
                   <div>
                     <label
-                      className={`block mb-2 font-medium ${
-                        darkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
+                      className={`block mb-2 font-medium ${darkMode ? "text-gray-300" : "text-gray-700"
+                        }`}
                     >
                       Max Tokens: {modelSettings.maxTokens}
                     </label>
@@ -2828,9 +2702,8 @@ const SettingsPanel = ({
                       <span>Long</span>
                     </div>
                     <p
-                      className={`text-sm mt-1 ${
-                        darkMode ? "text-gray-400" : "text-gray-500"
-                      }`}
+                      className={`text-sm mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"
+                        }`}
                     >
                       Maximum length of responses. Higher values may take longer
                       to generate.
@@ -2845,18 +2718,15 @@ const SettingsPanel = ({
                 </h3>
                 <textarea
                   placeholder="You are a helpful AI assistant..."
-                  className={`w-full p-3 rounded-lg ${
-                    darkMode
+                  className={`w-full p-3 rounded-lg ${darkMode
                       ? "bg-gray-700 text-white"
                       : "bg-gray-100 text-gray-900"
-                  } border ${
-                    darkMode ? "border-gray-600" : "border-gray-300"
-                  } min-h-[100px]`}
+                    } border ${darkMode ? "border-gray-600" : "border-gray-300"
+                    } min-h-[100px]`}
                 />
                 <p
-                  className={`text-sm mt-1 ${
-                    darkMode ? "text-gray-400" : "text-gray-500"
-                  }`}
+                  className={`text-sm mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"
+                    }`}
                 >
                   Custom instructions to guide the AI's behavior and responses.
                 </p>
@@ -2866,9 +2736,8 @@ const SettingsPanel = ({
             <div className="space-y-6">
               <div className="flex items-center space-x-2 sm:space-x-4">
                 <div
-                  className={`w-16 h-16 rounded-full flex items-center justify-center ${
-                    darkMode ? "bg-gray-700" : "bg-gray-200"
-                  } text-2xl font-bold`}
+                  className={`w-16 h-16 rounded-full flex items-center justify-center ${darkMode ? "bg-gray-700" : "bg-gray-200"
+                    } text-2xl font-bold`}
                 >
                   {userPreferences.username?.charAt(0).toUpperCase() || "U"}
                 </div>
@@ -2877,9 +2746,8 @@ const SettingsPanel = ({
                     {userPreferences.username || "User"}
                   </h3>
                   <p
-                    className={`text-sm ${
-                      darkMode ? "text-gray-400" : "text-gray-500"
-                    }`}
+                    className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"
+                      }`}
                   >
                     {userPreferences.email || "user@example.com"}
                   </p>
@@ -2891,75 +2759,64 @@ const SettingsPanel = ({
                 <div className="space-y-4">
                   <div>
                     <label
-                      className={`block mb-2 font-medium ${
-                        darkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
+                      className={`block mb-2 font-medium ${darkMode ? "text-gray-300" : "text-gray-700"
+                        }`}
                     >
                       Username
                     </label>
                     <input
                       type="text"
                       placeholder="Username"
-                      className={`w-full p-2 rounded-lg ${
-                        darkMode
+                      className={`w-full p-2 rounded-lg ${darkMode
                           ? "bg-gray-700 text-white"
                           : "bg-gray-100 text-gray-900"
-                      } border ${
-                        darkMode ? "border-gray-600" : "border-gray-300"
-                      }`}
+                        } border ${darkMode ? "border-gray-600" : "border-gray-300"
+                        }`}
                     />
                   </div>
 
                   <div>
                     <label
-                      className={`block mb-2 font-medium ${
-                        darkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
+                      className={`block mb-2 font-medium ${darkMode ? "text-gray-300" : "text-gray-700"
+                        }`}
                     >
                       Email
                     </label>
                     <input
                       type="email"
                       placeholder="Email"
-                      className={`w-full p-2 rounded-lg ${
-                        darkMode
+                      className={`w-full p-2 rounded-lg ${darkMode
                           ? "bg-gray-700 text-white"
                           : "bg-gray-100 text-gray-900"
-                      } border ${
-                        darkMode ? "border-gray-600" : "border-gray-300"
-                      }`}
+                        } border ${darkMode ? "border-gray-600" : "border-gray-300"
+                        }`}
                     />
                   </div>
 
                   <div>
                     <label
-                      className={`block mb-2 font-medium ${
-                        darkMode ? "text-gray-300" : "text-gray-700"
-                      }`}
+                      className={`block mb-2 font-medium ${darkMode ? "text-gray-300" : "text-gray-700"
+                        }`}
                     >
                       Change Password
                     </label>
                     <input
                       type="password"
                       placeholder="New Password"
-                      className={`w-full p-2 rounded-lg mb-2 ${
-                        darkMode
+                      className={`w-full p-2 rounded-lg mb-2 ${darkMode
                           ? "bg-gray-700 text-white"
                           : "bg-gray-100 text-gray-900"
-                      } border ${
-                        darkMode ? "border-gray-600" : "border-gray-300"
-                      }`}
+                        } border ${darkMode ? "border-gray-600" : "border-gray-300"
+                        }`}
                     />
                     <input
                       type="password"
                       placeholder="Confirm Password"
-                      className={`w-full p-2 rounded-lg ${
-                        darkMode
+                      className={`w-full p-2 rounded-lg ${darkMode
                           ? "bg-gray-700 text-white"
                           : "bg-gray-100 text-gray-900"
-                      } border ${
-                        darkMode ? "border-gray-600" : "border-gray-300"
-                      }`}
+                        } border ${darkMode ? "border-gray-600" : "border-gray-300"
+                        }`}
                     />
                   </div>
                 </div>
@@ -2967,18 +2824,16 @@ const SettingsPanel = ({
 
               <div className="pt-4 border-t border-gray-700">
                 <button
-                  className={`w-full py-2 rounded-lg font-medium ${
-                    darkMode
+                  className={`w-full py-2 rounded-lg font-medium ${darkMode
                       ? "bg-red-600 hover:bg-red-700"
                       : "bg-red-500 hover:bg-red-600"
-                  } text-white transition-colors`}
+                    } text-white transition-colors`}
                 >
                   Delete Account
                 </button>
                 <p
-                  className={`text-xs mt-2 text-center ${
-                    darkMode ? "text-gray-400" : "text-gray-500"
-                  }`}
+                  className={`text-xs mt-2 text-center ${darkMode ? "text-gray-400" : "text-gray-500"
+                    }`}
                 >
                   This action cannot be undone. All your data will be
                   permanently deleted.
@@ -2989,17 +2844,15 @@ const SettingsPanel = ({
         </div>
 
         <div
-          className={`p-4 border-t flex justify-end ${
-            darkMode ? "border-gray-700" : "border-gray-200"
-          }`}
+          className={`p-4 border-t flex justify-end ${darkMode ? "border-gray-700" : "border-gray-200"
+            }`}
         >
           <button
             onClick={onClose}
-            className={`px-4 py-2 rounded-lg font-medium ${
-              darkMode
+            className={`px-4 py-2 rounded-lg font-medium ${darkMode
                 ? "bg-indigo-600 hover:bg-indigo-500"
                 : "bg-indigo-500 hover:bg-indigo-600"
-            } text-white transition-colors`}
+              } text-white transition-colors`}
           >
             Save Changes
           </button>
@@ -3051,11 +2904,10 @@ const FileUpload = ({ onFileUpload, darkMode, fileInputRef }) => {
         <button
           type="button"
           onClick={() => fileInputRef.current.click()}
-          className={`p-1 rounded-full ${
-            darkMode
+          className={`p-1 rounded-full ${darkMode
               ? "text-gray-400 hover:text-gray-300"
               : "text-gray-500 hover:text-gray-700"
-          }`}
+            }`}
           title="Upload files"
         >
           <BsImage size={20} />
@@ -3063,11 +2915,9 @@ const FileUpload = ({ onFileUpload, darkMode, fileInputRef }) => {
 
         {dragActive && (
           <div
-            className={`absolute -top-20 -left-20 right-0 bottom-0 w-40 h-40 rounded-full flex items-center justify-center ${
-              darkMode ? "bg-indigo-900 bg-opacity-50" : "bg-indigo-100"
-            } border-2 border-dashed ${
-              darkMode ? "border-indigo-500" : "border-indigo-400"
-            } z-50`}
+            className={`absolute -top-20 -left-20 right-0 bottom-0 w-40 h-40 rounded-full flex items-center justify-center ${darkMode ? "bg-indigo-900 bg-opacity-50" : "bg-indigo-100"
+              } border-2 border-dashed ${darkMode ? "border-indigo-500" : "border-indigo-400"
+              } z-50`}
           >
             <div className="text-center p-4">
               <FiUpload size={24} className="mx-auto mb-2" />

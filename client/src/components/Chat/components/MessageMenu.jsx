@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FiMoreHorizontal, FiCopy, FiEdit2, FiTrash2, FiStar, FiShare2, FiCornerUpLeft, FiSmile } from 'react-icons/fi';
+import { IoMdVolumeHigh } from 'react-icons/io'; // Import volume icon for TTS
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tooltip } from './Tooltip';
 
-export const MessageMenu = ({ message, darkMode, onCopy, onEdit, onDelete, onStar, onShare, onReply, onReact }) => {
+export const MessageMenu = ({ message, darkMode, onCopy, onEdit, onDelete, onStar, onShare, onReply, onReact, onSpeak }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -26,7 +27,8 @@ export const MessageMenu = ({ message, darkMode, onCopy, onEdit, onDelete, onSta
     { label: 'Star', icon: <FiStar size={16} />, action: onStar, show: !!onStar },
     { label: 'Share', icon: <FiShare2 size={16} />, action: onShare, show: !!onShare },
     { label: 'Reply', icon: <FiCornerUpLeft size={16} />, action: onReply, show: !!onReply }, // Added Reply
-    { label: 'React', icon: <FiSmile size={16} />, action: onReact, show: !!onReact } // Added React
+    { label: 'React', icon: <FiSmile size={16} />, action: onReact, show: !!onReact }, // Added React
+    { label: 'Speak', icon: <IoMdVolumeHigh size={16} />, action: onSpeak, show: !!onSpeak } // Added Speak for TTS
   ].filter(item => item.show);
 
   if (menuItems.length === 0) return null;
