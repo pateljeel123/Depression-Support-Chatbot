@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { AnimatePresence, motion, MotionProps, Variants } from "framer-motion";
 import { ElementType, memo } from "react";
 
-type AnimationType = "text" | "word" | "character" | "line";
+type AnimationType = "text" | "word" | "character" | "line"
 type AnimationVariant =
   | "fadeIn"
   | "blurIn"
