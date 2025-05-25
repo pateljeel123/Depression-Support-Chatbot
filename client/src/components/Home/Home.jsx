@@ -1,345 +1,1691 @@
-import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import logo from '../../assets/react.svg'; // Updated to use react.svg as logo.svg was not found
+import React, { useState, useEffect, useRef, Suspense, useCallback, createContext, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FaHeart,
   FaComments,
-  FaUserFriends,
-  FaBookOpen,
-  FaLightbulb,
-  FaShieldAlt,
-  FaBed,
-  FaUtensils,
-  FaRunning,
-  FaUsersSlash,
-  FaBrain,
-  FaBriefcase,
-  FaStethoscope,
-  FaQuestionCircle,
-  FaCheckCircle,
-  FaUserMd,
-  FaTools,
-  FaUsers,
   FaChartLine,
-  FaCalendarCheck,
-  FaJournalWhills,
-  FaPhoneAlt,
-  FaCommentDots,
+  FaClipboardCheck,
+  FaMoon,
   FaArrowRight,
+  FaQuoteLeft,
+  FaChevronDown,
+  FaChevronUp,
   FaFacebook,
   FaTwitter,
   FaInstagram,
   FaLinkedin,
-  FaRocket,
-  FaInfoCircle
-} from 'react-icons/fa';
+  FaUserPlus,
+  FaLeaf,
+  FaChevronLeft,
+  FaChevronRight,
+  FaTimes, // Added FaTimes for AppleCard modal
+} from "react-icons/fa";
+import { GiBrain, GiMeditation, GiHeartBeats } from "react-icons/gi";
+import { IoMdHappy, IoMdSad } from "react-icons/io";
+import { useAuth } from "../../context/AuthContext";
+import { motion, useAnimation, AnimatePresence, useTransform, useSpring, useMotionValue } from "framer-motion";
+import { MagicCard } from "../magicui/magic-card";
+import Marquee from "../magicui/marquee"; // Corrected Marquee import
+import SliderContainer from "../ui/slider-container"; // Added SliderContainer import
+import { WarpBackground } from "../magicui/WarpBackground"; // Added import for WarpBackground
+import { AuroraText } from "../magicui/aurora-text"; // Added AuroraText import
+
+import chroma from "chroma-js"; // Added import for chroma-js
+// Note: Most 3D elements (Canvas, OrbitControls, Stars, Float, BrainModel, FloatingIcon, FeatureModel)
+// have been removed or their usage significantly reduced to address performance issues and lags.
+// Framer Motion will be primarily used for animations.
+
+import { cn } from "../../lib/utils"; // Import cn from utils
+import ShineBorder from "../ui/shine-border";
+
+// Aceternity UI HoverEffect Components
+const AceternityCard = ({ className, children }) => {
+  return (
+    <div
+      className={cn(
+        "rounded-2xl h-full w-full p-4 overflow-hidden bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-white/[0.2] group-hover:border-neutral-300 dark:group-hover:border-slate-700 relative z-20 transition-shadow duration-300 shadow-sm hover:shadow-lg",
+        className
+      )}
+    >
+      <div className="relative z-50">
+        <div className="p-1 sm:p-2 md:p-4">{children}</div>
+      </div>
+    </div>
+  );
+};
+
+const AceternityCardTitle = ({ className, children }) => {
+  return (
+    <h4 className={cn("text-gray-800 dark:text-zinc-100 font-bold tracking-wide mt-2 sm:mt-4 text-base sm:text-lg md:text-xl", className)}>
+      {children}
+    </h4>
+  );
+};
+
+const AceternityCardDescription = ({ className, children }) => {
+  return (
+    <p className={cn("mt-2 sm:mt-4 md:mt-6 text-gray-600 dark:text-zinc-400 tracking-wide leading-relaxed text-xs sm:text-sm md:text-base", className)}>
+      {children}
+    </p>
+  );
+};
+
+export const HoverEffect = ({ items, className }) => {
+  let [hoveredIndex, setHoveredIndex] = useState(null);
+
+  return (
+    <div
+      className={cn(
+        "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 py-6 sm:py-8 md:py-10",
+        className
+      )}
+    >
+      {items.map((item, idx) => (
+        <div // Changed from <a> to <div> as we are not using item.link here
+          key={idx} // Assuming title can be non-unique, use index or a unique id if available
+          className="relative group block p-2 h-full w-full"
+          onMouseEnter={() => setHoveredIndex(idx)}
+          onMouseLeave={() => setHoveredIndex(null)}
+        >
+          <AnimatePresence>
+            {hoveredIndex === idx && (
+              <motion.span
+                className="absolute inset-0 h-full w-full bg-neutral-100 dark:bg-slate-800/[0.8] block rounded-3xl"
+                layoutId="hoverBackground" // Unique ID for layout animation
+                initial={{ opacity: 0 }}
+                animate={{
+                  opacity: 1,
+                  transition: { duration: 0.15 },
+                }}
+                exit={{
+                  opacity: 0,
+                  transition: { duration: 0.15, delay: 0.2 },
+                }}
+              />
+            )}
+          </AnimatePresence>
+          <AceternityCard>
+            {item.icon && <div className="text-3xl sm:text-4xl mb-2 sm:mb-3 md:mb-4 text-center sm:text-left">{item.icon}</div>} {/* Added icon display */}
+            <AceternityCardTitle>{item.title}</AceternityCardTitle>
+            <AceternityCardDescription>{item.description}</AceternityCardDescription>
+          </AceternityCard>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// Aceternity UI 3D Card Effect Components
+export const CardContainer = ({ children, className, containerClassName }) => {
+  const containerRef = useRef(null);
+  const [isMouseEntered, setIsMouseEntered] = useState(false);
+
+  const handleMouseMove = (e) => {
+    if (!containerRef.current) return;
+    const { left, top, width, height } = containerRef.current.getBoundingClientRect();
+    const x = (e.clientX - left - width / 2) / 25;
+    const y = (e.clientY - top - height / 2) / 25;
+    containerRef.current.style.transform = `rotateY(${x}deg) rotateX(${-y}deg)`;
+  };
+
+  const handleMouseEnter = () => {
+    setIsMouseEntered(true);
+    if (!containerRef.current) return;
+  };
+
+  const handleMouseLeave = () => {
+    if (!containerRef.current) return;
+    setIsMouseEntered(false);
+    containerRef.current.style.transform = `rotateY(0deg) rotateX(0deg)`;
+  };
+
+  return (
+    <motion.div
+      ref={containerRef}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={cn(
+        "py-20 flex items-center justify-center",
+        containerClassName
+      )}
+      style={{
+        perspective: "1000px",
+      }}
+    >
+      <div
+        className={cn(
+          "flex items-center justify-center relative transition-all duration-200 ease-linear",
+          className,
+          isMouseEntered ? "shadow-2xl" : "shadow-xl"
+        )}
+        style={{
+          transformStyle: "preserve-3d",
+        }}
+      >
+        {children}
+      </div>
+    </motion.div>
+  );
+};
+
+export const CardBody = ({ children, className }) => {
+  return (
+    <div
+      className={cn(
+        "h-96 w-96 [transform-style:preserve-3d] [&>*]:[transform-style:preserve-3d]",
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+};
+
+export const CardItem = ({
+  as: Tag = "div",
+  children,
+  className,
+  translateX = 0,
+  translateY = 0,
+  translateZ = 0,
+  rotateX = 0,
+  rotateY = 0,
+  rotateZ = 0,
+  ...rest
+}) => {
+  const ref = useRef(null);
+  const [isMouseEntered, setIsMouseEntered] = useState(false);
+
+  useEffect(() => {
+    handleAnimations();
+  }, [isMouseEntered]);
+
+  const handleAnimations = () => {
+    if (!ref.current) return;
+    if (isMouseEntered) {
+      ref.current.style.transform = `translateX(${translateX}px) translateY(${translateY}px) translateZ(${translateZ}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`;
+    } else {
+      ref.current.style.transform = `translateX(0px) translateY(0px) translateZ(0px) rotateX(0deg) rotateY(0deg) rotateZ(0deg)`;
+    }
+  };
+
+  return (
+    <Tag
+      ref={ref}
+      onMouseEnter={() => setIsMouseEntered(true)}
+      onMouseLeave={() => setIsMouseEntered(false)}
+      className={cn("w-fit transition duration-200 ease-linear", className)}
+      {...rest}
+    >
+      {children}
+    </Tag>
+  );
+};
 
 
+
+// Aceternity UI 3D Pin Container
+export const PinContainer = ({
+  children,
+  title,
+  href,
+  className,
+  containerClassName,
+}) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [opacity, setOpacity] = useState(0);
+
+  const handleMouseMove = (e) => {
+    if (!href) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    setPosition({ x, y });
+  };
+
+  const handleMouseEnter = () => {
+    if (!href) return;
+    setIsHovered(true);
+    setOpacity(1);
+  };
+
+  const handleMouseLeave = () => {
+    if (!href) return;
+    setIsHovered(false);
+    setOpacity(0);
+  };
+
+  const handleFocus = () => {
+    if (!href) return;
+    setIsFocused(true);
+  };
+
+  const handleBlur = () => {
+    if (!href) return;
+    setIsFocused(false);
+  };
+
+  return (
+    <div
+      className={cn("relative group/pin z-50 cursor-pointer", containerClassName)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onMouseMove={handleMouseMove}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+    >
+      <div
+        style={{
+          perspective: "1000px",
+          transform: "rotateX(70deg) translateZ(0deg)",
+        }}
+        className="absolute left-1/2 top-1/2 ml-[0.09375rem] mt-4 -translate-x-1/2 -translate-y-1/2"
+      >
+        <div
+          style={{
+            transform: isHovered || isFocused
+              ? `translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1,1)`
+              : `translate3d(0, 0, -100px) rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(0.5,0.5)`,
+            transition: "transform 0.2s ease-out, opacity 0.2s ease-out",
+            opacity: isHovered || isFocused ? opacity : 0,
+          }}
+          className="absolute left-1/2 top-1/2 h-[11.25rem] w-[11.25rem] rounded-full bg-sky-500/[0.8] shadow-[0_8px_16px_rgb(0_0_0/0.4)]"
+        ></div>
+      </div>
+
+      <div
+        style={{
+          perspective: "1000px",
+          transform: "rotateX(70deg) translateZ(0deg)",
+        }}
+        className="absolute left-1/2 top-1/2 ml-[0.09375rem] mt-4 -translate-x-1/2 -translate-y-1/2"
+      >
+        <motion.div
+          style={{
+            transform: `translate(-50%,-50%) perspective(1000px) rotateX(0deg) rotateY(0deg) rotateZ(0deg)`,
+          }}
+          className="absolute left-1/2 top-1/2 h-80 w-80 rounded-full bg-transparent opacity-0 transition-opacity duration-500 group-hover/pin:opacity-100"
+        />
+      </div>
+      <div
+        style={{
+          transform: isHovered || isFocused ? "scale(1.05)" : "scale(1)",
+          transition: "transform 0.2s ease-out",
+        }}
+        className={cn("rounded-2xl p-px transition duration-200", className)}
+      >
+        {children}
+      </div>
+      <div
+        style={{
+          transform: `translateX(${position.x}px) translateY(${position.y}px)`,
+        }}
+        className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-4 w-4 -translate-x-1/2 -translate-y-1/2 transform-gpu rounded-full bg-sky-600 opacity-0 transition-opacity duration-500 group-hover/pin:opacity-100"
+      />
+      {title && (
+        <div className="absolute bottom-4 left-4 text-white opacity-0 transition-opacity duration-500 group-hover/pin:opacity-100">
+          {title}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Aceternity UI Animated Testimonials
+const testimonialsData = [
+  {
+    quote:
+      "This app has been a lifeline during my darkest moments. Having someone to talk to anytime, without judgment, has made all the difference.",
+    name: "Sarah K.",
+    title: "User since 2022",
+    image: "/placeholder-user.jpg", // Replace with actual image paths or remove if not used
+  },
+  {
+    quote:
+      "The mood tracking feature helped me identify patterns I never noticed before. Now I can take proactive steps when I see warning signs.",
+    name: "Michael T.",
+    title: "User since 2021",
+    image: "/placeholder-user.jpg",
+  },
+  {
+    quote:
+      "As someone who was hesitant about therapy, this app provided the perfect bridge to understanding my emotions better.",
+    name: "Jamie L.",
+    title: "User since 2023",
+    image: "/placeholder-user.jpg",
+  },
+  {
+    quote: "The resources and community here are invaluable. I feel less alone on this journey.",
+    name: "Alex P.",
+    title: "User since 2022",
+    image: "/placeholder-user.jpg",
+  },
+  {
+    quote: "MindCare helped me build healthier coping mechanisms. I'm grateful for this platform.",
+    name: "Casey B.",
+    title: "User since 2023",
+    image: "/placeholder-user.jpg",
+  },
+];
+
+export const AnimatedTestimonials = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isHovering, setIsHovering] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!isHovering) {
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % testimonialsData.length);
+      }
+    }, 5000); // Change testimonial every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [isHovering]);
+
+  return (
+    <div 
+      className="relative flex flex-col items-center justify-center w-full h-[30rem] md:h-[35rem] lg:h-[40rem] overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 p-4 md:p-8 shadow-xl"
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+    >
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentIndex}
+          initial={{ opacity: 0, y: 50, scale: 0.8 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -50, scale: 0.8 }}
+          transition={{ duration: 0.7, ease: [0.4, 0.0, 0.2, 1] }}
+          className="flex flex-col items-center justify-center text-center w-full max-w-2xl"
+        >
+          {/* Optional: Add image if available 
+          <img 
+            src={testimonialsData[currentIndex].image} 
+            alt={testimonialsData[currentIndex].name} 
+            className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover mb-4 md:mb-6 border-2 border-indigo-300 dark:border-indigo-600 shadow-lg"
+          />
+          */}
+          <FaQuoteLeft className="text-3xl md:text-4xl text-indigo-400 dark:text-indigo-500 mb-4 md:mb-6" />
+          <p className="text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 italic mb-4 md:mb-6 leading-relaxed">
+            {testimonialsData[currentIndex].quote}
+          </p>
+          <p className="text-sm md:text-base font-semibold text-indigo-600 dark:text-indigo-400">
+            {testimonialsData[currentIndex].name}
+          </p>
+          <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">
+            {testimonialsData[currentIndex].title}
+          </p>
+        </motion.div>
+      </AnimatePresence>
+      <div className="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 flex space-x-2">
+        {testimonialsData.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentIndex(index)}
+            className={cn(
+              "w-2 h-2 md:w-2.5 md:h-2.5 rounded-full transition-all duration-300",
+              currentIndex === index ? "bg-indigo-600 dark:bg-indigo-400 scale-125" : "bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500"
+            )}
+            aria-label={`Go to testimonial ${index + 1}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Simplified icon component for features
+const FeatureIcon = ({ icon, color }) => {
+  return (
+    <div className={`p-4 rounded-full shadow-lg`} style={{ backgroundColor: color }}>
+      {React.cloneElement(icon, { className: "h-8 w-8 text-white" })}
+    </div>
+  );
+};
+
+// Aceternity UI AnimatedTooltip Component
+export const AnimatedTooltip = ({ items }) => {
+  const [hoveredIndex, setHoveredIndex] = React.useState(null);
+  const springConfig = { stiffness: 100, damping: 5 };
+  const x = useMotionValue(0);
+  const rotate = useSpring(
+    useTransform(x, [-100, 100], [-45, 45]),
+    springConfig
+  );
+  const translateX = useSpring(
+    useTransform(x, [-100, 100], [-50, 50]),
+    springConfig
+  );
+  const handleMouseMove = (event) => {
+    const halfWidth = event.target.offsetWidth / 2;
+    x.set(event.nativeEvent.offsetX - halfWidth);
+  };
+
+  return (
+    <>
+      {items.map((item) => (
+        <div
+          className="-mr-4 relative group"
+          key={item.id} 
+          onMouseEnter={() => setHoveredIndex(item.id)}
+          onMouseLeave={() => setHoveredIndex(null)}
+          onClick={item.onClick} 
+          style={{ cursor: item.onClick ? 'pointer' : 'default' }} 
+        >
+          <AnimatePresence mode="popLayout">
+            {hoveredIndex === item.id && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.6 }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                  scale: 1,
+                  transition: {
+                    type: "spring",
+                    stiffness: 260,
+                    damping: 10,
+                  },
+                }}
+                exit={{ opacity: 0, y: 20, scale: 0.6 }}
+                style={{
+                  translateX: translateX,
+                  rotate: rotate,
+                  whiteSpace: "nowrap",
+                }}
+                className="absolute -top-16 -left-1/2 translate-x-1/2 flex text-xs flex-col items-center justify-center rounded-md bg-black z-50 shadow-xl px-4 py-2"
+              >
+                <div className="absolute inset-x-10 z-30 w-[20%] -bottom-px bg-gradient-to-r from-transparent via-emerald-500 to-transparent h-px " />
+                <div className="absolute left-10 w-[40%] z-30 -bottom-px bg-gradient-to-r from-transparent via-sky-500 to-transparent h-px " />
+                <div className="font-bold text-white relative z-30 text-base">
+                  {item.name}
+                </div>
+                <div className="text-white text-xs">{item.designation}</div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <img
+            onMouseMove={handleMouseMove}
+            src={item.image}
+            alt={item.name}
+            className="object-cover !m-0 !p-0 object-top rounded-full h-14 w-14 border-2 group-hover:scale-105 group-hover:z-30 border-white relative transition duration-500"
+          />
+        </div>
+      ))}
+    </>
+  );
+};
+// End of AnimatedTooltip Component
 
 const Home = () => {
+  const { session, signOut } = useAuth();
+  const [showMore, setShowMore] = useState(false);
+  const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const [isHovered, setIsHovered] = useState(false); // This state seems unused, consider removing if not needed for other parts.
+  const controls = useAnimation(); // Retained for other potential animations, but hero parallax is handled differently.
   const navigate = useNavigate();
 
-  // Helper function for CTA buttons
-  const CTAButton = ({ children, primary = false, onClick, className = '', icon }) => (
-    <button
-      onClick={onClick}
-      className={`group inline-flex items-center justify-center px-6 py-3 rounded-lg font-semibold transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-900 ${className} ${primary
-          ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl focus:ring-pink-500 dark:focus:ring-pink-400'
-          : 'bg-white/20 hover:bg-white/30 dark:bg-white/10 dark:hover:bg-white/20 text-white backdrop-blur-sm border border-white/30 hover:border-white/50 focus:ring-white/70 dark:focus:ring-white/50'
-        }`}
-    >
-      {icon && <span className="mr-2 group-hover:animate-pulse">{icon}</span>}
-      {children}
-    </button>
-  );
-
-  const commonProblems = [
-    { icon: <FaBed/>, title: "Sleep Issues", description: "Trouble falling asleep, oversleeping, or feeling tired all day", bgColor: "bg-blue-100 dark:bg-blue-900/50", textColor: "text-blue-600 dark:text-blue-400", borderColor: "hover:border-blue-300 dark:hover:border-blue-600", shadowColor: "hover:shadow-blue-500/30 dark:hover:shadow-blue-400/20" },
-    { icon: <FaUtensils/>, title: "Changes in Appetite", description: "Eating too much or too little, without enjoyment", bgColor: "bg-green-100 dark:bg-green-900/50", textColor: "text-green-600 dark:text-green-400", borderColor: "hover:border-green-300 dark:hover:border-green-600", shadowColor: "hover:shadow-green-500/30 dark:hover:shadow-green-400/20" },
-    { icon: <FaRunning/>, title: "Low Energy & Motivation", description: "Difficulty getting out of bed or starting daily tasks", bgColor: "bg-yellow-100 dark:bg-yellow-900/50", textColor: "text-yellow-600 dark:text-yellow-400", borderColor: "hover:border-yellow-300 dark:hover:border-yellow-600", shadowColor: "hover:shadow-yellow-500/30 dark:hover:shadow-yellow-400/20" },
-    { icon: <FaUsersSlash/>, title: "Isolation", description: "Pulling away from friends, family, and social activities", bgColor: "bg-red-100 dark:bg-red-900/50", textColor: "text-red-600 dark:text-red-400", borderColor: "hover:border-red-300 dark:hover:border-red-600", shadowColor: "hover:shadow-red-500/30 dark:hover:shadow-red-400/20" },
-    { icon: <FaBrain/>, title: "Negative Thoughts", description: "Feeling worthless, hopeless, or excessively guilty", bgColor: "bg-purple-100 dark:bg-purple-900/50", textColor: "text-purple-600 dark:text-purple-400", borderColor: "hover:border-purple-300 dark:hover:border-purple-600", shadowColor: "hover:shadow-purple-500/30 dark:hover:shadow-purple-400/20" },
-    { icon: <FaBriefcase/>, title: "Work/School Struggles", description: "Poor focus, memory issues, or lack of interest in tasks", bgColor: "bg-orange-100 dark:bg-orange-900/50", textColor: "text-orange-600 dark:text-orange-400", borderColor: "hover:border-orange-300 dark:hover:border-orange-600", shadowColor: "hover:shadow-orange-500/30 dark:hover:shadow-orange-400/20" },
-    { icon: <FaStethoscope/>, title: "Physical Aches", description: "Unexplained pain or discomfort in the body", bgColor: "bg-teal-100 dark:bg-teal-900/50", textColor: "text-teal-600 dark:text-teal-400", borderColor: "hover:border-teal-300 dark:hover:border-teal-600", shadowColor: "hover:shadow-teal-500/30 dark:hover:shadow-teal-400/20" },
-    { icon: <FaCommentDots/>, title: "Suicidal Thoughts", description: "Feeling like life isn’t worth living", bgColor: "bg-pink-100 dark:bg-pink-900/50", textColor: "text-pink-600 dark:text-pink-400", borderColor: "hover:border-pink-300 dark:hover:border-pink-600", shadowColor: "hover:shadow-pink-500/30 dark:hover:shadow-pink-400/20" },
+  const depressionImpactCards = [
+    {
+      title: "It's More Than Sadness",
+      description: "Depression is a complex mood disorder that goes beyond temporary sadness. It can permeate every aspect of daily functioning.",
+      icon: <GiBrain className="w-10 h-10 mx-auto text-blue-500" />
+    },
+    {
+      title: "Impact on Daily Life",
+      description: "From work and school performance to relationships and physical health, depression's reach is extensive and often debilitating.",
+      icon: <FaClipboardCheck className="w-10 h-10 mx-auto text-green-500" />
+    },
+    {
+      title: "A Silent Struggle",
+      description: "Many suffer in silence due to stigma or misunderstanding. Recognizing its widespread effects is the first step to support.",
+      icon: <FaComments className="w-10 h-10 mx-auto text-purple-500" />
+    }
   ];
+  const heroRef = useRef(null);
+  const featuresRef = useRef(null); // Ref for scrolling to features section
 
-  const platformBenefits = [
-    { 
-      icon: <FaBrain />,
-      title: "Evidence-Based Tools", 
-      description: "Guided by the latest psychology and neuroscience",
-      bgColor: "bg-purple-100 dark:bg-purple-900/50",
-      textColor: "text-purple-600 dark:text-purple-400",
-      borderColor: "hover:border-purple-300 dark:hover:border-purple-600",
-      shadowColor: "hover:shadow-purple-500/30 dark:hover:shadow-purple-400/20"
+  // Parallax scroll effect for hero content
+  useEffect(() => {
+    const handleHeroScroll = () => {
+      if (heroRef.current) {
+        const currentScrollY = window.scrollY;
+        // Apply a subtle parallax effect to the hero content
+        heroRef.current.style.transform = `translateY(${currentScrollY * 0.15}px)`;
+      }
+    };
+    window.addEventListener("scroll", handleHeroScroll);
+    return () => window.removeEventListener("scroll", handleHeroScroll);
+  }, []);
+
+  const testimonials = [
+    {
+      quote:
+        "This app has been a lifeline during my darkest moments. Having someone to talk to anytime, without judgment, has made all the difference.",
+      author: "Sarah K.",
+      role: "User since 2022",
     },
-    { 
-      icon: <FaShieldAlt />,
-      title: "Private & Confidential", 
-      description: "No judgments, just safe conversations",
-      bgColor: "bg-green-100 dark:bg-green-900/50",
-      textColor: "text-green-600 dark:text-green-400",
-      borderColor: "hover:border-green-300 dark:hover:border-green-600",
-      shadowColor: "hover:shadow-green-500/30 dark:hover:shadow-green-400/20"
+    {
+      quote:
+        "The mood tracking feature helped me identify patterns I never noticed before. Now I can take proactive steps when I see warning signs.",
+      author: "Michael T.",
+      role: "User since 2021",
     },
-    { 
-      icon: <FaUserFriends />,
-      title: "Real Human Support", 
-      description: "From trained therapists and empathetic listeners (feature coming soon)",
-      bgColor: "bg-blue-100 dark:bg-blue-900/50",
-      textColor: "text-blue-600 dark:text-blue-400",
-      borderColor: "hover:border-blue-300 dark:hover:border-blue-600",
-      shadowColor: "hover:shadow-blue-500/30 dark:hover:shadow-blue-400/20"
-    },
-    { 
-      icon: <FaLightbulb />,
-      title: "Easy Access", 
-      description: "Anytime, anywhere, at your pace",
-      bgColor: "bg-yellow-100 dark:bg-yellow-900/50",
-      textColor: "text-yellow-600 dark:text-yellow-400",
-      borderColor: "hover:border-yellow-300 dark:hover:border-yellow-600",
-      shadowColor: "hover:shadow-yellow-500/30 dark:hover:shadow-yellow-400/20"
+    {
+      quote:
+        "As someone who was hesitant about therapy, this app provided the perfect bridge to understanding my emotions better.",
+      author: "Jamie L.",
+      role: "User since 2023",
     },
   ];
 
-  const whatYouCanDo = [
-    { icon: <FaUserMd />, title: "Chat with our AI Assistant", description: "Get immediate support and guidance (therapist chat coming soon).", bgColor: "bg-red-100 dark:bg-red-900/50", textColor: "text-red-600 dark:text-red-400", borderColor: "hover:border-red-300 dark:hover:border-red-600", shadowColor: "hover:shadow-red-500/30 dark:hover:shadow-red-400/20" },
-    { icon: <FaBookOpen />, title: "Access Self-Help Workbooks", description: "Explore guided exercises and resources.", bgColor: "bg-purple-100 dark:bg-purple-900/50", textColor: "text-purple-600 dark:text-purple-400", borderColor: "hover:border-purple-300 dark:hover:border-purple-600", shadowColor: "hover:shadow-purple-500/30 dark:hover:shadow-purple-400/20" },
-    { icon: <FaUsers />, title: "Join Anonymous Peer Groups", description: "Connect with others who understand (feature coming soon).", bgColor: "bg-orange-100 dark:bg-orange-900/50", textColor: "text-orange-600 dark:text-orange-400", borderColor: "hover:border-orange-300 dark:hover:border-orange-600", shadowColor: "hover:shadow-orange-500/30 dark:hover:shadow-orange-400/20" },
-    { icon: <FaChartLine />, title: "Track Your Mood & Progress", description: "Monitor your well-being over time.", bgColor: "bg-teal-100 dark:bg-teal-900/50", textColor: "text-teal-600 dark:text-teal-400", borderColor: "hover:border-teal-300 dark:hover:border-teal-600", shadowColor: "hover:shadow-teal-500/30 dark:hover:shadow-teal-400/20" },
-    { icon: <FaQuestionCircle />, title: "Understand Your Symptoms", description: "Learn more about depression and its effects.", bgColor: "bg-pink-100 dark:bg-pink-900/50", textColor: "text-pink-600 dark:text-pink-400", borderColor: "hover:border-pink-300 dark:hover:border-pink-600", shadowColor: "hover:shadow-pink-500/30 dark:hover:shadow-pink-400/20" },
-    { icon: <FaHeart />, title: "Get Tips for Family Support", description: "Help your loved ones understand and support you.", bgColor: "bg-green-100 dark:bg-green-900/50", textColor: "text-green-600 dark:text-green-400", borderColor: "hover:border-green-300 dark:hover:border-green-600", shadowColor: "hover:shadow-green-500/30 dark:hover:shadow-green-400/20" },
+  const features = [
+    {
+      icon: <FaComments className="h-8 w-8 text-white" />,
+      title: "AI Chat Support",
+      description:
+        "Talk to our compassionate AI companion anytime. Get immediate support in a safe, judgment-free space with responses tailored to your needs.",
+      color: "#6366f1", // Indigo
+      // model property removed
+    },
+    {
+      icon: <FaChartLine />, // Pass icon component directly
+      title: "Mood Tracking",
+      description:
+        "Visualize your emotional patterns with our intuitive mood tracker. Gain insights to better understand your mental health journey.",
+      color: "#10b981", // Emerald
+      // model property removed
+    },
+    {
+      icon: <FaClipboardCheck />, // Pass icon component directly
+      title: "PHQ-9 Assessment",
+      description:
+        "Professional-grade depression screening with personalized feedback and progress tracking over time.",
+      color: "#3b82f6", // Blue
+      // model property removed
+    },
+    {
+      icon: <GiHeartBeats />, // Pass icon component directly
+      title: "Personalized Support",
+      description:
+        "Receive customized recommendations including exercises, articles, and coping strategies based on your unique needs.",
+      color: "#ec4899", // Pink
+      // model property removed
+    },
+    {
+      icon: <GiMeditation />, // Pass icon component directly
+      title: "Mindfulness Tools",
+      description:
+        "Access guided meditations, breathing exercises, and relaxation techniques to reduce stress and anxiety.",
+      color: "#f59e0b", // Amber
+      // model property removed
+    },
+    {
+      icon: <GiBrain />, // Pass icon component directly
+      title: "Cognitive Exercises",
+      description:
+        "Interactive activities designed to challenge negative thought patterns and build resilience.",
+      color: "#8b5cf6", // Violet
+      // model property removed
+    },
   ];
+  // Removed the duplicated features array. The 'model' property is no longer needed.
 
-  const visualFeatures = [
-    { icon: <FaChartLine />, name: "Mood Tracker", bgColor: "bg-sky-100 dark:bg-sky-900/50", textColor: "text-sky-600 dark:text-sky-400", borderColor: "hover:border-sky-300 dark:hover:border-sky-600", shadowColor: "hover:shadow-sky-500/30 dark:hover:shadow-sky-400/20" },
-    { icon: <FaCalendarCheck />, name: "Daily Affirmation Wall", bgColor: "bg-lime-100 dark:bg-lime-900/50", textColor: "text-lime-600 dark:text-lime-400", borderColor: "hover:border-lime-300 dark:hover:border-lime-600", shadowColor: "hover:shadow-lime-500/30 dark:hover:shadow-lime-400/20" },
-    { icon: <FaJournalWhills />, name: "Journal Space", bgColor: "bg-fuchsia-100 dark:bg-fuchsia-900/50", textColor: "text-fuchsia-600 dark:text-fuchsia-400", borderColor: "hover:border-fuchsia-300 dark:hover:border-fuchsia-600", shadowColor: "hover:shadow-fuchsia-500/30 dark:hover:shadow-fuchsia-400/20" },
-    { icon: <FaPhoneAlt />, name: "Crisis Helpline Directory", bgColor: "bg-rose-100 dark:bg-rose-900/50", textColor: "text-rose-600 dark:text-rose-400", borderColor: "hover:border-rose-300 dark:hover:border-rose-600", shadowColor: "hover:shadow-rose-500/30 dark:hover:shadow-rose-400/20" },
-    { icon: <FaComments />, name: "Therapist Chat Portal", description: "(Coming Soon)", bgColor: "bg-cyan-100 dark:bg-cyan-900/50", textColor: "text-cyan-600 dark:text-cyan-400", borderColor: "hover:border-cyan-300 dark:hover:border-cyan-600", shadowColor: "hover:shadow-cyan-500/30 dark:hover:shadow-cyan-400/20" },
-  ];
-  return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans leading-relaxed">
-      {/* Section 1: Hero Banner */}
-      <section className="relative h-[90vh] min-h-[650px] md:h-screen flex items-center justify-center text-white overflow-hidden">
-        <img 
-          src="https://cdn.prod.website-files.com/62ab7d5ccc9f587bce83c183/62e54e7732c44c5f842541c4_ezgif.com-gif-maker%20(14).gif" 
-          alt="Hero background" 
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-slate-800/50 to-black/70"></div>
-        <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-gray-900 dark:from-black to-transparent"></div>
+  // const features = [
+  //   {
+  //     icon: <FaComments className="h-8 w-8 text-white" />,
+  //     title: "AI Chat Support",
+  //     description:
+  //       "Talk to our compassionate AI companion anytime. Get immediate support in a safe, judgment-free space with responses tailored to your needs.",
+  //     color: "#6366f1",
+  //     model: "chat",
+  //   },
+  //   {
+  //     icon: <FaChartLine className="h-8 w-8 text-white" />,
+  //     title: "Mood Tracking",
+  //     description:
+  //       "Visualize your emotional patterns with our intuitive mood tracker. Gain insights to better understand your mental health journey.",
+  //     color: "#10b981",
+  //     model: "graph",
+  //   },
+  //   {
+  //     icon: <FaClipboardCheck className="h-8 w-8 text-white" />,
+  //     title: "PHQ-9 Assessment",
+  //     description:
+  //       "Professional-grade depression screening with personalized feedback and progress tracking over time.",
+  //     color: "#3b82f6",
+  //     model: "assessment",
+  //   },
+  //   {
+  //     icon: <GiHeartBeats className="h-8 w-8 text-white" />,
+  //     title: "Personalized Support",
+  //     description:
+  //       "Receive customized recommendations including exercises, articles, and coping strategies based on your unique needs.",
+  //     color: "#ec4899",
+  //     model: "heart",
+  //   },
+  //   {
+  //     icon: <GiMeditation className="h-8 w-8 text-white" />,
+  //     title: "Mindfulness Tools",
+  //     description:
+  //       "Access guided meditations, breathing exercises, and relaxation techniques to reduce stress and anxiety.",
+  //     color: "#f59e0b",
+  //     model: "meditation",
+  //   },
+  //   {
+  //     icon: <GiBrain className="h-8 w-8 text-white" />,
+  //     title: "Cognitive Exercises",
+  //     description:
+  //       "Interactive activities designed to challenge negative thought patterns and build resilience.",
+  //     color: "#8b5cf6",
+  //     model: "brain",
+  //   },
+  // ];
 
-        <div className="relative z-10 text-center max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 md:pt-0">
-          <motion.h1 
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-            className="text-5xl sm:text-6xl md:text-7xl font-extrabold mb-6 tracking-tight leading-tight text-shadow-lg"
+  // Removed FeatureModel component and complex scroll-based active feature logic.
+  // New FeatureCard component with IntersectionObserver will handle animations.
+
+  const useIntersectionObserver = (options) => {
+    const [entry, setEntry] = useState(null);
+    const [node, setNode] = useState(null);
+
+    const observer = useRef(null);
+
+    const setRef = useCallback((newNode) => {
+      if (observer.current) {
+        observer.current.disconnect();
+      }
+      if (newNode) {
+        observer.current = new IntersectionObserver(([entry]) => setEntry(entry), options);
+        observer.current.observe(newNode);
+      }
+      setNode(newNode);
+    }, [options]);
+
+    return [setRef, entry];
+  };
+
+  // New FeatureCard component for the alternating layout
+  const FeatureCard = ({ feature, index }) => {
+    const itemControls = useAnimation();
+    const [ref, entry] = useIntersectionObserver({ threshold: 0.2, triggerOnce: true });
+
+    useEffect(() => {
+      if (entry?.isIntersecting) {
+        itemControls.start("visible");
+      } 
+    }, [itemControls, entry]);
+
+    const contentVariants = {
+      hidden: { opacity: 0, x: index % 2 === 0 ? -50 : 50, scale: 0.95 },
+      visible: { opacity: 1, x: 0, scale: 1, transition: { duration: 0.7, ease: "easeOut" } },
+    };
+
+    const imageVariants = {
+      hidden: { opacity: 0, scale: 0.8, rotate: index % 2 === 0 ? -5 : 5 },
+      visible: { opacity: 1, scale: 1, rotate: 0, transition: { duration: 0.7, ease: "easeOut", delay: 0.2 } },
+    };
+
+    return (
+      <MagicCard 
+        gradientSize={250}
+        gradientColor={chroma(feature.color).darken(0.5).hex()} // Darken the feature color for the gradient
+        gradientFrom={chroma(feature.color).brighten(0.5).alpha(0.8).hex()} // Brighter, slightly transparent start
+        gradientTo={chroma(feature.color).alpha(0.6).hex()} // Slightly transparent end
+        className="rounded-2xl shadow-2xl overflow-hidden p-1 bg-transparent cursor-pointer hover:shadow-3xl transition-all duration-300 ease-out"
+      >
+        <motion.div
+          ref={ref}
+          className={`flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12 py-10 md:py-12 px-6 md:px-10 bg-white dark:bg-gray-800 rounded-xl relative z-10`}
+          // className={`flex flex-col md:flex-row items-center justify-between gap-8 md:gap-16 py-12 md:py-16 ${index % 2 === 0 ? 'md:flex-row-reverse' : ''}`}
+          initial="hidden"
+          animate={itemControls} // Animate the whole card container if needed, or rely on inner elements
+        >
+          {/* Text Content */}
+          <motion.div 
+            className={`md:w-1/2 text-center ${index % 2 === 0 ? 'md:text-right' : 'md:text-left'} ${index % 2 === 0 ? 'md:order-2' : 'md:order-1'}`}
+            variants={contentVariants}
           >
-            Find Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-rose-400">Path to Peace</span>, <br className="sm:hidden"/>One Step at a Time
-          </motion.h1>
-          <motion.p 
+            <div className={`inline-block mb-6 ${index % 2 === 0 ? 'md:mr-0 md:ml-auto' : 'md:ml-0 md:mr-auto'}`}>
+              <FeatureIcon icon={feature.icon} color={feature.color} />
+            </div>
+            <h3 className="text-3xl lg:text-4xl font-bold text-gray-800 dark:text-white mb-4">{feature.title}</h3>
+            <p className="text-gray-600 dark:text-gray-300 text-lg lg:text-xl leading-relaxed mb-6">{feature.description}</p>
+            <motion.button
+              onClick={() => navigate(feature.title.toLowerCase().includes('chat') ? '/chat' : '/resources')}
+              className="px-8 py-3 text-lg font-semibold rounded-lg text-white shadow-lg transition-transform duration-300 ease-out transform hover:scale-105 active:scale-95"
+              whileHover={{ boxShadow: "0px 0px 20px rgba(192, 132, 252, 0.6)" }}
+            >
+              Learn More <FaArrowRight className="inline ml-2" />
+            </motion.button>
+          </motion.div>
+          {/* Image/Visual Placeholder */}
+          <motion.div 
+            className={`md:w-1/2 w-full h-64 sm:h-80 md:h-96 mt-8 md:mt-0 rounded-xl shadow-xl overflow-hidden group relative bg-gray-200 ${index % 2 === 0 ? 'md:order-1' : 'md:order-2'}`}
+            variants={imageVariants}
+          >
+            <img 
+              src={`https://source.unsplash.com/random/800x600?${feature.title.split(' ')[0].toLowerCase()}&sig=${index}`}
+              alt={feature.title}
+              className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+            <div className="absolute bottom-4 left-4 p-3 bg-black/60 rounded-lg">
+              {React.cloneElement(feature.icon, { className: "h-10 w-10 text-white opacity-90" })}
+            </div>
+          </motion.div>
+        </motion.div>
+      </MagicCard>
+    );
+  };
+
+
+  const rotateTestimonial = () => {
+    setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
+  };
+
+  useEffect(() => {
+    const interval = setInterval(rotateTestimonial, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const featureItemVariants = (index) => ({
+    hidden: {
+      opacity: 0,
+      x: index % 2 === 0 ? -80 : 80,
+      rotateY: index % 2 === 0 ? 25 : -25,
+      scale: 0.95,
+    },
+    visible: {
+      opacity: 1,
+      x: 0,
+      rotateY: 0,
+      scale: 1,
+      transition: { duration: 0.9, ease: [0.4, 0.0, 0.2, 1], staggerChildren: 0.2, delayChildren: 0.1 },
+    },
+  });
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50 font-sans overflow-x-hidden">
+      <WarpBackground
+        className="w-full h-full absolute inset-0 z-0"
+        beamsPerSide={5}
+        beamSize={3}
+        beamDelayMin={0.5}
+        beamDelayMax={1.5}
+        beamDuration={2}
+        gridColor="rgba(128, 128, 128, 0.1)" // A subtle gray for the grid
+      >
+      {/* Animated Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full bg-indigo-100 opacity-20"
+            style={{
+              width: Math.random() * 200 + 50,
+              height: Math.random() * 200 + 50,
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              y: [0, Math.random() * 100 - 50],
+              x: [0, Math.random() * 100 - 50],
+              opacity: [0.1, 0.3, 0.1],
+            }}
+            transition={{
+              duration: Math.random() * 20 + 10,
+              repeat: Infinity,
+              repeatType: "reverse",
+              ease: "easeInOut",
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Hero Section */}
+      <section
+        id="home"
+        className="relative py-20 sm:py-28 md:py-32 px-4 sm:px-6 lg:px-8 text-white overflow-hidden isolate"
+      >
+        {/* Video Background - Retained for visual depth */}
+        <div className="absolute inset-0 z-[-1] overflow-hidden">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover filter brightness-100"
+            src="https://videos.pexels.com/video-files/3209828/3209828-uhd_3840_2160_25fps.mp4"
+            poster="https://images.pexels.com/photos/1563356/pexels-photo-1563356.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260"
+          >
+            Your browser does not support the video tag.
+          </video>
+          {/* Enhanced overlay for better text contrast */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/70 to-black/80"></div>
+        </div>
+
+        <motion.div
+          ref={heroRef} // Parallax effect applied here
+          className="relative z-10 max-w-5xl mx-auto flex flex-col items-center justify-center min-h-[75vh] sm:min-h-[80vh] text-center px-2 sm:px-4"
+        >
+          <AuroraText
+            text="You’re Not Alone. Find Your Path to Light."
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white drop-shadow-2xl"
+            highlightClassName="text-yellow-300"
+            animationConfig={{
+              initial: { opacity: 0, scale: 0.8, y: -30 },
+              animate: { opacity: 1, scale: 1, y: 0 },
+              transition: { duration: 0.9, delay: 0.2, type: "spring", stiffness: 100, damping: 18 },
+            }}
+          />
+          <motion.p
+            className="mt-6 max-w-2xl mx-auto text-base sm:text-lg md:text-xl text-gray-200/90 drop-shadow-lg leading-relaxed"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+          >
+            Millions experience depression. If you feel lost, overwhelmed, or empty—you're not broken, you're human. We provide the tools and support to guide you towards clarity, connection, and renewed hope.
+          </motion.p>
+
+          {/* Responsive Button Grid */}
+          <motion.div
+            className="mt-10 w-full max-w-xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.6, staggerChildren: 0.15 }}
+          >
+            <motion.button
+                onClick={() => navigate("/phq9")}
+                className="w-full flex items-center justify-center px-4 py-3 sm:px-5 sm:py-3.5 text-yellow-300 hover:text-black bg-yellow-500/20 hover:bg-yellow-400/90 transition-colors duration-300 rounded-lg text-lg font-medium col-span-1 sm:col-span-2 lg:col-span-1"
+              >
+                <FaClipboardCheck className="mr-2 h-5 w-5" />
+                Free Check-up
+              </motion.button>
+
+            <motion.button
+                onClick={() => navigate("/chat")}
+                className="w-full flex items-center justify-center px-4 py-3 sm:px-5 sm:py-3.5 text-emerald-300 hover:text-black bg-emerald-500/20 hover:bg-emerald-400/90 transition-colors duration-300 rounded-lg text-lg font-medium col-span-1"
+              >
+                <FaComments className="mr-2 h-5 w-5" />
+                Talk to AI
+              </motion.button>
+
+            <motion.button
+                onClick={() => featuresRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                className="w-full flex items-center justify-center px-4 py-3 sm:px-5 sm:py-3.5 text-violet-300 hover:text-black bg-violet-500/20 hover:bg-violet-400/90 transition-colors duration-300 rounded-lg text-lg font-medium col-span-1 sm:col-span-2 lg:col-span-1"
+              >
+                <GiBrain className="mr-2 h-5 w-5" />
+                Explore Tools
+              </motion.button>
+          </motion.div>
+
+          {/* Simplified CTA Card - Retained for quick access */}
+          <motion.div
+            className="mt-12 sm:mt-16 w-full max-w-md mx-auto"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
-            className="text-xl sm:text-2xl text-gray-200 dark:text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed text-shadow-md"
+            transition={{ delay: 0.8, duration: 0.7 }}
           >
-            You're not alone. Our AI-powered platform offers a safe space to explore your feelings, learn coping strategies, and find support on your journey to mental wellness.
-          </motion.p>
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.7, delay: 0.8, type: "spring", stiffness: 120 }}
-            className="flex flex-col sm:flex-row justify-center items-center gap-5 md:gap-6"
-          >
-            <CTAButton primary onClick={() => navigate('/chat')} className="w-full sm:w-auto text-lg shadow-xl" icon={<FaRocket />}>
-              Start Your Journey
-            </CTAButton>
-            <CTAButton onClick={() => document.getElementById('learn-more-section')?.scrollIntoView({ behavior: 'smooth' })} className="w-full sm:w-auto text-lg shadow-lg" icon={<FaInfoCircle />}>
-              Discover More
-            </CTAButton>
+            <div className="relative bg-white/10 backdrop-blur-md rounded-xl p-1 shadow-2xl ring-1 ring-white/20">
+              <div className="bg-black/30 rounded-lg p-6 text-center">
+                <div className="flex justify-center space-x-5 mb-4">
+                  <motion.div whileHover={{ scale: 1.2, rotate: 8, color: '#34D399'}} whileTap={{ scale: 0.95 }}>
+                    <IoMdHappy className="h-7 w-7 sm:h-8 sm:w-8 text-emerald-400 transition-colors" />
+                  </motion.div>
+                  <motion.div whileHover={{ scale: 1.2, rotate: -8, color: '#60A5FA' }} whileTap={{ scale: 0.95 }}>
+                    <IoMdSad className="h-7 w-7 sm:h-8 sm:w-8 text-blue-400 transition-colors" />
+                  </motion.div>
+                </div>
+                <h3 className="text-md sm:text-lg font-semibold text-gray-100">
+                  How are you feeling today?
+                </h3>
+                <p className="mt-1.5 text-xs sm:text-sm text-gray-300/80">
+                  Our AI companion is ready to listen.
+                </p>
+                <ShineBorder
+                  className="mt-5 rounded-full w-full max-w-xs mx-auto"
+                  color={["#8B5CF6", "#C084FC", "#A78BFA"]}
+                  borderWidth={2}
+                >
+                  <motion.button
+                    onClick={() => session ? navigate("/chat") : navigate("/login")}
+                    className="w-full inline-flex items-center justify-center px-5 py-2.5 text-sm sm:text-base font-medium rounded-full text-white bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black/50 focus:ring-indigo-400 transition-all duration-200"
+                    whileHover={{ letterSpacing: "0.05em"}}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Share Your Thoughts <FaArrowRight className="ml-2 h-3.5 w-3.5" />
+                  </motion.button>
+                </ShineBorder>
+              </div>
+            </div>
           </motion.div>
-        </div>
-      </section> 
+        </motion.div>
+      </section>
 
       {/* Section 2: Common Problems People Face Because of Depression */}
-      <section className="py-20 md:py-28 bg-white dark:bg-gray-900">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16 md:mb-20">
-            <h2 className="text-4xl sm:text-5xl font-bold text-gray-800 dark:text-white mb-5 tracking-tight">
-              Depression Isn’t Just Sadness. It Affects <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-400 dark:to-indigo-500">Every Corner</span> Of Your Life.
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">Understanding common challenges is the first step towards healing. Many experience these issues:</p>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {commonProblems.map((problem, index) => (
-              <div 
-                key={index} 
-                className={`group bg-white dark:bg-slate-800 p-6 rounded-xl shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1.5 border border-gray-200 dark:border-gray-700 ${problem.borderColor} ${problem.shadowColor} flex flex-col items-center text-center`}
-              >
-                <div className={`text-4xl mb-5 p-4 rounded-full ${problem.bgColor} ${problem.textColor} transition-colors duration-300`}>
-                  {problem.icon}
-                </div>
-                <h3 className={`text-xl font-semibold text-gray-800 dark:text-white mb-2 group-hover:${problem.textColor} transition-colors duration-300`}>{problem.title}</h3>
-                <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors duration-300">{problem.description}</p>
-              </div>
-            ))}
-          </div>
-          <div className="text-center mt-12 sm:mt-16">
-            <p className="text-lg text-gray-700 dark:text-gray-300 mb-4">Not sure if what you're feeling is depression?</p>
-            <button 
-              onClick={() => navigate('/screening-quiz')}
-              className="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline text-lg flex items-center justify-center gap-2 mx-auto"
+      <motion.section 
+        id="common-problems"
+        className="py-16 sm:py-20 bg-gray-50"
+        initial={{ opacity: 0}}
+        whileInView={{ opacity: 1}}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.8 }}
+      >
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <motion.h2 
+              className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-6"
+              initial={{ y: 20, opacity: 0}}
+              whileInView={{ y: 0, opacity: 1}}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.7, delay: 0.1 }}
             >
-              Take the Depression Self-Screening Quiz <FaArrowRight />
-            </button>
+              Understanding the Depth of Depression
+            </motion.h2>
+            <motion.p 
+              className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto"
+              initial={{ y: 20, opacity: 0}}
+              whileInView={{ y: 0, opacity: 1}}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+            >
+              Depression isn’t just a fleeting sadness; it's a persistent condition that profoundly impacts every facet of an individual's life. Explore some of its far-reaching effects below.
+            </motion.p>
           </div>
-        </div>
-      </section>
-
-      {/* Section 3: Why This Platform? */}
-      {/* Section 3: Why This Platform? */}
-      <section className="py-20 md:py-28 bg-gray-50 dark:bg-slate-900">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16 md:mb-20">
-            <h2 className="text-4xl sm:text-5xl font-extrabold text-gray-800 dark:text-white mb-5 tracking-tight">
-              Why Choose <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400">MindCare</span>?
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">We're passionately committed to providing a supportive and effective environment for your mental well-being journey.</p>
-          </div>
-          <div className="grid md:grid-cols-2 gap-8 lg:gap-10">
-            {platformBenefits.map((benefit, index) => (
-              <div 
-                key={index} 
-                className={`group bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-2 border border-gray-200 dark:border-gray-700 ${benefit.borderColor} ${benefit.shadowColor}`}
+          <SliderContainer 
+            itemWidth={300} 
+            gap={16} 
+            visibleItems={3} 
+            autoPlay={true} 
+            autoPlayInterval={6000}
+            className="mt-10"
+          >
+            {[...depressionImpactCards, 
+              { icon: <FaQuoteLeft className="w-10 h-10 mx-auto text-sky-500" />, title: "Suicidal Thoughts", description: "Feeling like life isn’t worth living. If you are in crisis, please seek immediate help.", color: "#0ea5e9" },
+              { icon: <FaMoon className="w-10 h-10 mx-auto text-slate-500" />, title: "Sleep Issues", description: "Trouble falling asleep, oversleeping, or feeling tired all day.", color: "#64748b" },
+              { icon: <IoMdSad className="w-10 h-10 mx-auto text-rose-500" />, title: "Changes in Appetite", description: "Eating too much or too little, without enjoyment.", color: "#f43f5e" },
+              { icon: <GiMeditation className="w-10 h-10 mx-auto text-amber-500" />, title: "Low Energy & Motivation", description: "Difficulty getting out of bed or starting daily tasks.", color: "#f59e0b" },
+              { icon: <FaComments className="w-10 h-10 mx-auto text-purple-500" />, title: "Isolation", description: "Pulling away from friends, family, and social activities.", color: "#a855f7" },
+              { icon: <GiBrain className="w-10 h-10 mx-auto text-pink-500" />, title: "Negative Thoughts", description: "Feeling worthless, hopeless, or excessively guilty.", color: "#ec4899" },
+              { icon: <FaClipboardCheck className="w-10 h-10 mx-auto text-teal-500" />, title: "Work/School Struggles", description: "Poor focus, memory issues, or lack of interest in tasks.", color: "#14b8a6" },
+              { icon: <GiHeartBeats className="w-10 h-10 mx-auto text-red-500" />, title: "Physical Aches", description: "Unexplained pain or discomfort in the body.", color: "#ef4444" },
+            ].map((item, idx) => (
+              <MagicCard
+                key={idx}
+                className="w-full h-[200px] flex flex-col items-center justify-center text-center p-4 bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700"
+                gradientSize={150}
+                gradientColor={chroma(item.color || (idx < depressionImpactCards.length ? (idx % 2 === 0 ? '#6366f1' : '#10b981') : '#3b82f6')).alpha(0.3).hex()}
               >
-                <div className={`flex items-center mb-6`}>
-                  <div className={`text-4xl p-4 rounded-full ${benefit.bgColor} ${benefit.textColor} mr-5 transition-colors duration-300`}>
-                    {benefit.icon}
-                  </div>
-                  <h3 className={`text-2xl font-bold text-gray-800 dark:text-white group-hover:${benefit.textColor} transition-colors duration-300`}>{benefit.title}</h3>
-                </div>
-                <p className="text-gray-600 dark:text-gray-400 text-base leading-relaxed group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-300">{benefit.description}</p>
-              </div>
+                {item.icon && <div className="mb-3 text-4xl">{typeof item.icon === 'string' ? <span role="img" aria-label="icon">{item.icon}</span> : item.icon}</div>}
+                <h4 className="text-lg font-semibold text-gray-800 dark:text-zinc-100 mb-1">{item.title}</h4>
+                <p className="text-xs text-gray-600 dark:text-zinc-400 leading-tight">{item.description}</p>
+              </MagicCard>
+            ))}
+          </SliderContainer>
+
+
+          <motion.div 
+            className="text-center mt-10 sm:mt-12"
+            initial={{ opacity: 0, y: 20}}
+            whileInView={{ opacity: 1, y: 0}}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+          >
+            <p className="text-gray-700 mb-2 text-base sm:text-lg">Not sure if what you're feeling is depression?</p>
+            <motion.button
+              onClick={() => navigate("/phq9")}
+              className="inline-flex items-center px-5 py-2.5 sm:px-6 sm:py-3 border border-transparent text-sm sm:text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95"
+            >
+              Take the Depression Self-Screening Quiz <FaArrowRight className="ml-2 h-4 w-4" />
+            </motion.button>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      {/* Section 3: Why This Platform?  
+        id="why-platform"
+        className="py-16 sm:py-20 bg-indigo-50"
+        initial={{ opacwhileInView={{ opacity: 1}}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.8 }}
+      >
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.h2 
+            className="text-3xl sm:text-4xl font-extrabold text-gray-900 text-center mb-10 sm:mb-12"
+            ini{{ y:y: 0}}
+            whileInView={{ y: 0, opacity: 1}}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            Why Choose MindCare?
+          </motion.h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10 sm:gap-x-8 sm:gap-y-12">
+            {[ 
+    x-  gap-y-10        x-  sm:gap-y-12{ icon: "🧠", title: "Evidence-Based Tools", text: "Guided by the latest psychology and neuroscience" },
+              { icon: "💬", tilfitext: "No judgments, just safe conversations" },
+              { icon: "👂", title: "Real Human Support", txthd empathetic listeners (AI-assisted for now)" },
+              { icon: "📱", title: "Easy Access", text: "Anytime, anywhere, at your pac"].son, index) => (
+              <motion.div
+                key={index}
+                ii0,}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                <CardContainer
+                  containerClassName="w-full h-full"
+                  className="bg-white dark:bg-gray-800 >l h-full"
+       <CardContainer          >
+       cont  ner l ssName="w-full h-full"   <CardBody className="bg-graybgbwhay- dark:bg0gtay-800irounded- lrd 1aw-full rk:hov"
+e               >
+                  <CardBody className="r:sgray-50-2xl darkgroyr:sharelwtivelgd-5p/car0 dark:hov/r:sha[ow02.1]ra:k:h-veb:shalow-amecaldk5bo/[0.1]rder-whg-black dark:bite/[0whi b/[d.2]rbbrdac-bl0ck/[0.1] ] fufluh- uuo rou dedrxudp-6 boree- flex flex-cpl items-ce-ter text6centerr>de  r flex flex-col it<Csr-Ittmnt    er">
+                s  ttZ="50"50         className="t4xl sm:text-5xl mb-3 sm:mb-4 inline-block p-3 inline-block bg-indigo-100 dark:bg-indiindigo0905/50 rounded-full text-indigo-600 dark:text-indigo-300 group-hover/card:bg-indigo-200 dark:group-hover/card:bg-indigo-900 group-hover/card:bg-indigo-200 
+                    dar  k:group-hover/card:bg-indigo-900 tr  ansition-colors duraCartItemn-3  00"
+              CardItem
+                      translateZ="60"
+                         >
+                      {reason.icon}
+                    </CardItem>
+   w-full 
+                                       <CardItem
+                        translateCardItem"60  "
+                CardItem
+                      as=" "
+                      translateZ="40"
+                          className="text-lg sm:text-xl fgrtyemibold text-gray-800 darkw-:ultt
+                    e m  b-2 w-full"
+                    >  
+                   CardItem  {  reason.title}
+   C rdBody>
+                </    Container        </CardItem>
+                    <CardItem
+                      as="p"
+                      translateZ="40"
+                      className="text-gray-600 dark:text-gray-300 text-sm sm:text-base w-full"
+                    >
+                      {reason.text}
+                    </CardItem>
+                  </CardBody>
+                </CardContainer>
+              </motion.div>
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Section 4: What You Can Do Here */}
-      <section className="py-20 md:py-28 bg-gray-50 dark:bg-slate-900">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16 md:mb-20">
-            <h2 className="text-4xl sm:text-5xl font-extrabold text-gray-800 dark:text-white mb-5 tracking-tight">
-              What You Can <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-orange-600 dark:from-rose-400 dark:to-orange-400">Do Here</span>
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">Our platform offers a range of tools and resources designed to empower you on your path to better mental health.</p>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
-            {whatYouCanDo.map((action, index) => (
-              <div 
-                key={index} 
-                className={`group bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-2 border border-gray-200 dark:border-gray-700 ${action.borderColor} ${action.shadowColor} flex flex-col items-center text-center`}
+      <motion.section 
+        id="what-to-do"
+        className="py-16 sm:py-20 bg-white"
+        initial={{ opacity: 0}}
+        whileInView={{ opacity: 1}}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.8 }}
+      >
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.h2 
+            className="text-3xl sm:text-4xl font-extrabold text-gray-900 text-center mb-10 sm:mb-12"
+            initial={{ y: 20, opacity: 0}}
+            whileInView={{ y: 0, opacity: 1}}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            What You Can Do Here
+          </motion.h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {[ 
+              { id: 1, icon: <FaComments className="h-8 w-8 text-indigo-600"/>, title: "Chat with MindCare AI", text: "Get instant, empathetic support and guidance.", link: "/chat" },
+              { id: 2, icon: <FaClipboardCheck className="h-8 w-8 text-green-600"/>, title: "Access Self-Help Workbooks", text: "Interactive guides for various mental health topics.", link: "/resources" },
+              { id: 3, icon: <FaUserPlus className="h-8 w-8 text-blue-600"/>, title: "Join Anonymous Peer Groups", text: "Connect with others who understand. (Coming Soon)", link: "#" },
+              { id: 4, icon: <FaChartLine className="h-8 w-8 text-yellow-600"/>, title: "Track Your Mood & Progress", text: "Visualize your journey and identify patterns.", link: "/mood-tracker" },
+              { id: 5, icon: <GiBrain className="h-8 w-8 text-purple-600"/>, title: "Understand Your Symptoms", text: "Learn more about what you're experiencing.", link: "/learn" },
+              { id: 6, icon: <FaHeart className="h-8 w-8 text-red-600"/>, title: "Get Tips for Family Support", text: "Help your loved ones understand and support you.", link: "/family-support" },
+            ].map((action, index) => (
+              <motion.div
+                key={action.id}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
               >
-                <div className={`text-4xl mb-5 p-4 rounded-full ${action.bgColor} ${action.textColor} transition-colors duration-300`}>
-                  {action.icon}
+                <CardContainer
+                  containerClassName="w-full h-full"
+                  className="bg-white dark:bg-gray-800 rounded-xl p-1 w-full h-full"
+                >
+                  <CardBody className="bg-gray-50 dark:bg-gray-800 relative group/card dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-full h-auto rounded-xl p-6 border flex flex-col items-center text-center">
+                    <CardItem
+                      translateZ="50"
+                      className="text-4xl sm:text-5xl mb-3 sm:mb-4 inline-block p-3 bg-indigo-100 dark:bg-indigo-900/50 rounded-full text-indigo-600 dark:text-indigo-300 group-hover/card:bg-indigo-200 dark:group-hover/card:bg-indigo-900 transition-colors duration-300"
+                    >
+                      {action.icon}
+                    </CardItem>
+                    <CardItem
+                      translateZ="60"
+                      className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white mb-2 w-full"
+                    >
+                      {action.title}
+                    </CardItem>
+                    <CardItem
+                      as="p"
+                      translateZ="40"
+                      className="text-gray-600 dark:text-gray-300 text-sm sm:text-base mb-4 flex-grow w-full"
+                    >
+                      {action.text}
+                    </CardItem>
+                    <CardItem
+                      translateZ="70"
+                      className="w-full mt-auto"
+                    >
+                      <motion.button
+                        onClick={() => action.link === "#" ? null : navigate(action.link)}
+                        className={`w-full inline-flex items-center justify-center px-4 py-2 sm:px-5 sm:py-2.5 border border-transparent text-sm sm:text-base font-medium rounded-md ${action.link === "#" ? 'bg-gray-400 cursor-not-allowed text-gray-600' : 'text-white bg-indigo-600 hover:bg-indigo-700'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-sm transition-all duration-150 group-hover/card:scale-105`}
+                        whileHover={action.link === "#" ? {} : { boxShadow: "0px 5px 10px rgba(99, 102, 241, 0.3)"}}
+                        whileTap={action.link === "#" ? {} : { scale: 0.95 }}
+                        disabled={action.link === "#"}
+                      >
+                        {action.link === "#" ? "Coming Soon" : (action.title.startsWith("Chat") ? "Start Chatting" : "Learn More")}
+                        {action.link !== "#" && <FaArrowRight className="ml-2 h-4 w-4" />}
+                      </motion.button>
+                    </CardItem>
+                  </CardBody>
+                </CardContainer>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      {/* New Features Section - Alternating Layout */}
+    <section 
+      id="features" 
+      ref={featuresRef} 
+      className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-50 to-gray-100 overflow-hidden"
+    >
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-16 md:mb-20">
+          <motion.h2 
+            className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 tracking-tight mb-4"
+            initial={{ opacity: 0, y: -30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+          >
+            Tools Designed for <span className="text-indigo-600">Your Wellbeing</span>
+          </motion.h2>
+          <motion.p 
+            className="mt-4 text-xl lg:text-2xl text-gray-700 max-w-3xl mx-auto leading-relaxed"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
+          >
+            Explore interactive resources and compassionate support systems, crafted to empower your mental health journey with clarity and ease.
+          </motion.p>
+        </div>
+
+        {/* Replace the HoverEffect component with MagicCard components */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {features.map((feature, index) => {
+            const link = feature.title.toLowerCase().includes('chat') ? '/chat' :
+                         feature.title.toLowerCase().includes('mood') ? '/mood-tracker' :
+                         feature.title.toLowerCase().includes('assessment') ? '/phq9' :
+                         '/resources';
+            const buttonText = feature.title.includes('Chat') ? "Start Chatting" : "Learn More";
+
+            return (
+              <MagicCard
+                key={index}
+                className="group cursor-pointer rounded-xl shadow-lg hover:shadow-2xl flex flex-col overflow-hidden bg-white dark:bg-gray-800 transition-all duration-300 ease-out"
+                gradientSize={250}
+                gradientColor={chroma(feature.color).alpha(0.25).hex()} // Use feature color for gradient, slightly transparent
+              >
+                <div className="p-6 flex flex-col items-center text-center flex-grow transform transition-transform duration-300 ease-out group-hover:scale-[1.02]">
+                  <div 
+                    className={`p-4 rounded-full shadow-md group-hover:shadow-xl mb-6 inline-flex items-center justify-center transition-all duration-300 ease-out transform group-hover:scale-110`}
+                    style={{ backgroundColor: chroma(feature.color).alpha(0.1).hex() }} // Lighter, more transparent background for icon container
+                  >
+                    {React.cloneElement(feature.icon, { className: `h-10 w-10`, style: { color: feature.color } })}
+                  </div>
+                  <h3 
+                    className="text-xl font-semibold text-gray-900 dark:text-white mb-2 transition-colors duration-300 ease-out"
+                    style={{ '--feature-color-dynamic': feature.color }} // Define CSS variable for hover color
+                    onMouseEnter={(e) => e.currentTarget.style.color = e.currentTarget.style.getPropertyValue('--feature-color-dynamic')}
+                    onMouseLeave={(e) => e.currentTarget.style.color = ''} // Revert to CSS-defined color
+                  >
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 flex-grow min-h-[60px]">{feature.description}</p>
+                  <motion.button
+                    onClick={() => link === "#" ? null : navigate(link)}
+                    className={`mt-auto w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm ${link === "#" ? 'bg-gray-400 cursor-not-allowed text-gray-700' : `text-white bg-[${feature.color}] hover:bg-[${chroma(feature.color).darken(0.5).hex()}]`} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[${feature.color}]`}
+                    whileHover={{ scale: link === "#" ? 1 : 1.05 }}
+                    whileTap={{ scale: link === "#" ? 1 : 0.95 }}
+                    disabled={link === "#"}
+                  >
+                    {link === "#" ? "Coming Soon" : buttonText}
+                    {link !== "#" && <FaArrowRight className="ml-2 h-5 w-5" />}
+                  </motion.button>
                 </div>
-                <h3 className={`text-2xl font-bold text-gray-800 dark:text-white mb-3 group-hover:${action.textColor} transition-colors duration-300`}>{action.title}</h3>
-                <p className="text-gray-600 dark:text-gray-400 text-base leading-relaxed group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-300">{action.description}</p>
-              </div>
+              </MagicCard>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+
+      {/* Stats Section */}
+      <section className="py-16 bg-gradient-to-r from-indigo-600 to-purple-700 text-white relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0 bg-gradient-to-br from-white via-transparent to-transparent opacity-20"></div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            {[
+              {
+                value: "24/7",
+                label: "Availability",
+                description: "Support whenever you need it",
+              },
+              {
+                value: "95%",
+                label: "User Satisfaction",
+                description: "Report feeling better after use",
+              },
+              {
+                value: "10K+",
+                label: "Active Users",
+                description: "Trusting our platform daily",
+              },
+            ].map((stat, index) => (
+              <motion.div
+                key={index}
+                className="text-center p-6 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.2, duration: 0.6 }}
+              >
+                <motion.div
+                  className="text-5xl font-extrabold mb-2"
+                  whileHover={{ scale: 1.05 }}
+                >
+                  {stat.value}
+                </motion.div>
+                <div className="text-xl font-medium">{stat.label}</div>
+                <p className="mt-2 text-indigo-100">{stat.description}</p>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Section 5: Tools to Support Your Journey */}
-      <section className="py-20 md:py-28 bg-gray-50 dark:bg-slate-900">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16 md:mb-20">
-            <h2 className="text-4xl sm:text-5xl font-extrabold text-gray-800 dark:text-white mb-5 tracking-tight">
-              Tools to <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-cyan-600 dark:from-sky-400 dark:to-cyan-500">Support Your Journey</span>
+      {/* End Why Choose MindCare Section */}
+
+      {/* Testimonials Section */}
+      <section
+        id="stories"
+        className="py-20 bg-gray-50 relative overflow-hidden"
+      >
+        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-purple-500 to-transparent opacity-10 -z-10"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            className="text-center"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <motion.span
+              className="inline-block px-3 py-1 text-sm font-semibold text-indigo-600 bg-indigo-100 rounded-full mb-4"
+              whileHover={{ scale: 1.05 }}
+            >
+              Real Stories
+            </motion.span>
+            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+              Voices of Healing
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">Explore a variety of features designed to help you navigate your path to mental well-being and track your progress effectively.</p>
+            <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-500">
+              Discover how our community is finding hope and support.
+            </p>
+          </motion.div>
+
+          <div className="mt-12 md:mt-16 lg:mt-20">
+            <AnimatedTestimonials />
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 md:gap-8">
-            {visualFeatures.map((feature, index) => (
-              <div 
-                key={index} 
-                className={`group bg-white dark:bg-slate-800 p-6 rounded-xl shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1.5 border border-gray-200 dark:border-gray-700 ${feature.borderColor} ${feature.shadowColor} flex flex-col items-center text-center`}
+        </div>
+      </section>
+
+      {/* End Testimonials Section */}
+
+      {/* Resources Section */}
+      <section
+        id="resources"
+        className="py-20 bg-white relative overflow-hidden"
+      >
+        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-indigo-500 to-transparent opacity-10 -z-10"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            className="text-center"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <motion.span
+              className="inline-block px-3 py-1 text-sm font-semibold text-indigo-600 bg-indigo-100 rounded-full mb-4"
+              whileHover={{ scale: 1.05 }}
+            >
+              Knowledge Base
+            </motion.span>
+            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+              Helpful Resources
+            </h2>
+            <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-500">
+              Educational materials and additional support options.
+            </p>
+          </motion.div>
+
+          <SliderContainer 
+            itemWidth={320} 
+            gap={24} 
+            visibleItems={3} 
+            autoPlay={true} 
+            autoPlayInterval={7000}
+            className="mt-12 md:mt-16"
+          >
+            {[
+              {
+                icon: <FaHeart className="text-red-400 dark:text-red-300" />,
+                title: "Crisis Support",
+                description: "Immediate help if you're in distress. Call 988 or text HOME to 741741.",
+                color: "#ef4444", // Red
+                buttonText: "Get Help Now",
+                buttonAction: () => { /* Could open a modal with numbers or navigate */ alert("Crisis Lines: 988 (Call), HOME to 741741 (Text), 911 (Emergency)"); },
+                buttonClass: "bg-red-500 hover:bg-red-600 text-white dark:bg-red-600 dark:hover:bg-red-700",
+              },
+              {
+                icon: <FaClipboardCheck className="text-blue-400 dark:text-blue-300" />,
+                title: "Educational Articles",
+                description: "Learn about mental health, coping strategies, and well-being.",
+                color: "#3b82f6", // Blue
+                buttonText: "Explore Articles",
+                buttonAction: () => navigate('/resources'),
+                buttonClass: "bg-blue-500 hover:bg-blue-600 text-white dark:bg-blue-600 dark:hover:bg-blue-700",
+              },
+              {
+                icon: <FaComments className="text-green-400 dark:text-green-300" />,
+                title: "Community Support",
+                description: "Connect with others who understand. Share and find support.",
+                color: "#22c55e", // Green
+                buttonText: session ? "Visit Community Hub" : "Join to Access Community",
+                buttonAction: () => session ? navigate('/community') : navigate('/login'),
+                buttonClass: "bg-green-500 hover:bg-green-600 text-white dark:bg-green-600 dark:hover:bg-green-700",
+              },
+              {
+                icon: <GiMeditation className="text-purple-400 dark:text-purple-300" />,
+                title: "Mindfulness Tools",
+                description: "Guided meditations and exercises to calm your mind.",
+                color: "#a855f7", // Purple
+                buttonText: "Practice Mindfulness",
+                buttonAction: () => navigate('/mindfulness'), // Assuming a route
+                buttonClass: "bg-purple-500 hover:bg-purple-600 text-white dark:bg-purple-600 dark:hover:bg-purple-700",
+              },
+              {
+                icon: <FaLeaf className="text-teal-400 dark:text-teal-300" />,
+                title: "Self-Help Guides",
+                description: "Practical guides for managing anxiety, stress, and more.",
+                color: "#14b8a6", // Teal
+                buttonText: "View Self-Help Guides",
+                buttonAction: () => navigate('/self-help'), // Assuming a route
+                buttonClass: "bg-teal-500 hover:bg-teal-600 text-white dark:bg-teal-600 dark:hover:bg-teal-700",
+              }
+            ].map((resource, idx) => (
+              <MagicCard
+                key={idx}
+                className="w-full h-[280px] flex flex-col items-center justify-between text-center p-5 bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-2xl"
+                gradientSize={180}
+                gradientColor={chroma(resource.color).alpha(0.2).hex()}
               >
-                <div className={`text-5xl mb-4 p-4 rounded-full ${feature.bgColor} ${feature.textColor} transition-colors duration-300`}>
-                  {feature.icon}
+                <div>
+                  {resource.icon && <div className="mb-3 text-5xl">{resource.icon}</div>}
+                  <h4 className="text-xl font-semibold text-gray-800 dark:text-zinc-100 mb-2">{resource.title}</h4>
+                  <p className="text-sm text-gray-600 dark:text-zinc-400 leading-snug">{resource.description}</p>
                 </div>
-                <h3 className={`text-lg font-semibold text-gray-700 dark:text-gray-200 group-hover:${feature.textColor} transition-colors duration-300`}>{feature.name}</h3>
-                {feature.description && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{feature.description}</p>}
-              </div>
+                {resource.buttonText && (
+                  <button 
+                    onClick={resource.buttonAction} 
+                    className={`mt-4 px-5 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 ease-in-out w-full 
+                      ${resource.buttonClass}
+                      disabled:opacity-50 disabled:cursor-not-allowed`}
+                    disabled={resource.disabled}
+                  >
+                    {resource.buttonText}
+                  </button>
+                )}
+              </MagicCard>
             ))}
-          </div>
+          </SliderContainer>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-gradient-to-r from-indigo-500 to-purple-600 text-white relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0 bg-gradient-to-br from-white via-transparent to-transparent opacity-20"></div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <h2 className="text-3xl font-extrabold sm:text-4xl">
+              Ready to prioritize your mental health?
+            </h2>
+            <p className="mt-4 max-w-3xl mx-auto text-xl text-indigo-100">
+              Join thousands who have found support and understanding through
+              our platform.
+            </p>
+            <div className="mt-8 flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
+              <PinContainer 
+                title={session ? "Resume your conversation" : "Start your journey to wellbeing"} 
+                href={session ? "/chat" : "/login"}
+                containerClassName="w-full sm:w-auto"
+              >
+                <motion.button
+                  onClick={() =>
+                    session ? navigate("/chat") : navigate("/login")
+                  }
+                  className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 border bg-white border-transparent text-lg font-medium rounded-full shadow-lg text-indigo-600 group-hover/pin:scale-105 transition-transform duration-200"
+                >
+                  {session ? "Continue Your Journey" : "Get Started Now"}
+                  <FaArrowRight className="ml-2" />
+                </motion.button>
+              </PinContainer>
+              <motion.button
+                onClick={() =>
+                  document
+                    .getElementById("features")
+                    .scrollIntoView({ behavior: "smooth" })
+                }
+                className="inline-flex items-center justify-center px-8 py-4 border-2 hover:text-[#7E11DF] border-white text-lg font-medium rounded-full text-white hover:bg-white hover:bg-opacity-10"
+                whileHover={{
+                  scale: 1.05,
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Learn More
+              </motion.button>
+            </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-50 dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 md:gap-12 mb-12 md:mb-16">
-            <div className="lg:col-span-1">
-              <Link to="/" className="flex items-center space-x-3 mb-6">
-                <img src={logo} alt="MindWell Logo" className="h-10 w-auto" />
-                <span className="text-2xl font-bold text-gray-800 dark:text-white">MindCare</span>
-              </Link>
-              <p className="text-sm leading-relaxed mb-6">Your compassionate companion for mental wellness. We're here to support you, anytime, anywhere.</p>
-              <div className="flex space-x-4">
-                <a href="#" className="text-gray-400 hover:text-purple-500 dark:hover:text-purple-400 transition-colors duration-300"><FaFacebook size={22} /></a>
-                <a href="#" className="text-gray-400 hover:text-purple-500 dark:hover:text-purple-400 transition-colors duration-300"><FaTwitter size={22} /></a>
-                <a href="#" className="text-gray-400 hover:text-purple-500 dark:hover:text-purple-400 transition-colors duration-300"><FaInstagram size={22} /></a>
-                <a href="#" className="text-gray-400 hover:text-purple-500 dark:hover:text-purple-400 transition-colors duration-300"><FaLinkedin size={22} /></a>
+      <footer className="bg-gray-900 text-white pt-16 pb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {/* Logo and description */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <div className="flex items-center">
+                <FaLeaf className="h-8 w-8 text-indigo-400" />
+                <span className="ml-2 text-xl font-bold">MindCare</span>
               </div>
-            </div>
-            <div>
-              <h5 className="text-lg font-semibold text-gray-700 dark:text-white mb-5">Quick Links</h5>
-              <ul className="space-y-3 text-sm">
-                <li><Link to="/chat" className="hover:text-purple-500 dark:hover:text-purple-400 transition-colors duration-300">Chat with Bot</Link></li>
-                <li><Link to="/resources" className="hover:text-purple-500 dark:hover:text-purple-400 transition-colors duration-300">Resources</Link></li>
-                <li><Link to="/about" className="hover:text-purple-500 dark:hover:text-purple-400 transition-colors duration-300">About Us</Link></li>
-                <li><Link to="/contact" className="hover:text-purple-500 dark:hover:text-purple-400 transition-colors duration-300">Contact</Link></li>
-                <li><Link to="/faq" className="hover:text-purple-500 dark:hover:text-purple-400 transition-colors duration-300">FAQ</Link></li>
+              <p className="mt-4 text-gray-400">
+                A compassionate mental health support platform powered by AI and
+                human understanding.
+              </p>
+              <div className="mt-6 flex space-x-4">
+                {[FaFacebook, FaTwitter, FaInstagram, FaLinkedin].map(
+                  (Icon, i) => (
+                    <motion.a
+                      key={i}
+                      href="#"
+                      className="text-gray-400 hover:text-indigo-400"
+                      whileHover={{ y: -3, scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Icon className="h-6 w-6" />
+                    </motion.a>
+                  )
+                )}
+              </div>
+            </motion.div>
+
+            {/* Quick Links */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1, duration: 0.8 }}
+            >
+              <h3 className="text-lg font-semibold">Quick Links</h3>
+              <ul className="mt-4 space-y-2">
+                {["Home", "Features", "Stories", "Resources"].map((item, i) => (
+                  <motion.li key={i} whileHover={{ x: 5 }}>
+                    <a
+                      href={`#${item.toLowerCase()}`}
+                      className="text-gray-400 hover:text-indigo-400"
+                    >
+                      {item}
+                    </a>
+                  </motion.li>
+                ))}
               </ul>
-            </div>
-            <div>
-              <h5 className="text-lg font-semibold text-gray-700 dark:text-white mb-5">Support</h5>
-              <ul className="space-y-3 text-sm">
-                <li><Link to="/privacy" className="hover:text-purple-500 dark:hover:text-purple-400 transition-colors duration-300">Privacy Policy</Link></li>
-                <li><Link to="/terms" className="hover:text-purple-500 dark:hover:text-purple-400 transition-colors duration-300">Terms of Service</Link></li>
-                <li><Link to="/community-guidelines" className="hover:text-purple-500 dark:hover:text-purple-400 transition-colors duration-300">Community Guidelines</Link></li>
+            </motion.div>
+
+            {/* Support */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2, duration: 0.8 }}
+            >
+              <h3 className="text-lg font-semibold">Support</h3>
+              <ul className="mt-4 space-y-2">
+                {[
+                  "Contact Us",
+                  "FAQ",
+                  "Privacy Policy",
+                  "Terms of Service",
+                ].map((item, i) => (
+                  <motion.li key={i} whileHover={{ x: 5 }}>
+                    <a href="#" className="text-gray-400 hover:text-indigo-400">
+                      {item}
+                    </a>
+                  </motion.li>
+                ))}
               </ul>
-            </div>
-            <div>
-              <h5 className="text-lg font-semibold text-gray-700 dark:text-white mb-5">Stay Updated</h5>
-              <p className="text-sm mb-4">Subscribe to our newsletter for the latest updates and mental wellness tips.</p>
-              <form className="flex">
-                <input type="email" placeholder="your.email@example.com" className="w-full px-4 py-2.5 rounded-l-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 text-sm placeholder-gray-400 dark:placeholder-gray-500" />
-                <button type="submit" className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-r-lg font-semibold text-sm transition-colors duration-300 focus:outline-none focus:ring-2 ring-offset-2 ring-offset-slate-50 dark:ring-offset-slate-900 focus:ring-purple-500 dark:focus:ring-purple-400">Subscribe</button>
-              </form>
-            </div>
+            </motion.div>
+
+            {/* Newsletter */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3, duration: 0.8 }}
+            >
+              <h3 className="text-lg font-semibold">Stay Updated</h3>
+              <p className="mt-4 text-gray-400">
+                Subscribe to our newsletter for mental health tips and updates.
+              </p>
+              <div className="mt-4 flex">
+                <input
+                  type="email"
+                  placeholder="Your email"
+                  className="px-4 py-2 w-full rounded-l-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900"
+                />
+                <motion.button
+                  className="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-r-lg"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Subscribe
+                </motion.button>
+              </div>
+            </motion.div>
           </div>
 
-          <div className="border-t border-gray-300 dark:border-slate-700 pt-8 md:pt-10 text-center">
-            <p className="text-xs leading-relaxed mb-5 max-w-3xl mx-auto">
-              <span className="font-semibold text-gray-700 dark:text-white">Important Disclaimer:</span> MindCare is an AI-powered support tool and not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition. Never disregard professional medical advice or delay in seeking it because of something you have read or experienced on this platform.
+          {/* Copyright */}
+          <motion.div
+            className="mt-16 pt-8 border-t border-gray-800 text-center text-gray-400"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.4, duration: 0.8 }}
+          >
+            <p>
+              &copy; {new Date().getFullYear()} MindCare. All rights reserved.
             </p>
-            <p className="text-xs leading-relaxed max-w-3xl mx-auto">
-              If you are in a Crisis or any other person may be in danger, do not use this site. These resources can provide you with immediate help. Call or text <a href="tel:988" className="font-semibold text-purple-600 hover:text-purple-500 dark:text-purple-400 dark:hover:text-purple-300 underline transition-colors duration-300">988</a> in the US & Canada, or call <a href="tel:111" className="font-semibold text-purple-600 hover:text-purple-500 dark:text-purple-400 dark:hover:text-purple-300 underline transition-colors duration-300">111</a> in the UK.
+            <p className="mt-2 text-sm">
+              This platform is not a substitute for professional medical advice,
+              diagnosis, or treatment.
             </p>
-            <p className="text-sm mt-8 text-gray-500 dark:text-gray-400">
-              &copy; {new Date().getFullYear()} MindCare. All rights reserved. Crafted with <FaHeart className="inline text-pink-500 animate-pulse" /> for better mental health.
-            </p>
-          </div>
+          </motion.div>
+        </div>
+        {/* Meteors effect container */}
+        <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
+          <Meteors number={40} />
         </div>
       </footer>
+      </WarpBackground>
     </div>
+  );
+};
+
+// Meteors Component - Source: https://ui.aceternity.com/components/meteors
+export const Meteors = ({
+  number,
+  className,
+}) => {
+  const meteors = new Array(number || 20).fill(true);
+  return (
+    <>
+      {meteors.map((el, idx) => (
+        <motion.span
+          key={"meteor" + idx}
+          className={cn(
+            "animate-meteor-effect absolute top-1/2 left-1/2 h-0.5 w-0.5 rounded-full bg-slate-500 shadow-[0_0_0_1px_#ffffff10] rotate-[215deg]",
+            "before:content-[''] before:absolute before:top-1/2 before:transform before:-translate-y-1/2 before:w-[50px] before:h-[1px] before:bg-gradient-to-r before:from-[#64748b] before:to-transparent",
+            className
+          )}
+          style={{
+            top: 0,
+            left: Math.floor(Math.random() * (400 - -400) + -400) + "px",
+            animationDelay: Math.random() * (0.8 - 0.2) + 0.2 + "s",
+            animationDuration: Math.floor(Math.random() * (10 - 2) + 2) + "s",
+          }}
+        ></motion.span>
+      ))}
+    </>
   );
 };
 

@@ -1,135 +1,140 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import { motion } from "motion/react";
-import React, { useCallback, useMemo } from "react";
+import { cn } from "../../lib/utils"; // Adjusted path
+import { motion } from "framer-motion";
+import React, { useEffect, useId, useRef, useState } from "react";
 
-// Removed WarpBackgroundProps interface
-
-const Beam = ({
-  width,
-  x,
-  delay,
-  duration,
-}/* Removed type annotation */) => {
-  const hue = Math.floor(Math.random() * 360);
-  const ar = Math.floor(Math.random() * 10) + 1;
-
-  return (
-    <motion.div
-      style={{
-        "--x": `${x}`,
-        "--width": `${width}`,
-        "--aspect-ratio": `${ar}`,
-        "--background": `linear-gradient(hsl(${hue} 80% 60%), transparent)`,
-      } /* Removed 'as React.CSSProperties' */}
-      className={`absolute left-[var(--x)] top-0 [aspect-ratio:1/var(--aspect-ratio)] [background:var(--background)] [width:var(--width)]`}
-      initial={{ y: "100cqmax", x: "-50%" }}
-      animate={{ y: "-100%", x: "-50%" }}
-      transition={{
-        duration,
-        delay,
-        repeat: Infinity,
-        ease: "linear",
-      }}
-    />
-  );
-};
-
-export const WarpBackground = ({
+export function WarpBackground({
   children,
-  perspective = 100,
   className,
-  beamsPerSide = 3,
-  beamSize = 5,
-  beamDelayMax = 3,
-  beamDelayMin = 0,
-  beamDuration = 3,
-  gridColor = "var(--border)",
-  ...rest
-} /* Removed : React.FC<WarpBackgroundProps> */) => {
-  const { darkMode, particleColor, warpFactor, ...props } = rest;
-  const generateBeams = useCallback(() => {
-    const beams = [];
-    const cellsPerSide = Math.floor(100 / beamSize);
-    const step = cellsPerSide / beamsPerSide;
+  speed = "normal",
+  color = "#7A00D4",
+  size = 1000,
+  mouseEffect = true,
+  gyroEffect = false,
+  camera = {
+    position: {
+      x: 0,
+      y: 0,
+      z: 1,
+    },
+    rotation: {
+      x: 0,
+      y: 0,
+      z: 0,
+    },
+    fov: 75,
+  },
+}) {
+  const canvasRef = useRef(null);
+  const mousePosition = useRef({ x: 0, y: 0 });
+  const mouseMoved = useRef(false);
+  const id = useId();
 
-    for (let i = 0; i < beamsPerSide; i++) {
-      const x = Math.floor(i * step);
-      const delay =
-        Math.random() * (beamDelayMax - beamDelayMin) + beamDelayMin;
-      beams.push({ x, delay });
+  useEffect(() => {
+    const { current: canvas } = canvasRef;
+    if (!canvas) return;
+
+    const context = canvas.getContext("2d");
+    if (!context) return;
+
+    let animationFrameId;
+    const stars = [];
+    const numStars = 1000;
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+
+    for (let i = 0; i < numStars; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        z: Math.random() * canvas.width,
+        opacity: Math.random(),
+      });
     }
-    return beams;
-  }, [beamsPerSide, beamSize, beamDelayMax, beamDelayMin]);
 
-  const topBeams = useMemo(() => generateBeams(), [generateBeams]);
-  const rightBeams = useMemo(() => generateBeams(), [generateBeams]);
-  const bottomBeams = useMemo(() => generateBeams(), [generateBeams]);
-  const leftBeams = useMemo(() => generateBeams(), [generateBeams]);
+    const draw = () => {
+      context.fillStyle = "rgba(0, 0, 0, 0.05)";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
+      stars.forEach((star) => {
+        const perspective = size / (size + star.z);
+        const x = centerX + (star.x - centerX) * perspective;
+        const y = centerY + (star.y - centerY) * perspective;
+        const s = Math.max(0, perspective * 2);
+        const falloff = Math.max(0, 2 - perspective * 2);
+        const opacity = star.opacity * falloff;
+
+        context.beginPath();
+        context.arc(x, y, s, 0, Math.PI * 2);
+        context.fillStyle = `rgba(${hexToRgb(color)}, ${opacity})`;
+        context.fill();
+
+        star.z -= getSpeed(speed);
+        if (star.z < 0) {
+          star.z = canvas.width;
+        }
+      });
+
+      animationFrameId = requestAnimationFrame(draw);
+    };
+
+    const handleResize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      draw();
+    };
+
+    const handleMouseMove = (event) => {
+      mousePosition.current = { x: event.clientX, y: event.clientY };
+      mouseMoved.current = true;
+    };
+
+    handleResize();
+    draw();
+
+    if (mouseEffect) {
+      window.addEventListener("mousemove", handleMouseMove);
+    }
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("resize", handleResize);
+      if (mouseEffect) {
+        window.removeEventListener("mousemove", handleMouseMove);
+      }
+    };
+  }, [color, speed, size, mouseEffect]);
+
+  const hexToRgb = (hex) => {
+    const bigint = parseInt(hex.slice(1), 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return `${r}, ${g}, ${b}`;
+  };
+
+  const getSpeed = (s) => {
+    switch (s) {
+      case "slow":
+        return 0.1;
+      case "fast":
+        return 0.5;
+      default:
+        return 0.2;
+    }
+  };
 
   return (
-    <div className={cn("relative rounded border p-20", className)} {...props}>
-      <div
-        style={{
-          "--perspective": `${perspective}px`,
-          "--grid-color": gridColor,
-          "--beam-size": `${beamSize}%`,
-        } /* Removed 'as React.CSSProperties' */}
-        className={
-          "pointer-events-none absolute left-0 top-0 size-full overflow-hidden [clipPath:inset(0)] [container-type:size] [perspective:var(--perspective)] [transform-style:preserve-3d]"
-        }
-      >
-        {/* top side */}
-        <div className="absolute z-20 [transform-style:preserve-3d] [background-size:var(--beam-size)_var(--beam-size)] [background:linear-gradient(var(--grid-color)_0_1px,_transparent_1px_var(--beam-size))_50%_-0.5px_/var(--beam-size)_var(--beam-size),linear-gradient(90deg,_var(--grid-color)_0_1px,_transparent_1px_var(--beam-size))_50%_50%_/var(--beam-size)_var(--beam-size)] [container-type:inline-size] [height:100cqmax] [transform-origin:50%_0%] [transform:rotateX(-90deg)] [width:100cqi]">
-          {topBeams.map((beam, index) => (
-            <Beam
-              key={`top-${index}`}
-              width={`${beamSize}%`}
-              x={`${beam.x * beamSize}%`}
-              delay={beam.delay}
-              duration={beamDuration}
-            />
-          ))}
-        </div>
-        {/* bottom side */}
-        <div className="absolute top-full [transform-style:preserve-3d] [background-size:var(--beam-size)_var(--beam-size)] [background:linear-gradient(var(--grid-color)_0_1px,_transparent_1px_var(--beam-size))_50%_-0.5px_/var(--beam-size)_var(--beam-size),linear-gradient(90deg,_var(--grid-color)_0_1px,_transparent_1px_var(--beam-size))_50%_50%_/var(--beam-size)_var(--beam-size)] [container-type:inline-size] [height:100cqmax] [transform-origin:50%_0%] [transform:rotateX(-90deg)] [width:100cqi]">
-          {bottomBeams.map((beam, index) => (
-            <Beam
-              key={`bottom-${index}`}
-              width={`${beamSize}%`}
-              x={`${beam.x * beamSize}%`}
-              delay={beam.delay}
-              duration={beamDuration}
-            />
-          ))}
-        </div>
-        {/* left side */}
-        <div className="absolute left-0 top-0 [transform-style:preserve-3d] [background-size:var(--beam-size)_var(--beam-size)] [background:linear-gradient(var(--grid-color)_0_1px,_transparent_1px_var(--beam-size))_50%_-0.5px_/var(--beam-size)_var(--beam-size),linear-gradient(90deg,_var(--grid-color)_0_1px,_transparent_1px_var(--beam-size))_50%_50%_/var(--beam-size)_var(--beam-size)] [container-type:inline-size] [height:100cqmax] [transform-origin:0%_0%] [transform:rotate(90deg)_rotateX(-90deg)] [width:100cqh]">
-          {leftBeams.map((beam, index) => (
-            <Beam
-              key={`left-${index}`}
-              width={`${beamSize}%`}
-              x={`${beam.x * beamSize}%`}
-              delay={beam.delay}
-              duration={beamDuration}
-            />
-          ))}
-        </div>
-        {/* right side */}
-        <div className="absolute right-0 top-0 [transform-style:preserve-3d] [background-size:var(--beam-size)_var(--beam-size)] [background:linear-gradient(var(--grid-color)_0_1px,_transparent_1px_var(--beam-size))_50%_-0.5px_/var(--beam-size)_var(--beam-size),linear-gradient(90deg,_var(--grid-color)_0_1px,_transparent_1px_var(--beam-size))_50%_50%_/var(--beam-size)_var(--beam-size)] [container-type:inline-size] [height:100cqmax] [width:100cqh] [transform-origin:100%_0%] [transform:rotate(-90deg)_rotateX(-90deg)]">
-          {rightBeams.map((beam, index) => (
-            <Beam
-              key={`right-${index}`}
-              width={`${beamSize}%`}
-              x={`${beam.x * beamSize}%`}
-              delay={beam.delay}
-              duration={beamDuration}
-            />
-          ))}
-        </div>
-      </div>
-      <div className="relative">{children}</div>
+    <div className={cn("relative h-full w-full", className)}>
+      <motion.canvas
+        id={id}
+        ref={canvasRef}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="h-full w-full bg-transparent"
+      />
+      <div className="absolute inset-0 z-[1]">{children}</div>
     </div>
   );
-};
+}
