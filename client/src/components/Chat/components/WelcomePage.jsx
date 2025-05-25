@@ -202,9 +202,9 @@ export const WelcomePage = ({ darkMode, setInput }) => {
               onClick={() => setShowAllQuestions(!showAllQuestions)}
               className={cn(
                 "text-sm shadow-lg hover:shadow-xl transition-all duration-300",
-                darkMode ? "text-primary-300 hover:text-primary-200" : "text-primary-600 hover:text-primary-700"
+                darkMode ? "text-primary-300 hover:text-primary-200" : "text-white hover:text-gray-100"
               )}
-              shimmerColor={darkMode ? "#A5B4FC" : "#3B82F6"}
+              shimmerColor={darkMode ? "#A5B4FC" : "#FFFFFF"} // Changed shimmer to white for light mode to match text
               shimmerSize="0.1em"
               background={darkMode ? "rgba(31, 41, 55, 0.7)" : "rgba(255, 255, 255, 0.7)"}
             >

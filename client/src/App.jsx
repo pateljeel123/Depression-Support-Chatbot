@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import Auth from './components/Auth/Auth'
 import Home from './components/Home/Home'
 import Chat from './components/Chat/Chat';
@@ -22,6 +22,51 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+const AppContent = () => {
+  const location = useLocation();
+  const showNavbar = location.pathname !== '/chat';
+
+  return (
+    <div className="app-container">
+      {showNavbar && <Navbar />}
+      <Routes>
+        <Route 
+          path="/" 
+          element={<Home />} 
+        />
+        <Route 
+          path="/login" 
+          element={<Auth initialMode="login" />} 
+        />
+        <Route 
+          path="/signup" 
+          element={<Auth initialMode="signup" />} 
+        />
+        <Route 
+          path="/chat" 
+          element={
+            <ProtectedRoute>
+                    <Chat />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="*" 
+          element={<Navigate to="/" />} 
+        />
+      </Routes>
+    </div>
+  );
+};
+
 const App = () => {
   // Apply the font to the entire app by adding to the root element or body
   // For this example, we'll assume a main wrapper div in App.jsx
@@ -33,43 +78,7 @@ const App = () => {
     <div className="font-sans">
     <AuthProvider>
       <BrowserRouter>
-        <div className="app-container">
-          <Navbar />
-          <Routes>
-            <Route 
-              path="/" 
-              element={<Home />} 
-            />
-            <Route 
-              path="/login" 
-              element={<Auth initialMode="login" />} 
-            />
-            <Route 
-              path="/signup" 
-              element={<Auth initialMode="signup" />} 
-            />
-            <Route 
-              path="/chat" 
-              element={
-                <ProtectedRoute>
-                        <Chat />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
-            <Route 
-              path="*" 
-              element={<Navigate to="/" />} 
-            />
-          </Routes>
-        </div>
+        <AppContent />
       </BrowserRouter>
     </AuthProvider>
     </div>

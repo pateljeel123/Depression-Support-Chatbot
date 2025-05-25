@@ -516,7 +516,6 @@ export const AnimatedTooltip = ({ items }) => {
   );
 };
 // End of AnimatedTooltip Component
-
 const Home = () => {
   const { session, signOut } = useAuth();
   const [showMore, setShowMore] = useState(false);
