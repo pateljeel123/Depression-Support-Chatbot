@@ -848,7 +848,14 @@ const Home = () => {
                 </a>
               ))}
             </div>
+            
             <div className="flex items-center space-x-4">
+               <button 
+                onClick={() => navigate('/chat')} 
+                className="ml-4 px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
+              >
+                Chat
+              </button>
               {session ? (
                 <div className="relative">
                   <button
@@ -897,6 +904,7 @@ const Home = () => {
                   </ShineBorder>
                 </>
               )}
+              
               {/* Mobile Menu Button */}
               <div className="md:hidden flex items-center">
                 <button
@@ -916,12 +924,7 @@ const Home = () => {
                 </button>
               </div>
               {/* Chat Button */}
-              <button 
-                onClick={() => navigate('/chat')} 
-                className="ml-4 px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
-              >
-                Chat
-              </button>
+             
             </div>
             {/* Mobile menu button (optional, can be added later) */}
           </div>
