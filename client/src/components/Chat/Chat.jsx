@@ -21,7 +21,7 @@ import {
   FiChevronDown, // Added for history toggle
   FiChevronUp, // Added for history toggle
 } from "react-icons/fi"; // Added FiFileText, FiUpload, FiSettings, FiUser
-import { BsEmojiSmile, BsImage, BsMarkdown } from "react-icons/bs"; // Added BsImage, BsMarkdown
+import { BsEmojiSmile } from "react-icons/bs";
 import Picker, { EmojiStyle } from "emoji-picker-react";
 import { IoMdMic, IoMdMicOff } from "react-icons/io";
 import { RiRobot2Line } from "react-icons/ri"; // Added RiRobot2Line
@@ -68,8 +68,7 @@ export default function Chat() {
     maxTokens: 1000,
     model: "gpt-4",
   });
-  const [attachments, setAttachments] = useState([]);
-  const [attachmentPreviews, setAttachmentPreviews] = useState([]); // For image previews
+  // Removed attachments and attachmentPreviews state
   const [pinnedChats, setPinnedChats] = useState([]);
   const [replyingToMessage, setReplyingToMessage] = useState(null); // For message replies
   const [editingMessage, setEditingMessage] = useState(null); // For editing messages
@@ -163,7 +162,7 @@ export default function Chat() {
   const reactionPickerRef = useRef(null); // Ref for reaction picker
   const inputRef = useRef(null);
   const chatInputRef = useRef(null); // Ref for the chat input area for drag and drop
-  const fileInputRef = useRef(null);
+  // Removed fileInputRef
   const speechSynthesisRef = useRef(window.speechSynthesis);
 
   // Speech recognition
@@ -979,7 +978,7 @@ export default function Chat() {
   // Send a message
   const handleSendMessage = async (e) => {
     if (e) e.preventDefault();
-    if ((!input.trim() && attachments.length === 0) || isLoading) return;
+    if (!input.trim() || isLoading) return;
 
     setIsLoading(true);
     resetTranscript();
@@ -987,12 +986,6 @@ export default function Chat() {
     stopAudioProcessing();
 
     const userMessageContent = input.trim();
-    // TODO: Handle actual file uploads and get URLs if needed for attachments
-    const messageAttachmentsData = attachments.map((file) => ({
-      name: file.name,
-      type: file.type,
-      size: file.size /*, url: 'placeholder_url' */,
-    }));
     const tempUserMessageId = Date.now().toString(); // Temporary ID for UI update
 
     const userMessageForUI = {
@@ -1002,7 +995,7 @@ export default function Chat() {
       content: userMessageContent,
       timestamp: new Date().toISOString(),
       replyTo: replyingToMessage?.id || null,
-      attachments: messageAttachmentsData,
+      attachments: [], // Empty array since attachments are removed
       starred: false,
       reactions: {},
     };
@@ -1021,13 +1014,9 @@ export default function Chat() {
     );
 
     const currentInput = input;
-    const currentAttachments = [...attachments];
-    const currentAttachmentPreviews = [...attachmentPreviews];
     const currentReplyingToMessage = replyingToMessage;
 
     setInput("");
-    setAttachments([]);
-    setAttachmentPreviews([]);
     setReplyingToMessage(null);
     playSound("send");
 
@@ -1331,82 +1320,7 @@ export default function Chat() {
   );
 
   // Handle file upload
-  const handleFileUpload = (eventOrFiles) => {
-    let filesToProcess = [];
-    if (eventOrFiles.target && eventOrFiles.target.files) {
-      filesToProcess = Array.from(eventOrFiles.target.files);
-    } else if (Array.isArray(eventOrFiles)) {
-      filesToProcess = eventOrFiles; // From drag & drop
-    }
-
-    if (filesToProcess.length === 0) return;
-
-    const uniqueNewFiles = filesToProcess.filter(
-      (file) =>
-        !attachments.some(
-          (existingFile) =>
-            existingFile.name === file.name && existingFile.size === file.size
-        )
-    );
-
-    if (uniqueNewFiles.length === 0) {
-      if (eventOrFiles.target && eventOrFiles.target.value) {
-        // Still clear input if files were "selected" but all were duplicates
-        eventOrFiles.target.value = null;
-      }
-      // Optionally, notify user about duplicate files if needed, for now, just log for those attempted but were duplicates.
-      // filesToProcess.forEach(file => {
-      //   if (!uniqueNewFiles.includes(file)) {
-      //     console.log(`File ${file.name} already attached or selected.`);
-      //   }
-      // });
-      return;
-    }
-
-    setAttachments((prevAttachments) => [
-      ...prevAttachments,
-      ...uniqueNewFiles,
-    ]);
-
-    uniqueNewFiles.forEach((file) => {
-      if (file.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setAttachmentPreviews((prevPreviews) => {
-            if (!prevPreviews.some((p) => p.name === file.name)) {
-              return [
-                ...prevPreviews,
-                { name: file.name, url: reader.result, type: file.type },
-              ];
-            }
-            return prevPreviews;
-          });
-        };
-        reader.readAsDataURL(file);
-      } else {
-        setAttachmentPreviews((prevPreviews) => {
-          if (!prevPreviews.some((p) => p.name === file.name)) {
-            return [
-              ...prevPreviews,
-              { name: file.name, url: null, type: file.type },
-            ];
-          }
-          return prevPreviews;
-        });
-      }
-    });
-
-    if (eventOrFiles.target && eventOrFiles.target.value) {
-      eventOrFiles.target.value = null;
-    }
-  };
-
-  const handleRemoveAttachment = (fileName) => {
-    setAttachments((prev) => prev.filter((file) => file.name !== fileName));
-    setAttachmentPreviews((prev) =>
-      prev.filter((preview) => preview.name !== fileName)
-    );
-  };
+  // Removed handleFileUpload function and handleRemoveAttachment function
 
   // Drag and Drop Handlers
   const handleDragOver = (e) => {
@@ -1870,60 +1784,7 @@ export default function Chat() {
                             </div>
                           )}
 
-                          {/* Display Attachments in Message */}
-                          {message.attachments &&
-                            message.attachments.length > 0 && (
-                              <div className="mt-2 pt-2 border-t border-opacity-20">
-                                {message.attachments.map(
-                                  (attachment, index) => (
-                                    <div
-                                      key={index}
-                                      className={`p-1.5 rounded text-xs mb-1 ${message.role === "user"
-                                          ? darkMode
-                                            ? "bg-indigo-700"
-                                            : "bg-indigo-600"
-                                          : darkMode
-                                            ? "bg-gray-600"
-                                            : "bg-gray-100 border"
-                                        }`}
-                                    >
-                                      {attachment.previewUrl &&
-                                        attachment.type.startsWith("image/") ? (
-                                        <img
-                                          src={attachment.previewUrl}
-                                          alt={attachment.name}
-                                          className="max-w-xs max-h-32 rounded my-1"
-                                        />
-                                      ) : null}
-                                      <div className="flex items-center">
-                                        {attachment.type.startsWith(
-                                          "image/"
-                                        ) ? (
-                                          <BsImage className="mr-1.5 flex-shrink-0" />
-                                        ) : (
-                                          <FiFileText className="mr-1.5 flex-shrink-0" />
-                                        )}
-                                        <span
-                                          className="truncate"
-                                          title={attachment.name}
-                                        >
-                                          {attachment.name}
-                                        </span>
-                                        {attachment.size && (
-                                          <span className="ml-2 text-opacity-70 text-xxs">
-                                            (
-                                            {(attachment.size / 1024).toFixed(
-                                              1
-                                            )}{" "}
-                                            KB)
-                                          </span>
-                                        )}
-                                      </div>
-                                    </div>
-                                  )
-                                )}
-                              </div>
-                            )}
+                          {/* Attachments display section removed */}
                         </div>
                         {/* Reactions Display */}
                         {message.reactions &&
@@ -2022,74 +1883,7 @@ export default function Chat() {
                 : "bg-white border-gray-200"
               } border-t`}
           >
-            {attachments.length > 0 && (
-              <div
-                className={`mb-4 p-2 sm:p-3 rounded-lg ${darkMode ? "bg-gray-700" : "bg-gray-100"
-                  }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-xs sm:text-sm font-medium">
-                    Attachments ({attachments.length})
-                  </h3>
-                  <button
-                    onClick={() => {
-                      setAttachments([]);
-                      setAttachmentPreviews([]);
-                    }}
-                    className={`p-1 rounded-full ${darkMode ? "hover:bg-gray-600" : "hover:bg-gray-200"
-                      }`}
-                  >
-                    <FiX size={16} />
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-1 sm:gap-2">
-                  {attachments.map((file, index) => (
-                    <div
-                      key={index}
-                      className={`p-1.5 sm:p-2 rounded flex items-center text-xs sm:text-sm ${darkMode ? "bg-gray-600" : "bg-gray-200"
-                        }`}
-                    >
-                      {attachmentPreviews.find(
-                        (p) =>
-                          p.originalFile === file && p.type.startsWith("image/")
-                      ) ? (
-                        <img
-                          src={
-                            attachmentPreviews.find(
-                              (p) => p.originalFile === file
-                            ).url
-                          }
-                          alt={file.name}
-                          className="w-6 h-6 sm:w-8 sm:h-8 mr-1.5 sm:mr-2 rounded object-cover"
-                        />
-                      ) : file.type.startsWith("image/") ? (
-                        <BsImage className="mr-1.5 sm:mr-2 flex-shrink-0" />
-                      ) : (
-                        <FiFileText className="mr-1.5 sm:mr-2 flex-shrink-0" />
-                      )}
-                      <span className="truncate max-w-[80px] sm:max-w-[100px]">
-                        {file.name}
-                      </span>
-                      <button
-                        onClick={() => {
-                          const fileToRemove = attachments[index];
-                          setAttachments((prev) =>
-                            prev.filter((f) => f !== fileToRemove)
-                          );
-                          setAttachmentPreviews((prev) =>
-                            prev.filter((p) => p.originalFile !== fileToRemove)
-                          );
-                        }}
-                        className="ml-1 sm:ml-2 p-1 rounded-full hover:bg-gray-500 hover:bg-opacity-30"
-                      >
-                        <FiX size={12} className="sm:hidden" />
-                        <FiX size={14} className="hidden sm:block" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Removed attachments display section */}
 
             {showMic && browserSupportsSpeechRecognition && (
               <div
@@ -2169,10 +1963,11 @@ export default function Chat() {
             )}
             <form
               onSubmit={handleSendMessage}
-              className="flex items-end space-x-2"
+              className="flex items-center justify-center space-x-2" // Changed items-end to items-center
             >
               {/* Outer div for width control */}
-              <div className="flex-grow w-4/5 max-w-[80%]">
+              {/* Changed width classes and removed flex-grow for centering */}
+              <div className="w-full sm:w-3/4 md:w-3/5 lg:w-1/2">
                 <div className={`relative ${isBotSpeaking ? "mb-5" : ""}`}> {/* Removed flex-1, width is controlled by parent */}
                   {isBotSpeaking && (
                   <div className="absolute bottom-full left-0 right-0 mx-auto mb-1 text-center text-xs text-gray-500 dark:text-gray-400 animate-pulse p-1 bg-opacity-50 rounded-md">
@@ -2199,12 +1994,6 @@ export default function Chat() {
                   }}
                 />
                 <div className="absolute right-2 bottom-2 flex space-x-1 sm:space-x-2">
-                  <FileUpload
-                    onFileUpload={handleFileUpload}
-                    darkMode={darkMode}
-                    fileInputRef={fileInputRef}
-                  />
-
                   <button
                     type="button"
                     onClick={(e) => {
@@ -2240,17 +2029,6 @@ export default function Chat() {
                       )}
                     </button>
                   )}
-
-                  <button
-                    type="button"
-                    className={`p-1 rounded-full ${darkMode
-                        ? "text-gray-400 hover:text-gray-300"
-                        : "text-gray-500 hover:text-gray-700"
-                      }`}
-                    title="Supports Markdown"
-                  >
-                    <BsMarkdown size={20} />
-                  </button>
                 </div>
 
                 {showEmojiPicker && (
@@ -2274,13 +2052,11 @@ export default function Chat() {
               </div> {/* Closing tag for the flex-grow w-4/5 max-w-[80%] div */}
               <motion.button
                 type="submit"
-                disabled={
-                  (!input.trim() && attachments.length === 0) || isLoading
-                }
+                disabled={!input.trim() || isLoading}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={(e) => handleSendMessage(e)}
-                className={`p-3 rounded-lg ${(!input.trim() && attachments.length === 0) || isLoading
+                className={`p-3 rounded-lg ${!input.trim() || isLoading
                     ? darkMode
                       ? "bg-gray-600 text-gray-400"
                       : "bg-gray-200 text-gray-400"
@@ -2944,73 +2720,7 @@ const SettingsPanel = ({
   );
 };
 
-// Enhanced FileUpload Component
-const FileUpload = ({ onFileUpload, darkMode, fileInputRef }) => {
-  const [dragActive, setDragActive] = useState(false);
-
-  const handleDrag = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      onFileUpload({ target: { files: e.dataTransfer.files } });
-    }
-  };
-
-  return (
-    <>
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={onFileUpload}
-        className="hidden"
-        multiple
-      />
-      <div
-        className="relative"
-        onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
-        onDragOver={handleDrag}
-        onDrop={handleDrop}
-      >
-        <button
-          type="button"
-          onClick={() => fileInputRef.current.click()}
-          className={`p-1 rounded-full ${darkMode
-              ? "text-gray-400 hover:text-gray-300"
-              : "text-gray-500 hover:text-gray-700"
-            }`}
-          title="Upload files"
-        >
-          <BsImage size={20} />
-        </button>
-
-        {dragActive && (
-          <div
-            className={`absolute -top-20 -left-20 right-0 bottom-0 w-40 h-40 rounded-full flex items-center justify-center ${darkMode ? "bg-indigo-900 bg-opacity-50" : "bg-indigo-100"
-              } border-2 border-dashed ${darkMode ? "border-indigo-500" : "border-indigo-400"
-              } z-50`}
-          >
-            <div className="text-center p-4">
-              <FiUpload size={24} className="mx-auto mb-2" />
-              <p className="text-sm">Drop files here</p>
-            </div>
-          </div>
-        )}
-      </div>
-    </>
-  );
-};
+// Removed FileUpload Component
 
 // Enhanced EmojiPicker Component
 const EmojiPicker = ({ onSelect, darkMode }) => {

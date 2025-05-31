@@ -15,6 +15,7 @@ import {
   FaInstagram,
   FaLinkedin,
   FaUserPlus,
+  FaUserCircle, // Added FaUserCircle to fix ReferenceError
   FaLeaf,
   FaChevronLeft,
   FaChevronRight,
@@ -76,7 +77,7 @@ export const HoverEffect = ({ items, className }) => {
   return (
     <div
       className={cn(
-        "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 py-6 sm:py-8 md:py-10",
+        "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 py-6 sm:py-8 md:py-10",
         className
       )}
     >
@@ -523,6 +524,7 @@ const Home = () => {
   const [isHovered, setIsHovered] = useState(false); // This state seems unused, consider removing if not needed for other parts.
   const controls = useAnimation(); // Retained for other potential animations, but hero parallax is handled differently.
   const navigate = useNavigate();
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
   const depressionImpactCards = [
     {
@@ -806,6 +808,100 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50 font-sans overflow-x-hidden">
+      {/* Navbar Start */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md shadow-lg transition-all duration-300 ease-in-out">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            <div className="flex items-center">
+              <a href="/" className="flex-shrink-0 flex items-center">
+                <img
+                  className="h-10 w-auto transition-transform duration-300 hover:scale-110"
+                  src="/logo-placeholder.png" // Replace with your actual logo path
+                  alt="MindCare Logo"
+                />
+                <span className="ml-3 text-2xl font-bold text-indigo-600 dark:text-indigo-400 tracking-tight">
+                  Mind<span className="text-purple-500 dark:text-purple-300">Care</span>
+                </span>
+              </a>
+            </div>
+            <div className="hidden md:flex items-center space-x-6">
+              {['Home', 'Features', 'About', 'Contact'].map((item) => (
+                <a
+                  key={item}
+                  href={`#${item.toLowerCase()}`}
+                  className="text-neutral-700 dark:text-neutral-300 hover:text-indigo-600 dark:hover:text-indigo-400 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 relative group"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const element = document.getElementById(item.toLowerCase());
+                    if (element) {
+                      element.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                >
+                  {item}
+                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-500 dark:bg-indigo-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"></span>
+                </a>
+              ))}
+            </div>
+            <div className="flex items-center space-x-4">
+              {session ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                    className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-100 dark:bg-neutral-800 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-neutral-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    <FaUserCircle className="h-6 w-6" />
+                  </button>
+                  {isProfileDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="absolute right-0 mt-2 w-48 bg-white dark:bg-neutral-800 rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-50"
+                    >
+                      <a
+                        href="/profile" // Replace with your profile page route
+                        className="block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-indigo-50 dark:hover:bg-neutral-700 transition-colors duration-150"
+                        onClick={() => setIsProfileDropdownOpen(false)}
+                      >
+                        Profile
+                      </a>
+                      <button
+                        onClick={() => { signOut(); setIsProfileDropdownOpen(false); }}
+                        className="w-full text-left block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-indigo-50 dark:hover:bg-neutral-700 transition-colors duration-150"
+                      >
+                        Sign Out
+                      </button>
+                    </motion.div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <button
+                    onClick={() => navigate('/signin')}
+                    className="px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 border border-indigo-600 dark:border-indigo-400 rounded-md hover:bg-indigo-50 dark:hover:bg-neutral-800 transition-colors duration-200"
+                  >
+                    Sign In
+                  </button>
+                  <ShineBorder
+                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 dark:bg-indigo-500 rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors duration-200 shadow-md hover:shadow-lg"
+                    color={["#A07CFE", "#FE8FB5", "#FFBE7B"]}
+                    onClick={() => navigate('/signup')}
+                  >
+                    Sign Up <FaUserPlus className="inline ml-1" />
+                  </ShineBorder>
+                </>
+              )}
+              {/* Placeholder for Theme Toggle */}
+              <button className="p-2 rounded-md text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors duration-200">
+                <FaMoon className="h-5 w-5" />
+              </button>
+            </div>
+            {/* Mobile menu button (optional, can be added later) */}
+          </div>
+        </div>
+      </nav>
+      {/* Navbar End */}
       <WarpBackground
         className="w-full h-full absolute inset-0 z-0"
         beamsPerSide={5}
@@ -845,33 +941,39 @@ const Home = () => {
       {/* Hero Section */}
       <section
         id="home"
-        className="relative py-20 sm:py-28 md:py-32 px-4 sm:px-6 lg:px-8 text-white overflow-hidden isolate"
+        className="relative pt-24 py-20 sm:py-28 md:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden isolate bg-[#F3E6AF]"
       >
-        {/* Video Background - Retained for visual depth */}
-        <div className="absolute inset-0 z-[-1] overflow-hidden">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full h-full object-cover filter brightness-100"
-            src="https://videos.pexels.com/video-files/3209828/3209828-uhd_3840_2160_25fps.mp4"
-            poster="https://images.pexels.com/photos/1563356/pexels-photo-1563356.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260"
-          >
-            Your browser does not support the video tag.
-          </video>
-          {/* Enhanced overlay for better text contrast */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/70 to-black/80"></div>
-        </div>
-
-        <motion.div
-          ref={heroRef} // Parallax effect applied here
-          className="relative z-10 max-w-5xl mx-auto flex flex-col items-center justify-center min-h-[75vh] sm:min-h-[80vh] text-center px-2 sm:px-4"
-        >
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
+            {/* GIF Side - Assuming this GIF has a vibrant color palette to match */}
+            <motion.div 
+              className="w-full lg:w-1/2 flex justify-center lg:justify-start"
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <div className="relative w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl">
+                <img 
+                  src="https://cdn.prod.website-files.com/62ab7d5ccc9f587bce83c183/62e54e7732c44c5f842541c4_ezgif.com-gif-maker%20(14).gif" // User provided GIF
+                  alt="Mental Wellness Journey"
+                  className="w-full h-auto object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-purple-900/40 to-transparent"></div>
+              </div>
+            </motion.div>
+            
+            {/* Text Content Side */}
+            <motion.div
+              ref={heroRef}
+              className="w-full lg:w-1/2 text-center lg:text-left text-gray-800" // Changed text-white to text-gray-800 for contrast
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
           <AuroraText
-            text="You’re Not Alone. Find Your Path to Light."
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white drop-shadow-2xl"
-            highlightClassName="text-yellow-300"
+            text="Discover Your Inner Strength. We're With You."
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-orange-600 to-red-700 drop-shadow-lg"
+            highlightClassName="text-orange-500"
             animationConfig={{
               initial: { opacity: 0, scale: 0.8, y: -30 },
               animate: { opacity: 1, scale: 1, y: 0 },
@@ -879,87 +981,59 @@ const Home = () => {
             }}
           />
           <motion.p
-            className="mt-6 max-w-2xl mx-auto text-base sm:text-lg md:text-xl text-gray-200/90 drop-shadow-lg leading-relaxed"
+            className="mt-6 max-w-2xl mx-auto text-base sm:text-lg md:text-xl text-gray-700 drop-shadow-sm leading-relaxed"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            Millions experience depression. If you feel lost, overwhelmed, or empty—you're not broken, you're human. We provide the tools and support to guide you towards clarity, connection, and renewed hope.
+            Navigating life's challenges can be tough, but you don't have to do it alone. Explore tools and find support tailored to your journey towards a brighter, more resilient you.
           </motion.p>
 
-          {/* Responsive Button Grid */}
-          <motion.div
-            className="mt-10 w-full max-w-xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.6, staggerChildren: 0.15 }}
-          >
-            <motion.button
-                onClick={() => navigate("/phq9")}
-                className="w-full flex items-center justify-center px-4 py-3 sm:px-5 sm:py-3.5 text-yellow-300 hover:text-black bg-yellow-500/20 hover:bg-yellow-400/90 transition-colors duration-300 rounded-lg text-lg font-medium col-span-1 sm:col-span-2 lg:col-span-1"
-              >
-                <FaClipboardCheck className="mr-2 h-5 w-5" />
-                Free Check-up
-              </motion.button>
+          {/* Buttons removed as per user request */}
 
-            <motion.button
-                onClick={() => navigate("/chat")}
-                className="w-full flex items-center justify-center px-4 py-3 sm:px-5 sm:py-3.5 text-emerald-300 hover:text-black bg-emerald-500/20 hover:bg-emerald-400/90 transition-colors duration-300 rounded-lg text-lg font-medium col-span-1"
+              {/* Simplified CTA Card - Retained for quick access */}
+              <motion.div
+                className="mt-12 w-full max-w-md mx-auto lg:mx-0"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8, duration: 0.7 }}
               >
-                <FaComments className="mr-2 h-5 w-5" />
-                Talk to AI
-              </motion.button>
-
-            <motion.button
-                onClick={() => featuresRef.current?.scrollIntoView({ behavior: 'smooth' })}
-                className="w-full flex items-center justify-center px-4 py-3 sm:px-5 sm:py-3.5 text-violet-300 hover:text-black bg-violet-500/20 hover:bg-violet-400/90 transition-colors duration-300 rounded-lg text-lg font-medium col-span-1 sm:col-span-2 lg:col-span-1"
-              >
-                <GiBrain className="mr-2 h-5 w-5" />
-                Explore Tools
-              </motion.button>
-          </motion.div>
-
-          {/* Simplified CTA Card - Retained for quick access */}
-          <motion.div
-            className="mt-12 sm:mt-16 w-full max-w-md mx-auto"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 0.7 }}
-          >
-            <div className="relative bg-white/10 backdrop-blur-md rounded-xl p-1 shadow-2xl ring-1 ring-white/20">
-              <div className="bg-black/30 rounded-lg p-6 text-center">
-                <div className="flex justify-center space-x-5 mb-4">
-                  <motion.div whileHover={{ scale: 1.2, rotate: 8, color: '#34D399'}} whileTap={{ scale: 0.95 }}>
-                    <IoMdHappy className="h-7 w-7 sm:h-8 sm:w-8 text-emerald-400 transition-colors" />
-                  </motion.div>
-                  <motion.div whileHover={{ scale: 1.2, rotate: -8, color: '#60A5FA' }} whileTap={{ scale: 0.95 }}>
-                    <IoMdSad className="h-7 w-7 sm:h-8 sm:w-8 text-blue-400 transition-colors" />
-                  </motion.div>
+                <div className="relative bg-white/10 backdrop-blur-md rounded-xl p-1 shadow-2xl ring-1 ring-white/20">
+                  <div className="bg-black/30 rounded-lg p-6 text-center lg:text-left">
+                    <div className="flex justify-center lg:justify-start space-x-5 mb-4">
+                      <motion.div whileHover={{ scale: 1.2, rotate: 8, color: '#34D399'}} whileTap={{ scale: 0.95 }}>
+                        <IoMdHappy className="h-7 w-7 sm:h-8 sm:w-8 text-emerald-400 transition-colors" />
+                      </motion.div>
+                      <motion.div whileHover={{ scale: 1.2, rotate: -8, color: '#60A5FA' }} whileTap={{ scale: 0.95 }}>
+                        <IoMdSad className="h-7 w-7 sm:h-8 sm:w-8 text-blue-400 transition-colors" />
+                      </motion.div>
+                    </div>
+                    <h3 className="text-md sm:text-lg font-semibold text-gray-100">
+                      How are you feeling today?
+                    </h3>
+                    <p className="mt-1.5 text-xs sm:text-sm text-gray-300/80">
+                      Our AI companion is ready to listen.
+                    </p>
+                    <ShineBorder
+                      className="mt-5 rounded-full w-full max-w-xs mx-auto lg:mx-0"
+                      color={["#8B5CF6", "#C084FC", "#A78BFA"]}
+                      borderWidth={2}
+                    >
+                      <motion.button
+                        onClick={() => session ? navigate("/chat") : navigate("/login")}
+                        className="w-full inline-flex items-center justify-center px-5 py-2.5 text-sm sm:text-base font-medium rounded-full text-white bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black/50 focus:ring-indigo-400 transition-all duration-200"
+                        whileHover={{ letterSpacing: "0.05em"}}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        Share Your Thoughts <FaArrowRight className="ml-2 h-3.5 w-3.5" />
+                      </motion.button>
+                    </ShineBorder>
+                  </div>
                 </div>
-                <h3 className="text-md sm:text-lg font-semibold text-gray-100">
-                  How are you feeling today?
-                </h3>
-                <p className="mt-1.5 text-xs sm:text-sm text-gray-300/80">
-                  Our AI companion is ready to listen.
-                </p>
-                <ShineBorder
-                  className="mt-5 rounded-full w-full max-w-xs mx-auto"
-                  color={["#8B5CF6", "#C084FC", "#A78BFA"]}
-                  borderWidth={2}
-                >
-                  <motion.button
-                    onClick={() => session ? navigate("/chat") : navigate("/login")}
-                    className="w-full inline-flex items-center justify-center px-5 py-2.5 text-sm sm:text-base font-medium rounded-full text-white bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black/50 focus:ring-indigo-400 transition-all duration-200"
-                    whileHover={{ letterSpacing: "0.05em"}}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    Share Your Thoughts <FaArrowRight className="ml-2 h-3.5 w-3.5" />
-                  </motion.button>
-                </ShineBorder>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
+              </motion.div>
+            </motion.div>
+          </div>
+        </div>
       </section>
 
       {/* Section 2: Common Problems People Face Because of Depression */}
@@ -1042,66 +1116,60 @@ const Home = () => {
         </div>
       </motion.section>
 
-      {/* Section 3: Why This Platform?  
+      {/* Section 3: Why This Platform? */}
+      <motion.section
         id="why-platform"
-        className="py-16 sm:py-20 bg-indigo-50"
-        initial={{ opacwhileInView={{ opacity: 1}}
+        className="py-16 sm:py-20 bg-indigo-50 dark:bg-gray-900"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.8 }}
       >
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.h2 
-            className="text-3xl sm:text-4xl font-extrabold text-gray-900 text-center mb-10 sm:mb-12"
-            ini{{ y:y: 0}}
-            whileInView={{ y: 0, opacity: 1}}
+          <motion.h2
+            className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white text-center mb-10 sm:mb-12"
+            initial={{ y: 20, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true, amount: 0.5 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             Why Choose MindCare?
           </motion.h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10 sm:gap-x-8 sm:gap-y-12">
-            {[ 
-    x-  gap-y-10        x-  sm:gap-y-12{ icon: "🧠", title: "Evidence-Based Tools", text: "Guided by the latest psychology and neuroscience" },
-              { icon: "💬", tilfitext: "No judgments, just safe conversations" },
-              { icon: "👂", title: "Real Human Support", txthd empathetic listeners (AI-assisted for now)" },
-              { icon: "📱", title: "Easy Access", text: "Anytime, anywhere, at your pac"].son, index) => (
+            {[
+              { icon: "🧠", title: "Evidence-Based Tools", text: "Guided by the latest psychology and neuroscience" },
+              { icon: "💬", title: "Safe & Anonymous", text: "No judgments, just safe conversations" },
+              { icon: "👂", title: "Real Human Support", text: "Kind empathetic listeners (AI-assisted for now)" },
+              { icon: "📱", title: "Easy Access", text: "Anytime, anywhere, at your pace" },
+            ].map((reason, index) => (
               <motion.div
                 key={index}
-                ii0,}
+                initial={{ opacity: 0, y: 50 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.3 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
+                transition={{ duration: 0.5, delay: index * 0.15 }}
               >
                 <CardContainer
                   containerClassName="w-full h-full"
-                  className="bg-white dark:bg-gray-800 >l h-full"
-       <CardContainer          >
-       cont  ner l ssName="w-full h-full"   <CardBody className="bg-graybgbwhay- dark:bg0gtay-800irounded- lrd 1aw-full rk:hov"
-e               >
-                  <CardBody className="r:sgray-50-2xl darkgroyr:sharelwtivelgd-5p/car0 dark:hov/r:sha[ow02.1]ra:k:h-veb:shalow-amecaldk5bo/[0.1]rder-whg-black dark:bite/[0whi b/[d.2]rbbrdac-bl0ck/[0.1] ] fufluh- uuo rou dedrxudp-6 boree- flex flex-cpl items-ce-ter text6centerr>de  r flex flex-col it<Csr-Ittmnt    er">
-                s  ttZ="50"50         className="t4xl sm:text-5xl mb-3 sm:mb-4 inline-block p-3 inline-block bg-indigo-100 dark:bg-indiindigo0905/50 rounded-full text-indigo-600 dark:text-indigo-300 group-hover/card:bg-indigo-200 dark:group-hover/card:bg-indigo-900 group-hover/card:bg-indigo-200 
-                    dar  k:group-hover/card:bg-indigo-900 tr  ansition-colors duraCartItemn-3  00"
-              CardItem
-                      translateZ="60"
-                         >
+                  className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 w-full h-full"
+                >
+                  <CardBody className="p-6 flex flex-col items-center text-center h-full">
+                    <CardItem
+                      translateZ="50"
+                      className="text-4xl sm:text-5xl mb-3 sm:mb-4 inline-block p-3 bg-indigo-100 dark:bg-indigo-900/50 rounded-full text-indigo-600 dark:text-indigo-300 group-hover/card:bg-indigo-200 dark:group-hover/card:bg-indigo-900 transition-colors duration-300"
+                    >
                       {reason.icon}
                     </CardItem>
-   w-full 
-                                       <CardItem
-                        translateCardItem"60  "
-                CardItem
-                      as=" "
-                      translateZ="40"
-                          className="text-lg sm:text-xl fgrtyemibold text-gray-800 darkw-:ultt
-                    e m  b-2 w-full"
-                    >  
-                   CardItem  {  reason.title}
-   C rdBody>
-                </    Container        </CardItem>
+                    <CardItem
+                      translateZ="60"
+                      className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white mb-2 flex-grow"
+                    >
+                      {reason.title}
+                    </CardItem>
                     <CardItem
                       as="p"
                       translateZ="40"
-                      className="text-gray-600 dark:text-gray-300 text-sm sm:text-base w-full"
+                      className="text-gray-600 dark:text-gray-300 text-sm sm:text-base"
                     >
                       {reason.text}
                     </CardItem>
@@ -1116,15 +1184,15 @@ e               >
       {/* Section 4: What You Can Do Here */}
       <motion.section 
         id="what-to-do"
-        className="py-16 sm:py-20 bg-white"
+        className="py-16 sm:py-20 bg-white dark:bg-slate-900"
         initial={{ opacity: 0}}
         whileInView={{ opacity: 1}}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.8 }}
       >
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2 
-            className="text-3xl sm:text-4xl font-extrabold text-gray-900 text-center mb-10 sm:mb-12"
+            className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white text-center mb-10 sm:mb-16"
             initial={{ y: 20, opacity: 0}}
             whileInView={{ y: 0, opacity: 1}}
             viewport={{ once: true, amount: 0.5 }}
@@ -1132,64 +1200,63 @@ e               >
           >
             What You Can Do Here
           </motion.h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
             {[ 
-              { id: 1, icon: <FaComments className="h-8 w-8 text-indigo-600"/>, title: "Chat with MindCare AI", text: "Get instant, empathetic support and guidance.", link: "/chat" },
-              { id: 2, icon: <FaClipboardCheck className="h-8 w-8 text-green-600"/>, title: "Access Self-Help Workbooks", text: "Interactive guides for various mental health topics.", link: "/resources" },
-              { id: 3, icon: <FaUserPlus className="h-8 w-8 text-blue-600"/>, title: "Join Anonymous Peer Groups", text: "Connect with others who understand. (Coming Soon)", link: "#" },
-              { id: 4, icon: <FaChartLine className="h-8 w-8 text-yellow-600"/>, title: "Track Your Mood & Progress", text: "Visualize your journey and identify patterns.", link: "/mood-tracker" },
-              { id: 5, icon: <GiBrain className="h-8 w-8 text-purple-600"/>, title: "Understand Your Symptoms", text: "Learn more about what you're experiencing.", link: "/learn" },
-              { id: 6, icon: <FaHeart className="h-8 w-8 text-red-600"/>, title: "Get Tips for Family Support", text: "Help your loved ones understand and support you.", link: "/family-support" },
+              { id: 1, icon: <FaComments />, title: "Chat with MindCare AI", text: "Get instant, empathetic support and guidance.", link: "/chat", color: "#6366F1" }, // Indigo
+              { id: 2, icon: <FaClipboardCheck />, title: "Access Self-Help Workbooks", text: "Interactive guides for various mental health topics.", link: "/resources", color: "#10B981" }, // Emerald
+              { id: 3, icon: <FaUserPlus />, title: "Join Anonymous Peer Groups", text: "Connect with others who understand. (Coming Soon)", link: "#", color: "#0EA5E9" }, // Sky
+              { id: 4, icon: <FaChartLine />, title: "Track Your Mood & Progress", text: "Visualize your journey and identify patterns.", link: "/mood-tracker", color: "#F59E0B" }, // Amber
+              { id: 5, icon: <GiBrain />, title: "Understand Your Symptoms", text: "Learn more about what you're experiencing.", link: "/learn", color: "#8B5CF6" }, // Violet
+              { id: 6, icon: <FaHeart />, title: "Get Tips for Family Support", text: "Help your loved ones understand and support you.", link: "/family-support", color: "#D946EF" }, // Fuchsia
             ].map((action, index) => (
-              <motion.div
+              <MagicCard
                 key={action.id}
+                className="group cursor-pointer rounded-xl shadow-lg hover:shadow-2xl flex flex-col overflow-hidden bg-white dark:bg-gray-800 transition-all duration-300 ease-out h-full"
+                gradientSize={200}
+                gradientColor={chroma(action.color).alpha(0.15).hex()}
                 initial={{ opacity: 0, y: 50 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.3 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
               >
-                <CardContainer
-                  containerClassName="w-full h-full"
-                  className="bg-white dark:bg-gray-800 rounded-xl p-1 w-full h-full"
-                >
-                  <CardBody className="bg-gray-50 dark:bg-gray-800 relative group/card dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-full h-auto rounded-xl p-6 border flex flex-col items-center text-center">
-                    <CardItem
-                      translateZ="50"
-                      className="text-4xl sm:text-5xl mb-3 sm:mb-4 inline-block p-3 bg-indigo-100 dark:bg-indigo-900/50 rounded-full text-indigo-600 dark:text-indigo-300 group-hover/card:bg-indigo-200 dark:group-hover/card:bg-indigo-900 transition-colors duration-300"
-                    >
-                      {action.icon}
-                    </CardItem>
-                    <CardItem
-                      translateZ="60"
-                      className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white mb-2 w-full"
-                    >
-                      {action.title}
-                    </CardItem>
-                    <CardItem
-                      as="p"
-                      translateZ="40"
-                      className="text-gray-600 dark:text-gray-300 text-sm sm:text-base mb-4 flex-grow w-full"
-                    >
-                      {action.text}
-                    </CardItem>
-                    <CardItem
-                      translateZ="70"
-                      className="w-full mt-auto"
-                    >
-                      <motion.button
-                        onClick={() => action.link === "#" ? null : navigate(action.link)}
-                        className={`w-full inline-flex items-center justify-center px-4 py-2 sm:px-5 sm:py-2.5 border border-transparent text-sm sm:text-base font-medium rounded-md ${action.link === "#" ? 'bg-gray-400 cursor-not-allowed text-gray-600' : 'text-white bg-indigo-600 hover:bg-indigo-700'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-sm transition-all duration-150 group-hover/card:scale-105`}
-                        whileHover={action.link === "#" ? {} : { boxShadow: "0px 5px 10px rgba(99, 102, 241, 0.3)"}}
-                        whileTap={action.link === "#" ? {} : { scale: 0.95 }}
-                        disabled={action.link === "#"}
-                      >
-                        {action.link === "#" ? "Coming Soon" : (action.title.startsWith("Chat") ? "Start Chatting" : "Learn More")}
-                        {action.link !== "#" && <FaArrowRight className="ml-2 h-4 w-4" />}
-                      </motion.button>
-                    </CardItem>
-                  </CardBody>
-                </CardContainer>
-              </motion.div>
+                <div className="p-6 flex flex-col items-center text-center flex-grow transform transition-transform duration-300 ease-out group-hover:scale-[1.02]">
+                  <div 
+                    className={`p-4 rounded-full shadow-md group-hover:shadow-xl mb-6 inline-flex items-center justify-center transition-all duration-300 ease-out transform group-hover:scale-110`}
+                    style={{ backgroundColor: chroma(action.color).alpha(0.1).hex() }}
+                  >
+                    {React.cloneElement(action.icon, { className: `h-10 w-10`, style: { color: action.color } })}
+                  </div>
+                  <h3 
+                    className="text-xl font-semibold text-gray-900 dark:text-white mb-3 transition-colors duration-300 ease-out"
+                    style={{ '--action-card-hover-color': action.color }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = e.currentTarget.style.getPropertyValue('--action-card-hover-color')}
+                    onMouseLeave={(e) => e.currentTarget.style.color = ''}
+                  >
+                    {action.title}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-6 flex-grow min-h-[70px]">{action.text}</p>
+                  <motion.button
+                    onClick={() => action.link === "#" ? null : navigate(action.link)}
+                    className={`mt-auto w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm 
+                                ${action.link === "#" 
+                                  ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed text-gray-700 dark:text-gray-400' 
+                                  : `text-white`}
+                                focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800`}
+                    style={action.link !== "#" ? {
+                      backgroundColor: action.color,
+                      '--ring-color': action.color,
+                    } : { '--ring-color': '#A0AEC0'}}
+                    onMouseEnter={(e) => { if (action.link !== "#") e.currentTarget.style.backgroundColor = chroma(action.color).darken(0.4).hex() }}
+                    onMouseLeave={(e) => { if (action.link !== "#") e.currentTarget.style.backgroundColor = action.color }}
+                    whileHover={{ scale: action.link === "#" ? 1 : 1.05, boxShadow: action.link === "#" ? 'none' : `0px 8px 15px ${chroma(action.color).alpha(0.3).hex()}`}}
+                    whileTap={{ scale: action.link === "#" ? 1 : 0.95 }}
+                    disabled={action.link === "#"}
+                  >
+                    {action.link === "#" ? "Coming Soon" : (action.title.startsWith("Chat") ? "Start Chatting" : "Learn More")}
+                    {action.link !== "#" && <FaArrowRight className="ml-2 h-5 w-5" />}
+                  </motion.button>
+                </div>
+              </MagicCard>
             ))}
           </div>
         </div>
