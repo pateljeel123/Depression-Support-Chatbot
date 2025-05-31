@@ -387,34 +387,34 @@ export const AnimatedTestimonials = () => {
 
   return (
     <div 
-      className="relative flex flex-col items-center justify-center w-full h-[30rem] md:h-[35rem] lg:h-[40rem] overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 p-4 md:p-8 shadow-xl"
+      className="relative flex flex-col items-center justify-center w-full h-[20rem] md:h-[24rem] lg:h-[28rem] overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 p-3 md:p-6 shadow-xl"
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
       <AnimatePresence mode="wait">
         <motion.div
           key={currentIndex}
-          initial={{ opacity: 0, y: 50, scale: 0.8 }}
+          initial={{ opacity: 0, y: 30, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -50, scale: 0.8 }}
-          transition={{ duration: 0.7, ease: [0.4, 0.0, 0.2, 1] }}
-          className="flex flex-col items-center justify-center text-center w-full max-w-2xl"
+          exit={{ opacity: 0, y: -30, scale: 0.9 }}
+          transition={{ duration: 0.6, ease: [0.4, 0.0, 0.2, 1] }}
+          className="flex flex-col items-center justify-center text-center w-full max-w-xl"
         >
           {/* Optional: Add image if available 
           <img 
             src={testimonialsData[currentIndex].image} 
             alt={testimonialsData[currentIndex].name} 
-            className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover mb-4 md:mb-6 border-2 border-indigo-300 dark:border-indigo-600 shadow-lg"
+            className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover mb-3 md:mb-4 border-2 border-indigo-300 dark:border-indigo-600 shadow-lg"
           />
           */}
-          <FaQuoteLeft className="text-3xl md:text-4xl text-indigo-400 dark:text-indigo-500 mb-4 md:mb-6" />
-          <p className="text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 italic mb-4 md:mb-6 leading-relaxed">
+          <FaQuoteLeft className="text-2xl md:text-3xl text-indigo-400 dark:text-indigo-500 mb-3 md:mb-4" />
+          <p className="text-sm md:text-base lg:text-lg text-gray-700 dark:text-gray-300 italic mb-3 md:mb-4 leading-normal">
             {testimonialsData[currentIndex].quote}
           </p>
-          <p className="text-sm md:text-base font-semibold text-indigo-600 dark:text-indigo-400">
+          <p className="text-xs md:text-sm font-semibold text-indigo-600 dark:text-indigo-400">
             {testimonialsData[currentIndex].name}
           </p>
-          <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             {testimonialsData[currentIndex].title}
           </p>
         </motion.div>
@@ -525,6 +525,7 @@ const Home = () => {
   const controls = useAnimation(); // Retained for other potential animations, but hero parallax is handled differently.
   const navigate = useNavigate();
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const depressionImpactCards = [
     {
@@ -814,11 +815,15 @@ const Home = () => {
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center">
               <a href="/" className="flex-shrink-0 flex items-center">
-                <img
-                  className="h-10 w-auto transition-transform duration-300 hover:scale-110"
-                  src="/logo-placeholder.png" // Replace with your actual logo path
+                <svg 
+                  className="h-8 md:h-10 w-auto transition-transform duration-300 hover:scale-110 text-indigo-600 dark:text-indigo-400"
+                  fill="currentColor"
+                  viewBox="0 0 576 512"
+                  xmlns="http://www.w3.org/2000/svg"
                   alt="MindCare Logo"
-                />
+                >
+                  <path d="M546.2 9.7c-5.6-12.5-21.6-13-28.3-1.2C486.9 62.4 431.4 96 368 96h-80C182 96 96 182 96 288c0 7 .8 13.7 1.5 20.5C161.3 262.8 253.4 224 384 224c8.8 0 16 7.2 16 16s-7.2 16-16 16C132.6 256 26 410.1 2.4 468c-6.6 16.3 1.2 34.9 17.5 41.6 16.4 6.8 35-1.1 41.8-17.3 1.5-3.6 20.9-47.9 71.9-90.6 32.4 43.9 94 85.8 174.9 77.2C465.5 467.5 576 326.7 576 154.3c0-50.2-10.8-102.2-29.8-144.6z" />
+                </svg>
                 <span className="ml-3 text-2xl font-bold text-indigo-600 dark:text-indigo-400 tracking-tight">
                   Mind<span className="text-purple-500 dark:text-purple-300">Care</span>
                 </span>
@@ -892,13 +897,63 @@ const Home = () => {
                   </ShineBorder>
                 </>
               )}
-              {/* Placeholder for Theme Toggle */}
-              <button className="p-2 rounded-md text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors duration-200">
-                <FaMoon className="h-5 w-5" />
+              {/* Mobile Menu Button */}
+              <div className="md:hidden flex items-center">
+                <button
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="p-2 rounded-md text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+                  aria-expanded={isMobileMenuOpen}
+                  aria-controls="mobile-menu"
+                >
+                  <span className="sr-only">Open main menu</span>
+                  {isMobileMenuOpen ? (
+                    <FaTimes className="h-6 w-6" />
+                  ) : (
+                    <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+              {/* Chat Button */}
+              <button 
+                onClick={() => navigate('/chat')} 
+                className="ml-4 px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
+              >
+                Chat
               </button>
             </div>
             {/* Mobile menu button (optional, can be added later) */}
           </div>
+          {/* Mobile Menu Dropdown */} 
+          {isMobileMenuOpen && (
+            <motion.div 
+              id="mobile-menu"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="md:hidden pb-3 pt-2 space-y-1 sm:px-3"
+            >
+              {['Home', 'Features', 'About', 'Contact'].map((item) => (
+                <a
+                  key={item}
+                  href={`#${item.toLowerCase()}`}
+                  className="block text-neutral-700 dark:text-neutral-300 hover:text-indigo-600 dark:hover:text-indigo-400 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setIsMobileMenuOpen(false); // Close menu on click
+                    const element = document.getElementById(item.toLowerCase());
+                    if (element) {
+                      element.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                >
+                  {item}
+                </a>
+              ))}
+            </motion.div>
+          )}
         </div>
       </nav>
       {/* Navbar End */}
@@ -965,14 +1020,14 @@ const Home = () => {
             {/* Text Content Side */}
             <motion.div
               ref={heroRef}
-              className="w-full lg:w-1/2 text-center lg:text-left text-gray-800" // Changed text-white to text-gray-800 for contrast
+              className="w-full lg:w-1/2 text-center lg:text-left text-gray-800 order-1 lg:order-2"
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
           <AuroraText
             text="Discover Your Inner Strength. We're With You."
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-orange-600 to-red-700 drop-shadow-lg"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-orange-600 to-red-700 drop-shadow-lg"
             highlightClassName="text-orange-500"
             animationConfig={{
               initial: { opacity: 0, scale: 0.8, y: -30 },
@@ -981,7 +1036,7 @@ const Home = () => {
             }}
           />
           <motion.p
-            className="mt-6 max-w-2xl mx-auto text-base sm:text-lg md:text-xl text-gray-700 drop-shadow-sm leading-relaxed"
+            className="mt-4 sm:mt-6 max-w-xl mx-auto lg:mx-0 text-sm sm:text-base md:text-lg text-gray-700 drop-shadow-sm leading-relaxed"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
@@ -1039,60 +1094,62 @@ const Home = () => {
       {/* Section 2: Common Problems People Face Because of Depression */}
       <motion.section 
         id="common-problems"
-        className="py-16 sm:py-20 bg-gray-50"
+        className="py-12 sm:py-16 md:py-20 bg-gray-50 dark:bg-neutral-800"
         initial={{ opacity: 0}}
         whileInView={{ opacity: 1}}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.8 }}
       >
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+          <div className="text-center mb-10 sm:mb-12 md:mb-16">
             <motion.h2 
-              className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-6"
+              className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-primary-700 dark:text-primary-300 mb-4 sm:mb-6 leading-tight"
               initial={{ y: 20, opacity: 0}}
               whileInView={{ y: 0, opacity: 1}}
               viewport={{ once: true, amount: 0.3 }}
               transition={{ duration: 0.7, delay: 0.1 }}
             >
-              Understanding the Depth of Depression
+              Unmasking Depression: <span className="block sm:inline text-secondary-500 dark:text-secondary-400">More Than Just Sadness</span>
             </motion.h2>
             <motion.p 
-              className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto"
+              className="text-base sm:text-lg md:text-xl text-foreground/80 dark:text-foreground/70 max-w-3xl mx-auto leading-relaxed"
               initial={{ y: 20, opacity: 0}}
               whileInView={{ y: 0, opacity: 1}}
               viewport={{ once: true, amount: 0.3 }}
               transition={{ duration: 0.7, delay: 0.2 }}
             >
-              Depression isn’t just a fleeting sadness; it's a persistent condition that profoundly impacts every facet of an individual's life. Explore some of its far-reaching effects below.
+              Depression is a complex and often misunderstood condition that touches many lives. It's more than a bad day or feeling blue; it's a persistent shadow that can affect thoughts, feelings, and daily activities. Below, we explore some common ways depression can manifest, helping to shed light on its profound impact.
             </motion.p>
           </div>
           <SliderContainer 
-            itemWidth={300} 
-            gap={16} 
+            itemWidth={320} // Slightly wider cards
+            gap={24} // Increased gap
             visibleItems={3} 
-            autoPlay={true} 
-            autoPlayInterval={6000}
-            className="mt-10"
+            autoPlay={true} // Ensure autoplay is enabled
+            autoPlayInterval={1000} // Change interval to 2 seconds
+            className="mt-12 mb-8" // Added margin bottom
+            showArrows={true} 
+            showDots={true} 
           >
             {[...depressionImpactCards, 
-              { icon: <FaQuoteLeft className="w-10 h-10 mx-auto text-sky-500" />, title: "Suicidal Thoughts", description: "Feeling like life isn’t worth living. If you are in crisis, please seek immediate help.", color: "#0ea5e9" },
-              { icon: <FaMoon className="w-10 h-10 mx-auto text-slate-500" />, title: "Sleep Issues", description: "Trouble falling asleep, oversleeping, or feeling tired all day.", color: "#64748b" },
-              { icon: <IoMdSad className="w-10 h-10 mx-auto text-rose-500" />, title: "Changes in Appetite", description: "Eating too much or too little, without enjoyment.", color: "#f43f5e" },
-              { icon: <GiMeditation className="w-10 h-10 mx-auto text-amber-500" />, title: "Low Energy & Motivation", description: "Difficulty getting out of bed or starting daily tasks.", color: "#f59e0b" },
-              { icon: <FaComments className="w-10 h-10 mx-auto text-purple-500" />, title: "Isolation", description: "Pulling away from friends, family, and social activities.", color: "#a855f7" },
-              { icon: <GiBrain className="w-10 h-10 mx-auto text-pink-500" />, title: "Negative Thoughts", description: "Feeling worthless, hopeless, or excessively guilty.", color: "#ec4899" },
-              { icon: <FaClipboardCheck className="w-10 h-10 mx-auto text-teal-500" />, title: "Work/School Struggles", description: "Poor focus, memory issues, or lack of interest in tasks.", color: "#14b8a6" },
-              { icon: <GiHeartBeats className="w-10 h-10 mx-auto text-red-500" />, title: "Physical Aches", description: "Unexplained pain or discomfort in the body.", color: "#ef4444" },
+              { icon: <FaQuoteLeft className="w-12 h-12 mx-auto text-primary-500 dark:text-primary-400" />, title: "Suicidal Thoughts", description: "Overwhelming feelings that life isn’t worth living. If you are in crisis, please seek immediate professional help.", color: "#22c55e" },
+              { icon: <FaMoon className="w-12 h-12 mx-auto text-primary-500 dark:text-primary-400" />, title: "Sleep Disturbances", description: "Persistent trouble falling asleep, staying asleep, oversleeping, or chronic fatigue despite rest.", color: "#22c55e" },
+              { icon: <IoMdSad className="w-12 h-12 mx-auto text-primary-500 dark:text-primary-400" />, title: "Appetite & Weight Changes", description: "Significant loss or gain in appetite, leading to noticeable weight fluctuations without intention.", color: "#22c55e" },
+              { icon: <GiMeditation className="w-12 h-12 mx-auto text-primary-500 dark:text-primary-400" />, title: "Loss of Energy & Motivation", description: "Profound lack of energy, making even small daily tasks feel insurmountable. Apathy towards previously enjoyed activities.", color: "#22c55e" },
+              { icon: <FaComments className="w-12 h-12 mx-auto text-primary-500 dark:text-primary-400" />, title: "Social Withdrawal & Isolation", description: "Pulling away from friends, family, and social engagements. Feeling disconnected and alone.", color: "#22c55e" },
+              { icon: <GiBrain className="w-12 h-12 mx-auto text-primary-500 dark:text-primary-400" />, title: "Persistent Negative Thoughts", description: "Recurring feelings of worthlessness, hopelessness, or excessive guilt. Difficulty concentrating or making decisions.", color: "#22c55e" },
+              { icon: <FaClipboardCheck className="w-12 h-12 mx-auto text-primary-500 dark:text-primary-400" />, title: "Impaired Daily Functioning", description: "Struggles with work, school, or household responsibilities. Poor focus, memory issues, and reduced productivity.", color: "#22c55e" },
+              { icon: <GiHeartBeats className="w-12 h-12 mx-auto text-primary-500 dark:text-primary-400" />, title: "Unexplained Physical Ailments", description: "Chronic aches, pains, headaches, or digestive problems that don't respond to typical treatments.", color: "#22c55e" },
             ].map((item, idx) => (
               <MagicCard
                 key={idx}
-                className="w-full h-[200px] flex flex-col items-center justify-center text-center p-4 bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700"
-                gradientSize={150}
-                gradientColor={chroma(item.color || (idx < depressionImpactCards.length ? (idx % 2 === 0 ? '#6366f1' : '#10b981') : '#3b82f6')).alpha(0.3).hex()}
+                className="w-full h-[260px] flex flex-col items-center justify-start text-center p-6 bg-card dark:bg-card shadow-xl hover:shadow-2xl rounded-2xl border border-border dark:border-border transition-all duration-300 ease-in-out transform hover:-translate-y-1"
+                gradientSize={180}
+                gradientColor={chroma(item.color || '#F3E6AF').alpha(0.15).hex()} // Use actual hex codes
               >
-                {item.icon && <div className="mb-3 text-4xl">{typeof item.icon === 'string' ? <span role="img" aria-label="icon">{item.icon}</span> : item.icon}</div>}
-                <h4 className="text-lg font-semibold text-gray-800 dark:text-zinc-100 mb-1">{item.title}</h4>
-                <p className="text-xs text-gray-600 dark:text-zinc-400 leading-tight">{item.description}</p>
+                {item.icon && <div className="mb-4 p-3 rounded-full bg-secondary-500/20 dark:bg-secondary-500/30 inline-block">{React.cloneElement(item.icon, { className: "w-10 h-10 text-primary-600 dark:text-primary-300" })}</div>}
+                <h4 className="text-xl font-semibold text-foreground dark:text-foreground mb-2">{item.title}</h4>
+                <p className="text-sm text-foreground/70 dark:text-foreground/60 leading-relaxed px-2">{item.description}</p>
               </MagicCard>
             ))}
           </SliderContainer>
@@ -1119,7 +1176,7 @@ const Home = () => {
       {/* Section 3: Why This Platform? */}
       <motion.section
         id="why-platform"
-        className="py-16 sm:py-20 bg-indigo-50 dark:bg-gray-900"
+        className="py-12 sm:py-16 md:py-20 bg-indigo-50 dark:bg-neutral-900"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true, amount: 0.2 }}
@@ -1127,7 +1184,7 @@ const Home = () => {
       >
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2
-            className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white text-center mb-10 sm:mb-12"
+            className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white text-center mb-8 sm:mb-10 md:mb-12"
             initial={{ y: 20, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true, amount: 0.5 }}
@@ -1135,56 +1192,26 @@ const Home = () => {
           >
             Why Choose MindCare?
           </motion.h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10 sm:gap-x-8 sm:gap-y-12">
-            {[
-              { icon: "🧠", title: "Evidence-Based Tools", text: "Guided by the latest psychology and neuroscience" },
-              { icon: "💬", title: "Safe & Anonymous", text: "No judgments, just safe conversations" },
-              { icon: "👂", title: "Real Human Support", text: "Kind empathetic listeners (AI-assisted for now)" },
-              { icon: "📱", title: "Easy Access", text: "Anytime, anywhere, at your pace" },
-            ].map((reason, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{ duration: 0.5, delay: index * 0.15 }}
-              >
-                <CardContainer
-                  containerClassName="w-full h-full"
-                  className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 w-full h-full"
-                >
-                  <CardBody className="p-6 flex flex-col items-center text-center h-full">
-                    <CardItem
-                      translateZ="50"
-                      className="text-4xl sm:text-5xl mb-3 sm:mb-4 inline-block p-3 bg-indigo-100 dark:bg-indigo-900/50 rounded-full text-indigo-600 dark:text-indigo-300 group-hover/card:bg-indigo-200 dark:group-hover/card:bg-indigo-900 transition-colors duration-300"
-                    >
-                      {reason.icon}
-                    </CardItem>
-                    <CardItem
-                      translateZ="60"
-                      className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white mb-2 flex-grow"
-                    >
-                      {reason.title}
-                    </CardItem>
-                    <CardItem
-                      as="p"
-                      translateZ="40"
-                      className="text-gray-600 dark:text-gray-300 text-sm sm:text-base"
-                    >
-                      {reason.text}
-                    </CardItem>
-                  </CardBody>
-                </CardContainer>
-              </motion.div>
-            ))}
-          </div>
+          <HoverEffect
+            items={[
+              { icon: "🧠", title: "Evidence-Based Tools", description: "Guided by the latest psychology and neuroscience" },
+              { icon: "💬", title: "Safe & Anonymous", description: "No judgments, just safe conversations" },
+              { icon: "👂", title: "Real Human Support", description: "Kind empathetic listeners (AI-assisted for now)" },
+              { icon: "📱", title: "Easy Access", description: "Anytime, anywhere, at your pace" },
+            ].map(reason => ({
+              ...reason,
+              // Convert string icon to a styled span for consistent display within AceternityCard
+              icon: <span className="text-3xl sm:text-4xl p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-full text-indigo-600 dark:text-indigo-300 group-hover:bg-indigo-200 dark:group-hover:bg-indigo-900 transition-colors duration-300">{reason.icon}</span>
+            }))}
+            className="lg:grid-cols-4 sm:grid-cols-2 grid-cols-1"
+          />
         </div>
       </motion.section>
 
       {/* Section 4: What You Can Do Here */}
       <motion.section 
         id="what-to-do"
-        className="py-16 sm:py-20 bg-white dark:bg-slate-900"
+        className="py-12 sm:py-16 md:py-20 bg-white dark:bg-slate-900"
         initial={{ opacity: 0}}
         whileInView={{ opacity: 1}}
         viewport={{ once: true, amount: 0.2 }}
@@ -1192,7 +1219,7 @@ const Home = () => {
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2 
-            className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white text-center mb-10 sm:mb-16"
+            className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white text-center mb-8 sm:mb-10 md:mb-12"
             initial={{ y: 20, opacity: 0}}
             whileInView={{ y: 0, opacity: 1}}
             viewport={{ once: true, amount: 0.5 }}
@@ -1200,7 +1227,7 @@ const Home = () => {
           >
             What You Can Do Here
           </motion.h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-10">
             {[ 
               { id: 1, icon: <FaComments />, title: "Chat with MindCare AI", text: "Get instant, empathetic support and guidance.", link: "/chat", color: "#6366F1" }, // Indigo
               { id: 2, icon: <FaClipboardCheck />, title: "Access Self-Help Workbooks", text: "Interactive guides for various mental health topics.", link: "/resources", color: "#10B981" }, // Emerald
@@ -1243,12 +1270,12 @@ const Home = () => {
                                   : `text-white`}
                                 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800`}
                     style={action.link !== "#" ? {
-                      backgroundColor: action.color,
+                      backgroundColor: action.color, // Use action.color directly for background
                       '--ring-color': action.color,
                     } : { '--ring-color': '#A0AEC0'}}
-                    onMouseEnter={(e) => { if (action.link !== "#") e.currentTarget.style.backgroundColor = chroma(action.color).darken(0.4).hex() }}
+                    onMouseEnter={(e) => { if (action.link !== "#") e.currentTarget.style.backgroundColor = chroma(action.color).darken(0.2).hex() }} // Slightly darken on hover
                     onMouseLeave={(e) => { if (action.link !== "#") e.currentTarget.style.backgroundColor = action.color }}
-                    whileHover={{ scale: action.link === "#" ? 1 : 1.05, boxShadow: action.link === "#" ? 'none' : `0px 8px 15px ${chroma(action.color).alpha(0.3).hex()}`}}
+                    whileHover={{ scale: action.link === "#" ? 1 : 1.05, boxShadow: action.link === "#" ? 'none' : `0px 6px 12px ${chroma(action.color).alpha(0.4).hex()}`}}
                     whileTap={{ scale: action.link === "#" ? 1 : 0.95 }}
                     disabled={action.link === "#"}
                   >
@@ -1266,12 +1293,12 @@ const Home = () => {
     <section 
       id="features" 
       ref={featuresRef} 
-      className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-50 to-gray-100 overflow-hidden"
+      className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-50 to-gray-100 dark:from-neutral-800 dark:to-neutral-900 overflow-hidden"
     >
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16 md:mb-20">
+        <div className="text-center mb-10 sm:mb-12 md:mb-16">
           <motion.h2 
-            className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 tracking-tight mb-4"
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-3 sm:mb-4"
             initial={{ opacity: 0, y: -30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}
@@ -1280,7 +1307,7 @@ const Home = () => {
             Tools Designed for <span className="text-indigo-600">Your Wellbeing</span>
           </motion.h2>
           <motion.p 
-            className="mt-4 text-xl lg:text-2xl text-gray-700 max-w-3xl mx-auto leading-relaxed"
+            className="mt-3 sm:mt-4 text-base sm:text-lg md:text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}
@@ -1291,7 +1318,7 @@ const Home = () => {
         </div>
 
         {/* Replace the HoverEffect component with MagicCard components */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {features.map((feature, index) => {
             const link = feature.title.toLowerCase().includes('chat') ? '/chat' :
                          feature.title.toLowerCase().includes('mood') ? '/mood-tracker' :
@@ -1324,7 +1351,7 @@ const Home = () => {
                   <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 flex-grow min-h-[60px]">{feature.description}</p>
                   <motion.button
                     onClick={() => link === "#" ? null : navigate(link)}
-                    className={`mt-auto w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm ${link === "#" ? 'bg-gray-400 cursor-not-allowed text-gray-700' : `text-white bg-[${feature.color}] hover:bg-[${chroma(feature.color).darken(0.5).hex()}]`} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[${feature.color}]`}
+                    className={`mt-auto w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm ${link === "#" ? 'bg-gray-400 cursor-not-allowed text-gray-700' : `text-white bg-teal-500 hover:bg-teal-600`} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500`}
                     whileHover={{ scale: link === "#" ? 1 : 1.05 }}
                     whileTap={{ scale: link === "#" ? 1 : 0.95 }}
                     disabled={link === "#"}
@@ -1341,7 +1368,7 @@ const Home = () => {
     </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-gradient-to-r from-indigo-600 to-purple-700 text-white relative overflow-hidden">
+      <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-r from-indigo-600 to-purple-700 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0 bg-gradient-to-br from-white via-transparent to-transparent opacity-20"></div>
         </div>
@@ -1373,13 +1400,13 @@ const Home = () => {
                 transition={{ delay: index * 0.2, duration: 0.6 }}
               >
                 <motion.div
-                  className="text-5xl font-extrabold mb-2"
+                  className="text-4xl sm:text-5xl font-extrabold mb-2"
                   whileHover={{ scale: 1.05 }}
                 >
                   {stat.value}
                 </motion.div>
-                <div className="text-xl font-medium">{stat.label}</div>
-                <p className="mt-2 text-indigo-100">{stat.description}</p>
+                <div className="text-lg sm:text-xl font-medium">{stat.label}</div>
+                <p className="mt-2 text-indigo-100 text-sm sm:text-base">{stat.description}</p>
               </motion.div>
             ))}
           </div>
@@ -1391,7 +1418,7 @@ const Home = () => {
       {/* Testimonials Section */}
       <section
         id="stories"
-        className="py-20 bg-gray-50 relative overflow-hidden"
+        className="py-8 sm:py-10 md:py-12 bg-gray-50 dark:bg-neutral-800 relative overflow-hidden"
       >
         <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-purple-500 to-transparent opacity-10 -z-10"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1408,15 +1435,15 @@ const Home = () => {
             >
               Real Stories
             </motion.span>
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white mb-2 sm:mb-3">
               Voices of Healing
             </h2>
-            <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-500">
+            <p className="mt-2 sm:mt-3 max-w-xl mx-auto text-sm sm:text-base md:text-lg text-gray-500 dark:text-gray-300">
               Discover how our community is finding hope and support.
             </p>
           </motion.div>
 
-          <div className="mt-12 md:mt-16 lg:mt-20">
+          <div className="mt-6 sm:mt-8 md:mt-10">
             <AnimatedTestimonials />
           </div>
         </div>
@@ -1427,7 +1454,7 @@ const Home = () => {
       {/* Resources Section */}
       <section
         id="resources"
-        className="py-20 bg-white relative overflow-hidden"
+        className="py-12 sm:py-16 md:py-20 bg-white dark:bg-neutral-900 relative overflow-hidden"
       >
         <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-indigo-500 to-transparent opacity-10 -z-10"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1444,10 +1471,10 @@ const Home = () => {
             >
               Knowledge Base
             </motion.span>
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-3 sm:mb-4">
               Helpful Resources
             </h2>
-            <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-500">
+            <p className="mt-3 sm:mt-4 max-w-2xl mx-auto text-base sm:text-lg md:text-xl text-gray-500 dark:text-gray-300">
               Educational materials and additional support options.
             </p>
           </motion.div>
@@ -1458,7 +1485,7 @@ const Home = () => {
             visibleItems={3} 
             autoPlay={true} 
             autoPlayInterval={7000}
-            className="mt-12 md:mt-16"
+            className="mt-10 sm:mt-12 md:mt-16"
           >
             {[
               {
@@ -1536,7 +1563,7 @@ const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-indigo-500 to-purple-600 text-white relative overflow-hidden">
+      <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-r from-indigo-500 to-purple-600 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0 bg-gradient-to-br from-white via-transparent to-transparent opacity-20"></div>
         </div>
@@ -1547,14 +1574,14 @@ const Home = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-3xl font-extrabold sm:text-4xl">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold">
               Ready to prioritize your mental health?
             </h2>
-            <p className="mt-4 max-w-3xl mx-auto text-xl text-indigo-100">
+            <p className="mt-3 sm:mt-4 max-w-3xl mx-auto text-base sm:text-lg md:text-xl text-indigo-100">
               Join thousands who have found support and understanding through
               our platform.
             </p>
-            <div className="mt-8 flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
+            <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
               <PinContainer 
                 title={session ? "Resume your conversation" : "Start your journey to wellbeing"} 
                 href={session ? "/chat" : "/login"}
@@ -1591,9 +1618,9 @@ const Home = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white pt-16 pb-8">
+      <footer className="bg-gray-900 text-white pt-12 sm:pt-16 pb-6 sm:pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-10">
             {/* Logo and description */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -1702,7 +1729,7 @@ const Home = () => {
 
           {/* Copyright */}
           <motion.div
-            className="mt-16 pt-8 border-t border-gray-800 text-center text-gray-400"
+            className="mt-12 sm:mt-16 pt-6 sm:pt-8 border-t border-gray-800 text-center text-gray-400"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
