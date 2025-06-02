@@ -705,9 +705,6 @@ export default function Chat() {
   const handleSelectChat = useCallback(
     async (chatId) => {
       setActiveChat(chatId);
-      setSidebarOpen(false);
-      setAttachments([]);
-      setAttachmentPreviews([]);
       playSound("selectChat");
 
       if (userID) {
@@ -1819,7 +1816,6 @@ export default function Chat() {
                                 : "text-gray-500"
                             }`}
                         >
-                          <span>{formatTimestamp(message.timestamp)}</span>
                           {message.role === "assistant" && (
                             <span className="flex items-center">
                               <AiOutlineRobot className="mr-1" />

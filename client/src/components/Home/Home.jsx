@@ -28,8 +28,8 @@ import { motion, useAnimation, AnimatePresence, useTransform, useSpring, useMoti
 import { MagicCard } from "../magicui/magic-card";
 import Marquee from "../magicui/marquee"; // Corrected Marquee import
 import SliderContainer from "../ui/slider-container"; // Added SliderContainer import
-import { WarpBackground } from "../magicui/WarpBackground"; // Added import for WarpBackground
 import { AuroraText } from "../magicui/aurora-text"; // Added AuroraText import
+
 
 import chroma from "chroma-js"; // Added import for chroma-js
 // Note: Most 3D elements (Canvas, OrbitControls, Stars, Float, BrainModel, FloatingIcon, FeatureModel)
@@ -38,6 +38,29 @@ import chroma from "chroma-js"; // Added import for chroma-js
 
 import { cn } from "../../lib/utils"; // Import cn from utils
 import ShineBorder from "../ui/shine-border";
+
+// Add CSS for transparent navbar and color theme
+const globalStyles = `
+  body {
+    background-color: #121212;
+    color: #f5f5f5;
+  }
+  
+  nav {
+    backdrop-filter: blur(8px);
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .nav-link {
+    color: white !important;
+    transition: color 0.3s ease;
+  }
+  
+  .nav-link:hover {
+    color: #a855f7 !important;
+  }
+`;
 
 // Aceternity UI HoverEffect Components
 const AceternityCard = ({ className, children }) => {
@@ -809,163 +832,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50 font-sans overflow-x-hidden">
-      {/* Navbar Start */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md shadow-lg transition-all duration-300 ease-in-out">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            <div className="flex items-center">
-              <a href="/" className="flex-shrink-0 flex items-center">
-                <svg 
-                  className="h-8 md:h-10 w-auto transition-transform duration-300 hover:scale-110 text-indigo-600 dark:text-indigo-400"
-                  fill="currentColor"
-                  viewBox="0 0 576 512"
-                  xmlns="http://www.w3.org/2000/svg"
-                  alt="MindCare Logo"
-                >
-                  <path d="M546.2 9.7c-5.6-12.5-21.6-13-28.3-1.2C486.9 62.4 431.4 96 368 96h-80C182 96 96 182 96 288c0 7 .8 13.7 1.5 20.5C161.3 262.8 253.4 224 384 224c8.8 0 16 7.2 16 16s-7.2 16-16 16C132.6 256 26 410.1 2.4 468c-6.6 16.3 1.2 34.9 17.5 41.6 16.4 6.8 35-1.1 41.8-17.3 1.5-3.6 20.9-47.9 71.9-90.6 32.4 43.9 94 85.8 174.9 77.2C465.5 467.5 576 326.7 576 154.3c0-50.2-10.8-102.2-29.8-144.6z" />
-                </svg>
-                <span className="ml-3 text-2xl font-bold text-indigo-600 dark:text-indigo-400 tracking-tight">
-                  Mind<span className="text-purple-500 dark:text-purple-300">Care</span>
-                </span>
-              </a>
-            </div>
-            <div className="hidden md:flex items-center space-x-6">
-              {['Home', 'Features', 'About', 'Contact'].map((item) => (
-                <a
-                  key={item}
-                  href={`#${item.toLowerCase()}`}
-                  className="text-neutral-700 dark:text-neutral-300 hover:text-indigo-600 dark:hover:text-indigo-400 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 relative group"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    const element = document.getElementById(item.toLowerCase());
-                    if (element) {
-                      element.scrollIntoView({ behavior: 'smooth' });
-                    }
-                  }}
-                >
-                  {item}
-                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-500 dark:bg-indigo-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"></span>
-                </a>
-              ))}
-            </div>
-            <div className="flex items-center space-x-4">
-              {session ? (
-                <div className="relative">
-                  <button
-                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                    className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-100 dark:bg-neutral-800 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-neutral-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  >
-                    <FaUserCircle className="h-6 w-6" />
-                  </button>
-                  {isProfileDropdownOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="absolute right-0 mt-2 w-48 bg-white dark:bg-neutral-800 rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-50"
-                    >
-                      <a
-                        href="/profile" // Replace with your profile page route
-                        className="block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-indigo-50 dark:hover:bg-neutral-700 transition-colors duration-150"
-                        onClick={() => setIsProfileDropdownOpen(false)}
-                      >
-                        Profile
-                      </a>
-                      <button
-                        onClick={() => { signOut(); setIsProfileDropdownOpen(false); }}
-                        className="w-full text-left block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-indigo-50 dark:hover:bg-neutral-700 transition-colors duration-150"
-                      >
-                        Sign Out
-                      </button>
-                    </motion.div>
-                  )}
-                </div>
-              ) : (
-                <>
-                  <button
-                    onClick={() => navigate('/signin')}
-                    className="px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 border border-indigo-600 dark:border-indigo-400 rounded-md hover:bg-indigo-50 dark:hover:bg-neutral-800 transition-colors duration-200"
-                  >
-                    Sign In
-                  </button>
-                  <ShineBorder
-                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 dark:bg-indigo-500 rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors duration-200 shadow-md hover:shadow-lg"
-                    color={["#A07CFE", "#FE8FB5", "#FFBE7B"]}
-                    onClick={() => navigate('/signup')}
-                  >
-                    Sign Up <FaUserPlus className="inline ml-1" />
-                  </ShineBorder>
-                </>
-              )}
-              {/* Mobile Menu Button */}
-              <div className="md:hidden flex items-center">
-                <button
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="p-2 rounded-md text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
-                  aria-expanded={isMobileMenuOpen}
-                  aria-controls="mobile-menu"
-                >
-                  <span className="sr-only">Open main menu</span>
-                  {isMobileMenuOpen ? (
-                    <FaTimes className="h-6 w-6" />
-                  ) : (
-                    <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-              {/* Chat Button */}
-              <button 
-                onClick={() => navigate('/chat')} 
-                className="ml-4 px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
-              >
-                Chat
-              </button>
-            </div>
-            {/* Mobile menu button (optional, can be added later) */}
-          </div>
-          {/* Mobile Menu Dropdown */} 
-          {isMobileMenuOpen && (
-            <motion.div 
-              id="mobile-menu"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="md:hidden pb-3 pt-2 space-y-1 sm:px-3"
-            >
-              {['Home', 'Features', 'About', 'Contact'].map((item) => (
-                <a
-                  key={item}
-                  href={`#${item.toLowerCase()}`}
-                  className="block text-neutral-700 dark:text-neutral-300 hover:text-indigo-600 dark:hover:text-indigo-400 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setIsMobileMenuOpen(false); // Close menu on click
-                    const element = document.getElementById(item.toLowerCase());
-                    if (element) {
-                      element.scrollIntoView({ behavior: 'smooth' });
-                    }
-                  }}
-                >
-                  {item}
-                </a>
-              ))}
-            </motion.div>
-          )}
-        </div>
-      </nav>
-      {/* Navbar End */}
-      <WarpBackground
-        className="w-full h-full absolute inset-0 z-0"
-        beamsPerSide={5}
-        beamSize={3}
-        beamDelayMin={0.5}
-        beamDelayMax={1.5}
-        beamDuration={2}
-        gridColor="rgba(128, 128, 128, 0.1)" // A subtle gray for the grid
-      >
+      {/* Navbar has been moved to App.jsx for global use */}
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         {[...Array(20)].map((_, i) => (
@@ -1053,38 +920,7 @@ const Home = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.8, duration: 0.7 }}
               >
-                <div className="relative bg-white/10 backdrop-blur-md rounded-xl p-1 shadow-2xl ring-1 ring-white/20">
-                  <div className="bg-black/30 rounded-lg p-6 text-center lg:text-left">
-                    <div className="flex justify-center lg:justify-start space-x-5 mb-4">
-                      <motion.div whileHover={{ scale: 1.2, rotate: 8, color: '#34D399'}} whileTap={{ scale: 0.95 }}>
-                        <IoMdHappy className="h-7 w-7 sm:h-8 sm:w-8 text-emerald-400 transition-colors" />
-                      </motion.div>
-                      <motion.div whileHover={{ scale: 1.2, rotate: -8, color: '#60A5FA' }} whileTap={{ scale: 0.95 }}>
-                        <IoMdSad className="h-7 w-7 sm:h-8 sm:w-8 text-blue-400 transition-colors" />
-                      </motion.div>
-                    </div>
-                    <h3 className="text-md sm:text-lg font-semibold text-gray-100">
-                      How are you feeling today?
-                    </h3>
-                    <p className="mt-1.5 text-xs sm:text-sm text-gray-300/80">
-                      Our AI companion is ready to listen.
-                    </p>
-                    <ShineBorder
-                      className="mt-5 rounded-full w-full max-w-xs mx-auto lg:mx-0"
-                      color={["#8B5CF6", "#C084FC", "#A78BFA"]}
-                      borderWidth={2}
-                    >
-                      <motion.button
-                        onClick={() => session ? navigate("/chat") : navigate("/login")}
-                        className="w-full inline-flex items-center justify-center px-5 py-2.5 text-sm sm:text-base font-medium rounded-full text-white bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black/50 focus:ring-indigo-400 transition-all duration-200"
-                        whileHover={{ letterSpacing: "0.05em"}}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        Share Your Thoughts <FaArrowRight className="ml-2 h-3.5 w-3.5" />
-                      </motion.button>
-                    </ShineBorder>
-                  </div>
-                </div>
+                
               </motion.div>
             </motion.div>
           </div>
@@ -1127,7 +963,7 @@ const Home = () => {
             visibleItems={3} 
             autoPlay={true} // Ensure autoplay is enabled
             autoPlayInterval={1000} // Change interval to 2 seconds
-            className="mt-12 mb-8" // Added margin bottom
+            className="mt-12 mb-8 mx-auto" // Added margin bottom and centered
             showArrows={true} 
             showDots={true} 
           >
@@ -1717,6 +1553,7 @@ const Home = () => {
                   className="px-4 py-2 w-full rounded-l-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900"
                 />
                 <motion.button
+                  onClick={() => console.log('Newsletter subscribe clicked:', document.querySelector('input[type="email"]').value)}
                   className="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-r-lg"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -1749,7 +1586,6 @@ const Home = () => {
           <Meteors number={40} />
         </div>
       </footer>
-      </WarpBackground>
     </div>
   );
 };
@@ -1778,6 +1614,7 @@ export const Meteors = ({
           }}
         ></motion.span>
       ))}
+
     </>
   );
 };
