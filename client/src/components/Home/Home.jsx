@@ -958,14 +958,20 @@ const Home = () => {
             </motion.p>
           </div>
           <SliderContainer 
-            itemWidth={320} // Slightly wider cards
-            gap={24} // Increased gap
-            visibleItems={3} 
-            autoPlay={true} // Ensure autoplay is enabled
-            autoPlayInterval={1000} // Change interval to 2 seconds
-            className="mt-12 mb-8 mx-auto" // Added margin bottom and centered
-            showArrows={true} 
-            showDots={true} 
+            itemWidth={Math.min(320, window.innerWidth - 48)} // Responsive card width
+            gap={Math.min(24, window.innerWidth * 0.05)} // Responsive gap
+            visibleItems={window.innerWidth < 640 ? 1 : window.innerWidth < 1024 ? 2 : 3} // Responsive visible items
+            autoPlay={true}
+            autoPlayInterval={3000}
+            className="mt-12 mb-8 max-w-[90vw] mx-auto relative" // Constrain width and center
+            showArrows={true}
+            showDots={true}
+            arrowClassName="absolute top-1/2 -translate-y-1/2 z-10 bg-white/80 dark:bg-gray-800/80 p-2 rounded-full shadow-lg hover:bg-white dark:hover:bg-gray-800 transition-all duration-300"
+            leftArrowClassName="-left-4 sm:-left-6"
+            rightArrowClassName="-right-4 sm:-right-6"
+            dotsClassName="mt-6 gap-2"
+            dotClassName="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 transition-all duration-300"
+            activeDotClassName="w-3 h-3 bg-primary-500 dark:bg-primary-400"
           >
             {[...depressionImpactCards, 
               { icon: <FaQuoteLeft className="w-12 h-12 mx-auto text-primary-500 dark:text-primary-400" />, title: "Suicidal Thoughts", description: "Overwhelming feelings that life isn’t worth living. If you are in crisis, please seek immediate professional help.", color: "#22c55e" },
@@ -979,13 +985,17 @@ const Home = () => {
             ].map((item, idx) => (
               <MagicCard
                 key={idx}
-                className="w-full h-[260px] flex flex-col items-center justify-start text-center p-6 bg-card dark:bg-card shadow-xl hover:shadow-2xl rounded-2xl border border-border dark:border-border transition-all duration-300 ease-in-out transform hover:-translate-y-1"
+                className="w-full h-[280px] sm:h-[300px] flex flex-col items-center justify-start text-center p-4 sm:p-6 bg-card dark:bg-card shadow-xl hover:shadow-2xl rounded-2xl border border-border dark:border-border transition-all duration-300 ease-in-out transform hover:-translate-y-1 mx-auto max-w-[320px]"
                 gradientSize={180}
-                gradientColor={chroma(item.color || '#F3E6AF').alpha(0.15).hex()} // Use actual hex codes
+                gradientColor={chroma(item.color || '#F3E6AF').alpha(0.15).hex()}
               >
-                {item.icon && <div className="mb-4 p-3 rounded-full bg-secondary-500/20 dark:bg-secondary-500/30 inline-block">{React.cloneElement(item.icon, { className: "w-10 h-10 text-primary-600 dark:text-primary-300" })}</div>}
-                <h4 className="text-xl font-semibold text-foreground dark:text-foreground mb-2">{item.title}</h4>
-                <p className="text-sm text-foreground/70 dark:text-foreground/60 leading-relaxed px-2">{item.description}</p>
+                {item.icon && (
+                  <div className="mb-4 p-3 rounded-full bg-secondary-500/20 dark:bg-secondary-500/30 inline-block transform transition-transform duration-300 group-hover:scale-110">
+                    {React.cloneElement(item.icon, { className: "w-8 h-8 sm:w-10 sm:h-10 text-primary-600 dark:text-primary-300" })}
+                  </div>
+                )}
+                <h4 className="text-lg sm:text-xl font-semibold text-foreground dark:text-foreground mb-2 line-clamp-2">{item.title}</h4>
+                <p className="text-xs sm:text-sm text-foreground/70 dark:text-foreground/60 leading-relaxed px-2 flex-grow overflow-hidden line-clamp-4">{item.description}</p>
               </MagicCard>
             ))}
           </SliderContainer>
