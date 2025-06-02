@@ -716,7 +716,6 @@ const Auth = ({ initialMode }) => {
                       )}
                     </button>
                   </div>
-                  {renderPasswordStrength()}
                   {formErrors.password && <p className="text-red-500 text-xs mt-1">{formErrors.password}</p>}
                 </div>
                 
