@@ -38,6 +38,7 @@ import chroma from "chroma-js"; // Added import for chroma-js
 
 import { cn } from "../../lib/utils"; // Import cn from utils
 import ShineBorder from "../ui/shine-border";
+import './InvestmentSupport.css';
 
 // Add CSS for transparent navbar and color theme
 const globalStyles = `
@@ -654,59 +655,6 @@ const Home = () => {
       // model property removed
     },
   ];
-  // Removed the duplicated features array. The 'model' property is no longer needed.
-
-  // const features = [
-  //   {
-  //     icon: <FaComments className="h-8 w-8 text-white" />,
-  //     title: "AI Chat Support",
-  //     description:
-  //       "Talk to our compassionate AI companion anytime. Get immediate support in a safe, judgment-free space with responses tailored to your needs.",
-  //     color: "#6366f1",
-  //     model: "chat",
-  //   },
-  //   {
-  //     icon: <FaChartLine className="h-8 w-8 text-white" />,
-  //     title: "Mood Tracking",
-  //     description:
-  //       "Visualize your emotional patterns with our intuitive mood tracker. Gain insights to better understand your mental health journey.",
-  //     color: "#10b981",
-  //     model: "graph",
-  //   },
-  //   {
-  //     icon: <FaClipboardCheck className="h-8 w-8 text-white" />,
-  //     title: "PHQ-9 Assessment",
-  //     description:
-  //       "Professional-grade depression screening with personalized feedback and progress tracking over time.",
-  //     color: "#3b82f6",
-  //     model: "assessment",
-  //   },
-  //   {
-  //     icon: <GiHeartBeats className="h-8 w-8 text-white" />,
-  //     title: "Personalized Support",
-  //     description:
-  //       "Receive customized recommendations including exercises, articles, and coping strategies based on your unique needs.",
-  //     color: "#ec4899",
-  //     model: "heart",
-  //   },
-  //   {
-  //     icon: <GiMeditation className="h-8 w-8 text-white" />,
-  //     title: "Mindfulness Tools",
-  //     description:
-  //       "Access guided meditations, breathing exercises, and relaxation techniques to reduce stress and anxiety.",
-  //     color: "#f59e0b",
-  //     model: "meditation",
-  //   },
-  //   {
-  //     icon: <GiBrain className="h-8 w-8 text-white" />,
-  //     title: "Cognitive Exercises",
-  //     description:
-  //       "Interactive activities designed to challenge negative thought patterns and build resilience.",
-  //     color: "#8b5cf6",
-  //     model: "brain",
-  //   },
-  // ];
-
   // Removed FeatureModel component and complex scroll-based active feature logic.
   // New FeatureCard component with IntersectionObserver will handle animations.
 
@@ -830,172 +778,105 @@ const Home = () => {
     },
   });
 
+const items = [ 
+  { 
+    title: 'Evidence-Based Tools', 
+    link: '/loremcreative', 
+    text: `Guided by the latest psychology and neuroscience`, 
+  }, 
+  { 
+    title: 'Safe & Anonymous', 
+    link: '/loremconnect', 
+    text: `No judgments, just safe conversations`, 
+  }, 
+  { 
+    title: 'Real Human Support', 
+    link: '/training', 
+    text: `Kind empathetic listeners (AI-assisted for now)`, 
+  }, 
+  { 
+    title: 'Easy Access', 
+    link: '/training', 
+    text: `Anytime, anywhere, at your pace`, 
+  }, 
+]; 
+
+const InvestmentSupport = () => { 
+  const wrapperRef = useRef(null); 
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+            entry.target.classList.remove('hidden');
+          } else {
+            entry.target.classList.remove('active');
+            // Optionally add 'hidden' back if you want it to hide when not intersecting
+            // entry.target.classList.add('hidden'); 
+          }
+        });
+      },
+      { threshold: 0.1 } // Trigger when 10% of the element is visible
+    );
+
+    const currentRef = wrapperRef.current;
+
+    if (currentRef) {
+      observer.observe(currentRef);
+      // Set initial state: make it active and visible immediately
+      currentRef.classList.add('active');
+      currentRef.classList.remove('hidden');
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, []);
+
+  return ( 
+    <section id="features" className="investment_support"> 
+     <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white dark:text-white mb-10 text-center">
+        Our Features
+      </h2>
+      <div className="container"> 
+        <div className="wrapper" ref={wrapperRef}> 
+          <div className="focus_block"> 
+            <div className="focus_item"></div> 
+            <div className="focus_item"></div> 
+          </div> 
+          <div className="row"> 
+            {items.map((item, index) => ( 
+              <div className="item col-md-6 col-sm-12 col-12" key={index}> 
+                <div className="item_wrap"> 
+                  <div className="head"> 
+                    <h4><span>{item.title}</span></h4> 
+                    <a href={item.link}> 
+                      <img 
+                        src="themes/custom/resibario/images/dark_arrow_right.svg" 
+                        alt="" 
+                      /> 
+                    </a> 
+                  </div> 
+                  <div className="text"> 
+                    <p>{item.text}</p> 
+                  </div> 
+                </div> 
+              </div> 
+            ))} 
+          </div> 
+        </div> 
+      </div> 
+    </section> 
+  ); 
+};
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50 font-sans overflow-x-hidden">
-<<<<<<< HEAD
       {/* Navbar has been moved to App.jsx for global use */}
-=======
-      {/* Navbar Start */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md shadow-lg transition-all duration-300 ease-in-out">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            <div className="flex items-center">
-              <a href="/" className="flex-shrink-0 flex items-center">
-                <svg 
-                  className="h-8 md:h-10 w-auto transition-transform duration-300 hover:scale-110 text-indigo-600 dark:text-indigo-400"
-                  fill="currentColor"
-                  viewBox="0 0 576 512"
-                  xmlns="http://www.w3.org/2000/svg"
-                  alt="MindCare Logo"
-                >
-                  <path d="M546.2 9.7c-5.6-12.5-21.6-13-28.3-1.2C486.9 62.4 431.4 96 368 96h-80C182 96 96 182 96 288c0 7 .8 13.7 1.5 20.5C161.3 262.8 253.4 224 384 224c8.8 0 16 7.2 16 16s-7.2 16-16 16C132.6 256 26 410.1 2.4 468c-6.6 16.3 1.2 34.9 17.5 41.6 16.4 6.8 35-1.1 41.8-17.3 1.5-3.6 20.9-47.9 71.9-90.6 32.4 43.9 94 85.8 174.9 77.2C465.5 467.5 576 326.7 576 154.3c0-50.2-10.8-102.2-29.8-144.6z" />
-                </svg>
-                <span className="ml-3 text-2xl font-bold text-indigo-600 dark:text-indigo-400 tracking-tight">
-                  Mind<span className="text-purple-500 dark:text-purple-300">Care</span>
-                </span>
-              </a>
-            </div>
-            <div className="hidden md:flex items-center space-x-6">
-              {['Home', 'Features', 'About', 'Contact'].map((item) => (
-                <a
-                  key={item}
-                  href={`#${item.toLowerCase()}`}
-                  className="text-neutral-700 dark:text-neutral-300 hover:text-indigo-600 dark:hover:text-indigo-400 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 relative group"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    const element = document.getElementById(item.toLowerCase());
-                    if (element) {
-                      element.scrollIntoView({ behavior: 'smooth' });
-                    }
-                  }}
-                >
-                  {item}
-                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-500 dark:bg-indigo-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"></span>
-                </a>
-              ))}
-            </div>
-            
-            <div className="flex items-center space-x-4">
-               <button 
-                onClick={() => navigate('/chat')} 
-                className="ml-4 px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
-              >
-                Chat
-              </button>
-              {session ? (
-                <div className="relative">
-                  <button
-                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                    className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-100 dark:bg-neutral-800 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-neutral-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  >
-                    <FaUserCircle className="h-6 w-6" />
-                  </button>
-                  {isProfileDropdownOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="absolute right-0 mt-2 w-48 bg-white dark:bg-neutral-800 rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-50"
-                    >
-                      <a
-                        href="/profile" // Replace with your profile page route
-                        className="block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-indigo-50 dark:hover:bg-neutral-700 transition-colors duration-150"
-                        onClick={() => setIsProfileDropdownOpen(false)}
-                      >
-                        Profile
-                      </a>
-                      <button
-                        onClick={() => { signOut(); setIsProfileDropdownOpen(false); }}
-                        className="w-full text-left block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-indigo-50 dark:hover:bg-neutral-700 transition-colors duration-150"
-                      >
-                        Sign Out
-                      </button>
-                    </motion.div>
-                  )}
-                </div>
-              ) : (
-                <>
-                  <button
-                    onClick={() => navigate('/signin')}
-                    className="px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 border border-indigo-600 dark:border-indigo-400 rounded-md hover:bg-indigo-50 dark:hover:bg-neutral-800 transition-colors duration-200"
-                  >
-                    Sign In
-                  </button>
-                  <ShineBorder
-                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 dark:bg-indigo-500 rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors duration-200 shadow-md hover:shadow-lg"
-                    color={["#A07CFE", "#FE8FB5", "#FFBE7B"]}
-                    onClick={() => navigate('/signup')}
-                  >
-                    Sign Up <FaUserPlus className="inline ml-1" />
-                  </ShineBorder>
-                </>
-              )}
-              
-              {/* Mobile Menu Button */}
-              <div className="md:hidden flex items-center">
-                <button
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="p-2 rounded-md text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
-                  aria-expanded={isMobileMenuOpen}
-                  aria-controls="mobile-menu"
-                >
-                  <span className="sr-only">Open main menu</span>
-                  {isMobileMenuOpen ? (
-                    <FaTimes className="h-6 w-6" />
-                  ) : (
-                    <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-              {/* Chat Button */}
-             
-            </div>
-            {/* Mobile menu button (optional, can be added later) */}
-          </div>
-          {/* Mobile Menu Dropdown */} 
-          {isMobileMenuOpen && (
-            <motion.div 
-              id="mobile-menu"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="md:hidden pb-3 pt-2 space-y-1 sm:px-3"
-            >
-              {['Home', 'Features', 'About', 'Contact'].map((item) => (
-                <a
-                  key={item}
-                  href={`#${item.toLowerCase()}`}
-                  className="block text-neutral-700 dark:text-neutral-300 hover:text-indigo-600 dark:hover:text-indigo-400 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setIsMobileMenuOpen(false); // Close menu on click
-                    const element = document.getElementById(item.toLowerCase());
-                    if (element) {
-                      element.scrollIntoView({ behavior: 'smooth' });
-                    }
-                  }}
-                >
-                  {item}
-                </a>
-              ))}
-            </motion.div>
-          )}
-        </div>
-      </nav>
-      {/* Navbar End */}
-      <WarpBackground
-        className="w-full h-full absolute inset-0 z-0"
-        beamsPerSide={5}
-        beamSize={3}
-        beamDelayMin={0.5}
-        beamDelayMax={1.5}
-        beamDuration={2}
-        gridColor="rgba(128, 128, 128, 0.1)" // A subtle gray for the grid
-      >
->>>>>>> 1423a3cb2acb284f133df92d110ab629122261a0
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         {[...Array(20)].map((_, i) => (
@@ -1089,6 +970,9 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Investment Support Section (Moved Here) */}
+      <InvestmentSupport />
 
       {/* Section 2: Common Problems People Face Because of Depression */}
       <motion.section 
@@ -1616,6 +1500,8 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Investment Support Section */}
+
       {/* Footer */}
       <footer className="bg-gray-900 text-white pt-12 sm:pt-16 pb-6 sm:pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1781,5 +1667,7 @@ export const Meteors = ({
     </>
   );
 };
+
+
 
 export default Home;
