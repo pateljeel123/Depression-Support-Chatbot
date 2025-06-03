@@ -3,6 +3,7 @@ import Auth from './components/Auth/Auth'
 import Home from './components/Home/Home'
 import Chat from './components/Chat/Chat';
 import Profile from './components/Profile/Profile'; // Import the Profile component
+import ResetPassword from './components/Auth/ResetPassword'; // Import the ResetPassword component
 import Navbar from './components/common/Navbar'
 import './App.css'
 import { AuthProvider, useAuth } from './context/AuthContext'
@@ -57,6 +58,10 @@ const AppContent = () => {
               <Profile />
             </ProtectedRoute>
           }
+        />
+        <Route 
+          path="/reset-password" 
+          element={<ResetPassword />} 
         />
         <Route 
           path="*" 

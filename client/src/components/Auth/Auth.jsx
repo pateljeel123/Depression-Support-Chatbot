@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaQuestionCircle, FaShieldAlt, FaUserShield, FaMagic, FaEye, FaEyeSlash, FaHeart, FaHandHoldingHeart, FaBrain } from 'react-icons/fa';
+import { FaQuestionCircle, FaShieldAlt, FaUserShield, FaMagic, FaEye, FaEyeSlash, FaHeart, FaHandHoldingHeart, FaBrain, FaGoogle } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../services/supabaseClient';
+import { createUserProfileInTable } from '../../services/supabaseClient';
 
 const Auth = ({ initialMode }) => {
   // Form state
@@ -205,6 +206,16 @@ const Auth = ({ initialMode }) => {
       return;
     }
     
+    // Additional check for password strength during sign-up
+    if (isSignUp && passwordStrength < 3) {
+      setFormErrors(prev => ({
+        ...prev,
+        password: 'Please create a stronger password before signing up. Add uppercase letters, numbers, or symbols.'
+      }));
+      setCurrentMood('sad');
+      return;
+    }
+    
     setLoading(true);
     setError(null);
     setSuccessMessage(null);
@@ -299,6 +310,119 @@ const Auth = ({ initialMode }) => {
     }
   };
 
+  // Handle Google Sign In
+  const handleGoogleSignIn = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      setSuccessMessage(null);
+      setCurrentMood('hopeful');
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/chat`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
+      
+      if (error) throw error;
+      
+      // The user will be redirected to Google for authentication,
+      // and then back to the redirectTo URL if successful
+      
+    } catch (error) {
+      console.error('Google authentication error:', error);
+      setError(error.message || 'An error occurred during Google authentication');
+      setCurrentMood('sad');
+      setLoading(false);
+    }
+  };
+  
+  // Handle user data after OAuth sign-in
+  useEffect(() => {
+    const handleAuthStateChange = async ({ event, session }) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        try {
+          // Check if user exists in our users table
+          const { data: existingUser, error: userCheckError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+            
+          if (userCheckError && userCheckError.code !== 'PGRST116') {
+            console.error('Error checking user:', userCheckError);
+          }
+          
+          // If user doesn't exist in our table, create profile
+          if (!existingUser) {
+            const adminCheck = await checkAdminEmail(session.user.email);
+            
+            // Get user details from OAuth provider metadata
+            const fullName = session.user.user_metadata?.full_name || 
+                            session.user.user_metadata?.name || 
+                            'User';
+                            
+            await createUserProfile(session.user.id, {
+              full_name: fullName,
+              email: session.user.email,
+              age: null,
+              gender: null,
+              preferred_topics: [],
+              communication_style: 'balanced',
+              is_admin: adminCheck,
+              current_mood: currentMood
+            });
+            
+            // Also create entry in AiChat table if needed
+            try {
+              await createUserProfileInTable(session.user.id, {
+                full_name: fullName,
+                age: null,
+                gender: null,
+                preferred_topics: [],
+                communication_style: 'balanced'
+              });
+            } catch (error) {
+              console.error('Error creating AiChat profile:', error);
+              // Non-blocking error, continue with auth flow
+            }
+          }
+          
+          // Check if user is admin
+          const isAdminFromMetadata = session.user.user_metadata?.is_admin;
+          const adminCheck = await checkAdminEmail(session.user.email);
+          
+          if (adminCheck && !isAdminFromMetadata) {
+            // Update user metadata to mark as admin
+            await supabase.auth.updateUser({
+              data: { is_admin: true }
+            });
+          }
+          
+          // Navigate based on admin status
+          const destination = adminCheck ? '/admin' : '/chat';
+          navigate(destination);
+          
+        } catch (error) {
+          console.error('Error processing OAuth sign-in:', error);
+        }
+      }
+    };
+    
+    const { data: authListener } = supabase.auth.onAuthStateChange(handleAuthStateChange);
+    
+    return () => {
+      if (authListener && authListener.subscription) {
+        authListener.subscription.unsubscribe();
+      }
+    };
+  }, [navigate, currentMood]);
+
   // Handle password reset
   const handlePasswordReset = async () => {
     if (!email) {
@@ -355,11 +479,23 @@ const Auth = ({ initialMode }) => {
               style={{ width: `${(passwordStrength / 5) * 100}%` }}
             ></div>
           </div>
-          <span className="ml-2 text-xs text-gray-600">{strengthText}</span>
+          <span className={`ml-2 text-xs font-medium ${passwordStrength < 3 ? 'text-red-600' : 'text-gray-600'}`}>{strengthText}</span>
         </div>
-        <p className="text-xs text-gray-500 mt-1">
-          {passwordStrength < 3 && 'Tip: Add uppercase letters, numbers, and symbols to strengthen your password.'}
-        </p>
+        <div className="text-xs text-gray-500 mt-1">
+          {passwordStrength < 3 ? (
+            <div className="bg-red-50 border border-red-100 rounded-md p-2 mt-1">
+              <p className="font-medium text-red-700">Password requirements:</p>
+              <ul className="list-disc list-inside text-red-600 text-xs mt-1">
+                <li className={password.length >= 8 ? 'text-green-600' : ''}>At least 8 characters {password.length >= 8 && '✓'}</li>
+                <li className={/[A-Z]/.test(password) ? 'text-green-600' : ''}>At least one uppercase letter {/[A-Z]/.test(password) && '✓'}</li>
+                <li className={/[0-9]/.test(password) ? 'text-green-600' : ''}>At least one number {/[0-9]/.test(password) && '✓'}</li>
+                <li className={/[^A-Za-z0-9]/.test(password) ? 'text-green-600' : ''}>At least one special character {/[^A-Za-z0-9]/.test(password) && '✓'}</li>
+              </ul>
+            </div>
+          ) : (
+            <p className="text-green-600 font-medium">Your password meets the strength requirements ✓</p>
+          )}
+        </div>
       </div>
     );
   };
@@ -699,7 +835,7 @@ const Auth = ({ initialMode }) => {
                       name="password"
                       type={showPassword ? "text" : "password"}
                       autoComplete={isSignUp ? 'new-password' : 'current-password'}
-                      className={`w-full px-4 py-3 rounded-lg border ${formErrors.password ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 pr-10`}
+                      className={`w-full px-4 py-3 rounded-lg border ${formErrors.password ? 'border-red-500' : passwordStrength >= 3 && password ? 'border-green-500' : 'border-gray-300'} focus:outline-none focus:ring-2 ${passwordStrength >= 3 && password ? 'focus:ring-green-500' : 'focus:ring-purple-500'} focus:border-transparent transition-all duration-200 pr-10`}
                       placeholder="Create a secure password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -717,6 +853,7 @@ const Auth = ({ initialMode }) => {
                     </button>
                   </div>
                   {formErrors.password && <p className="text-red-500 text-xs mt-1">{formErrors.password}</p>}
+                  {isSignUp && renderPasswordStrength()}
                 </div>
                 
                 {isSignUp && (
@@ -746,6 +883,7 @@ const Auth = ({ initialMode }) => {
                       </button>
                     </div>
                     {formErrors.confirmPassword && <p className="text-red-500 text-xs mt-1">{formErrors.confirmPassword}</p>}
+                   
                   </div>
                 )}
               </motion.div>
@@ -803,6 +941,42 @@ const Auth = ({ initialMode }) => {
                         )}
                       </span>
                       {isSignUp ? 'Join Our Support Community' : 'Access Your Support'}
+                    </>
+                  )}
+                </button>
+              </motion.div>
+              
+              <div className="relative my-4 flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300"></div>
+                </div>
+                <div className="relative px-4 text-sm text-gray-500 bg-white/40 backdrop-blur-sm rounded-md">
+                  Or continue with
+                </div>
+              </div>
+              
+              <motion.div
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+              >
+                <button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={loading}
+                  className="w-full py-3 px-4 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-center disabled:opacity-50"
+                >
+                  {loading ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Connecting...
+                    </>
+                  ) : (
+                    <>
+                      <FaGoogle className="mr-2 text-red-500" />
+                      Sign {isSignUp ? 'up' : 'in'} with Google
                     </>
                   )}
                 </button>
