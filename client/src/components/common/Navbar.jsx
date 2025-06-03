@@ -13,6 +13,7 @@ import { useAuth } from "../../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "../../lib/utils";
 import ShineBorder from "../ui/shine-border";
+import Marquee from "../magicui/marquee";
 
 // Helper NavLink component (adapted from Home.jsx)
 const NavLink = ({ to, label, exact }) => {

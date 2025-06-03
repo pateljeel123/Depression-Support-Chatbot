@@ -41,6 +41,7 @@ import { cn } from "../../lib/utils"; // Import cn from utils
 import ShineBorder from "../ui/shine-border";
 import './InvestmentSupport.css';
 import { LineShadowText } from "../magicui/line-shadow-text";
+import ShoeCard from "./ff";
 
 // Add CSS for transparent navbar and color theme
 const globalStyles = `
@@ -754,6 +755,7 @@ const Home = () => {
   };
 
 
+
   const rotateTestimonial = () => {
     setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
   };
@@ -1195,7 +1197,123 @@ const Home = () => {
           </motion.p>
         </div>
 
-        {/* Replace the HoverEffect component with MagicCard components */}
+        {/* Replace the HoverEffect component with Card components styled like ShoeCard */}
+        <style jsx>{`
+          .feature-card {
+            position: relative;
+            width: 100%;
+            height: 450px;
+            background: #232323;
+            border-radius: 20px;
+            overflow: hidden;
+          }
+          
+          .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transition: 0.5s ease-in-out;
+            clip-path: circle(150px at 80% 20%);
+          }
+          
+          .feature-card:hover::before {
+            clip-path: circle(300px at 80% -20%);
+          }
+          
+          .feature-card::after {
+            content: attr(data-title);
+            position: absolute;
+            top: 30%;
+            left: -10%;
+            font-size: 8em;
+            font-weight: 800;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.05);
+          }
+          
+          .imgBx {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+            width: 100%;
+            height: 220px;
+            transition: 0.5s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+          
+          .feature-card:hover .imgBx {
+            top: -15%;
+            transform: translateY(20%);
+          }
+          
+          .contentBx {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 100px;
+            text-align: center;
+            transition: 1s;
+            z-index: 10;
+          }
+          
+          .feature-card:hover .contentBx {
+            height: 210px;
+            bottom: 20%;
+          }
+          
+          .contentBx h2 {
+            color: #fff;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+          }
+          
+          .description {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            padding: 8px 20px;
+            transition: 0.5s;
+            color: #fff;
+          }
+          
+          .feature-card:hover .description {
+            opacity: 1;
+            visibility: visible;
+            transition-delay: 0.5s;
+          }
+          
+          .feature-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #fff;
+            color: #111;
+            font-weight: 600;
+            border-radius: 4px;
+            margin-top: 10px;
+            text-decoration: none;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: 0.5s;
+            cursor: pointer;
+            border: none;
+          }
+          
+          .feature-card:hover .feature-button {
+            opacity: 1;
+            transform: translateY(0px);
+            transition-delay: 0.75s;
+          }
+        `}</style>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {features.map((feature, index) => {
             const link = feature.title.toLowerCase().includes('chat') ? '/chat' :
@@ -1205,40 +1323,48 @@ const Home = () => {
             const buttonText = feature.title.includes('Chat') ? "Start Chatting" : "Learn More";
 
             return (
-              <MagicCard
-                key={index}
-                className="group cursor-pointer rounded-xl shadow-lg hover:shadow-2xl flex flex-col overflow-hidden bg-white dark:bg-gray-800 transition-all duration-300 ease-out"
-                gradientSize={250}
-                gradientColor={chroma(feature.color).alpha(0.25).hex()} // Use feature color for gradient, slightly transparent
-              >
-                <div className="p-6 flex flex-col items-center text-center flex-grow transform transition-transform duration-300 ease-out group-hover:scale-[1.02]">
+              <div key={index} className="feature-card" data-title={feature.title.split(' ')[0]} style={{ '--feature-color': feature.color }}>
+                <div 
+                  className="feature-card-before"
+                  style={{ 
+                    background: feature.color,
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    clipPath: 'circle(150px at 80% 20%)',
+                    transition: '0.5s ease-in-out'
+                  }}
+                ></div>
+                
+                <div className="imgBx">
                   <div 
-                    className={`p-4 rounded-full shadow-md group-hover:shadow-xl mb-6 inline-flex items-center justify-center transition-all duration-300 ease-out transform group-hover:scale-110`}
-                    style={{ backgroundColor: chroma(feature.color).alpha(0.1).hex() }} // Lighter, more transparent background for icon container
+                    className="p-4 rounded-full shadow-md mb-6 inline-flex items-center justify-center"
+                    style={{ backgroundColor: chroma(feature.color).alpha(0.2).hex() }}
                   >
-                    {React.cloneElement(feature.icon, { className: `h-10 w-10`, style: { color: feature.color } })}
+                    {React.cloneElement(feature.icon, { className: `h-16 w-16`, style: { color: '#fff' } })}
                   </div>
-                  <h3 
-                    className="text-xl font-semibold text-gray-900 dark:text-white mb-2 transition-colors duration-300 ease-out"
-                    style={{ '--feature-color-dynamic': feature.color }} // Define CSS variable for hover color
-                    onMouseEnter={(e) => e.currentTarget.style.color = e.currentTarget.style.getPropertyValue('--feature-color-dynamic')}
-                    onMouseLeave={(e) => e.currentTarget.style.color = ''} // Revert to CSS-defined color
-                  >
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 flex-grow min-h-[60px]">{feature.description}</p>
-                  <motion.button
+                </div>
+                
+                <div className="contentBx">
+                  <h2>{feature.title}</h2>
+                  
+                  <div className="description">
+                    <p>{feature.description}</p>
+                  </div>
+                  
+                  <button 
+                    className="feature-button"
                     onClick={() => link === "#" ? null : navigate(link)}
-                    className={`mt-auto w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm ${link === "#" ? 'bg-gray-400 cursor-not-allowed text-gray-700' : `text-white bg-teal-500 hover:bg-teal-600`} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500`}
-                    whileHover={{ scale: link === "#" ? 1 : 1.05 }}
-                    whileTap={{ scale: link === "#" ? 1 : 0.95 }}
                     disabled={link === "#"}
+                    style={{ background: link === "#" ? '#ccc' : '#fff' }}
                   >
                     {link === "#" ? "Coming Soon" : buttonText}
-                    {link !== "#" && <FaArrowRight className="ml-2 h-5 w-5" />}
-                  </motion.button>
+                    {link !== "#" && <span className="ml-2">→</span>}
+                  </button>
                 </div>
-              </MagicCard>
+              </div>
             );
           })}
         </div>

@@ -20,6 +20,8 @@ export default {
         'slideDown': 'slideDown 0.5s ease-out forwards',
         'meteor-effect': 'meteor 5s linear infinite',
         'orbit': 'orbit 20s linear infinite',
+        'marquee': 'marquee var(--duration) linear infinite',
+        'marquee-vertical': 'marquee-vertical var(--duration) linear infinite',
       },
       keyframes: {
         fadeIn: {
@@ -63,6 +65,14 @@ export default {
         orbit: {
           '0%': { transform: 'rotate(0deg)' },
           '100%': { transform: 'rotate(360deg)' },
+        },
+        marquee: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(calc(-100% - var(--gap)))' },
+        },
+        'marquee-vertical': {
+          '0%': { transform: 'translateY(0)' },
+          '100%': { transform: 'translateY(calc(-100% - var(--gap)))' },
         },
       },
       transitionProperty: {
