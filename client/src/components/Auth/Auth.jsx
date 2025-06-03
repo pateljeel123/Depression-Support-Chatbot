@@ -206,6 +206,16 @@ const Auth = ({ initialMode }) => {
       return;
     }
     
+    // Additional check for password strength during sign-up
+    if (isSignUp && passwordStrength < 3) {
+      setFormErrors(prev => ({
+        ...prev,
+        password: 'Please create a stronger password before signing up. Add uppercase letters, numbers, or symbols.'
+      }));
+      setCurrentMood('sad');
+      return;
+    }
+    
     setLoading(true);
     setError(null);
     setSuccessMessage(null);
@@ -469,11 +479,23 @@ const Auth = ({ initialMode }) => {
               style={{ width: `${(passwordStrength / 5) * 100}%` }}
             ></div>
           </div>
-          <span className="ml-2 text-xs text-gray-600">{strengthText}</span>
+          <span className={`ml-2 text-xs font-medium ${passwordStrength < 3 ? 'text-red-600' : 'text-gray-600'}`}>{strengthText}</span>
         </div>
-        <p className="text-xs text-gray-500 mt-1">
-          {passwordStrength < 3 && 'Tip: Add uppercase letters, numbers, and symbols to strengthen your password.'}
-        </p>
+        <div className="text-xs text-gray-500 mt-1">
+          {passwordStrength < 3 ? (
+            <div className="bg-red-50 border border-red-100 rounded-md p-2 mt-1">
+              <p className="font-medium text-red-700">Password requirements:</p>
+              <ul className="list-disc list-inside text-red-600 text-xs mt-1">
+                <li className={password.length >= 8 ? 'text-green-600' : ''}>At least 8 characters {password.length >= 8 && '✓'}</li>
+                <li className={/[A-Z]/.test(password) ? 'text-green-600' : ''}>At least one uppercase letter {/[A-Z]/.test(password) && '✓'}</li>
+                <li className={/[0-9]/.test(password) ? 'text-green-600' : ''}>At least one number {/[0-9]/.test(password) && '✓'}</li>
+                <li className={/[^A-Za-z0-9]/.test(password) ? 'text-green-600' : ''}>At least one special character {/[^A-Za-z0-9]/.test(password) && '✓'}</li>
+              </ul>
+            </div>
+          ) : (
+            <p className="text-green-600 font-medium">Your password meets the strength requirements ✓</p>
+          )}
+        </div>
       </div>
     );
   };
@@ -813,7 +835,7 @@ const Auth = ({ initialMode }) => {
                       name="password"
                       type={showPassword ? "text" : "password"}
                       autoComplete={isSignUp ? 'new-password' : 'current-password'}
-                      className={`w-full px-4 py-3 rounded-lg border ${formErrors.password ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 pr-10`}
+                      className={`w-full px-4 py-3 rounded-lg border ${formErrors.password ? 'border-red-500' : passwordStrength >= 3 && password ? 'border-green-500' : 'border-gray-300'} focus:outline-none focus:ring-2 ${passwordStrength >= 3 && password ? 'focus:ring-green-500' : 'focus:ring-purple-500'} focus:border-transparent transition-all duration-200 pr-10`}
                       placeholder="Create a secure password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -831,6 +853,7 @@ const Auth = ({ initialMode }) => {
                     </button>
                   </div>
                   {formErrors.password && <p className="text-red-500 text-xs mt-1">{formErrors.password}</p>}
+                  {isSignUp && renderPasswordStrength()}
                 </div>
                 
                 {isSignUp && (
@@ -860,6 +883,7 @@ const Auth = ({ initialMode }) => {
                       </button>
                     </div>
                     {formErrors.confirmPassword && <p className="text-red-500 text-xs mt-1">{formErrors.confirmPassword}</p>}
+                   
                   </div>
                 )}
               </motion.div>
