@@ -87,12 +87,21 @@
   100% {
     transform: translateZ(0) rotate(360deg);
     }
+  }
+  --animate-line-shadow: line-shadow 15s linear infinite;
+  @keyframes line-shadow {
+  0% {
+    background-position: 0 0;
+    }
+  100% {
+    background-position: 100% -100%;
+    }
   }}
 
 :root {
   /* Psychiatrist Website Design System */
   --radius: 0.75rem; /* 12px border radius */
-  
+
   /* Light Mode */
   --background: #F7F9FA; /* Off White */
   --foreground: #333333; /* Deep Charcoal */

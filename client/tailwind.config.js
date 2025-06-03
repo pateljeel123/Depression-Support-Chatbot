@@ -18,6 +18,8 @@ export default {
         'typing': 'blink 1.4s infinite both',
         'slideUp': 'slideUp 0.5s ease-out forwards',
         'slideDown': 'slideDown 0.5s ease-out forwards',
+        'meteor-effect': 'meteor 5s linear infinite',
+        'orbit': 'orbit 20s linear infinite',
       },
       keyframes: {
         fadeIn: {
@@ -48,6 +50,19 @@ export default {
         slideDown: {
           '0%': { transform: 'translateY(-20px)', opacity: 0 },
           '100%': { transform: 'translateY(0)', opacity: 1 },
+        },
+        meteor: {
+          '0%': { transform: 'rotate(215deg) translateX(0)', opacity: 0 },
+          '10%': { opacity: 1 },
+          '70%': { opacity: 1 },
+          '100%': {
+            transform: 'rotate(215deg) translateX(-500px)',
+            opacity: 0,
+          },
+        },
+        orbit: {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
         },
       },
       transitionProperty: {

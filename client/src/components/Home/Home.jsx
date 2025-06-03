@@ -29,7 +29,8 @@ import { MagicCard } from "../magicui/magic-card";
 import Marquee from "../magicui/marquee"; // Corrected Marquee import
 import SliderContainer from "../ui/slider-container"; // Added SliderContainer import
 import { AuroraText } from "../magicui/aurora-text"; // Added AuroraText import
-
+import { OrbitingCircles } from "../magicui/orbiting-circles"; // Import OrbitingCircles component
+import { EnhancedMeteors } from "../magicui/enhanced-meteors"; // Import EnhancedMeteors component
 
 import chroma from "chroma-js"; // Added import for chroma-js
 // Note: Most 3D elements (Canvas, OrbitControls, Stars, Float, BrainModel, FloatingIcon, FeatureModel)
@@ -39,6 +40,7 @@ import chroma from "chroma-js"; // Added import for chroma-js
 import { cn } from "../../lib/utils"; // Import cn from utils
 import ShineBorder from "../ui/shine-border";
 import './InvestmentSupport.css';
+import { LineShadowText } from "../magicui/line-shadow-text";
 
 // Add CSS for transparent navbar and color theme
 const globalStyles = `
@@ -879,14 +881,70 @@ const Home = () => {
             </button>
           </motion.div>
 
-              {/* Simplified CTA Card - Retained for quick access */}
+              {/* Orbiting Circles Animation */}
               <motion.div
                 className="mt-12 w-full max-w-md mx-auto lg:mx-0"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.8, duration: 0.7 }}
               >
-                
+                <OrbitingCircles
+                  radius={120}
+                  className="h-[200px] w-[200px] mx-auto lg:mx-0"
+                  centerContent={
+                    <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-white shadow-lg">
+                      <FaHeart className="h-6 w-6" />
+                    </div>
+                  }
+                  centerClassName="w-16 h-16"
+                  items={[
+                    {
+                      content: (
+                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 text-white shadow-md">
+                          <FaComments className="h-5 w-5" />
+                        </div>
+                      ),
+                      size: 40,
+                      duration: 15,
+                    },
+                    {
+                      content: (
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-500 text-white shadow-md">
+                          <GiBrain className="h-4 w-4" />
+                        </div>
+                      ),
+                      size: 32,
+                      duration: 20,
+                    },
+                    {
+                      content: (
+                        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-purple-500 text-white shadow-md">
+                          <GiMeditation className="h-6 w-6" />
+                        </div>
+                      ),
+                      size: 48,
+                      duration: 18,
+                    },
+                    {
+                      content: (
+                        <div className="flex items-center justify-center w-9 h-9 rounded-full bg-amber-500 text-white shadow-md">
+                          <FaChartLine className="h-4 w-4" />
+                        </div>
+                      ),
+                      size: 36,
+                      duration: 22,
+                    },
+                    {
+                      content: (
+                        <div className="flex items-center justify-center w-7 h-7 rounded-full bg-indigo-500 text-white shadow-md">
+                          <IoMdHappy className="h-4 w-4" />
+                        </div>
+                      ),
+                      size: 28,
+                      duration: 25,
+                    },
+                  ]}
+                />
               </motion.div>
             </motion.div>
           </div>
@@ -1579,9 +1637,37 @@ const Home = () => {
             </p>
           </motion.div>
         </div>
-        {/* Meteors effect container */}
+        {/* Enhanced Meteors effect container - Layer 1 */}
         <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
-          <Meteors number={40} />
+          <EnhancedMeteors 
+            number={30}
+            density="high" 
+            speed="medium" 
+            color="purple" 
+            className="w-full h-full" 
+          />
+        </div>
+        
+        {/* Enhanced Meteors effect container - Layer 2 (with different z-index for layering) */}
+        <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-10">
+          <EnhancedMeteors 
+            number={20}
+            density="medium" 
+            speed="slow" 
+            color="blue" 
+            className="w-full h-full opacity-70" 
+          />
+        </div>
+        
+        {/* Enhanced Meteors effect container - Layer 3 (with different properties for varied effect) */}
+        <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-5">
+          <EnhancedMeteors 
+            number={15}
+            density="low" 
+            speed="medium" 
+            color="purple" 
+            className="w-full h-full opacity-50" 
+          />
         </div>
       </footer>
     </div>

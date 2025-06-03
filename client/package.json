@@ -24,7 +24,7 @@
     "framer-motion": "^12.12.1",
     "gsap": "^3.13.0",
     "lucide-react": "^0.511.0",
-    "motion": "^12.12.2",
+    "motion": "^12.16.0",
     "prism-react-renderer": "^2.4.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
