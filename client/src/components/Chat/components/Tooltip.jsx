@@ -1,53 +1,31 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export const Tooltip = ({ content, children, position = 'top' }) => {
-  const [isHovered, setIsHovered] = useState(false);
-
-  const tooltipVariants = {
-    hidden: { opacity: 0, y: position === 'top' ? 10 : -10, scale: 0.95 },
-    visible: { opacity: 1, y: 0, scale: 1 },
-  };
-
-  let positionClasses = '';
-  switch (position) {
-    case 'top':
-      positionClasses = 'bottom-full left-1/2 -translate-x-1/2 mb-2';
-      break;
-    case 'bottom':
-      positionClasses = 'top-full left-1/2 -translate-x-1/2 mt-2';
-      break;
-    case 'left':
-      positionClasses = 'right-full top-1/2 -translate-y-1/2 mr-2';
-      break;
-    case 'right':
-      positionClasses = 'left-full top-1/2 -translate-y-1/2 ml-2';
-      break;
-    default:
-      positionClasses = 'bottom-full left-1/2 -translate-x-1/2 mb-2';
-  }
+export const Tooltip = ({ content, children }) => {
+  const [isVisible, setIsVisible] = useState(false);
 
   return (
     <div 
       className="relative inline-block"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={() => setIsVisible(true)}
+      onMouseLeave={() => setIsVisible(false)}
     >
       {children}
       <AnimatePresence>
-        {isHovered && content && (
+        {isVisible && (
           <motion.div
-            initial="hidden"
-            animate="visible"
-            exit="hidden"
-            variants={tooltipVariants}
-            transition={{ duration: 0.2, ease: 'easeInOut' }}
-            className={`absolute z-50 px-3 py-1.5 text-xs font-medium text-white bg-gray-800 rounded-md shadow-lg whitespace-nowrap ${positionClasses}`}
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="absolute z-50 px-2 py-1 text-xs rounded bg-card text-card-foreground border border-border shadow-sm whitespace-nowrap"
+            style={{ bottom: 'calc(100% + 5px)', left: '50%', transform: 'translateX(-50%)' }}
           >
             {content}
-            {/* Arrow (optional, for more visual flair) */}
-            {position === 'top' && <div className="absolute left-1/2 -translate-x-1/2 bottom-[-4px] w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[5px] border-t-gray-800"></div>}
-            {position === 'bottom' && <div className="absolute left-1/2 -translate-x-1/2 top-[-4px] w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[5px] border-b-gray-800"></div>}
+            <div 
+              className="absolute w-2 h-2 bg-card border-r border-b border-border rotate-45"
+              style={{ bottom: '-4px', left: 'calc(50% - 4px)' }}
+            />
           </motion.div>
         )}
       </AnimatePresence>

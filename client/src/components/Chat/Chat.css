@@ -12,49 +12,47 @@
 
 /* Custom scrollbar styles */
 .scrollbar-light::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 .scrollbar-light::-webkit-scrollbar-track {
-  background: rgba(247, 250, 252, 0.8);
-  border-radius: 10px;
+  background: transparent;
 }
 
 .scrollbar-light::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.5);
-  border-radius: 10px;
+  background: var(--muted);
+  border-radius: 3px;
 }
 
 .scrollbar-light::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.8);
+  background: var(--muted-foreground);
 }
 
 .scrollbar-dark::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 .scrollbar-dark::-webkit-scrollbar-track {
-  background: rgba(26, 32, 44, 0.8);
-  border-radius: 10px;
+  background: transparent;
 }
 
 .scrollbar-dark::-webkit-scrollbar-thumb {
-  background: rgba(79, 70, 229, 0.5);
-  border-radius: 10px;
+  background: var(--muted);
+  border-radius: 3px;
 }
 
 .scrollbar-dark::-webkit-scrollbar-thumb:hover {
-  background: rgba(79, 70, 229, 0.8);
+  background: var(--muted-foreground);
 }
 
 /* Message bubble hover effects */
 .message-bubble {
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .message-bubble:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
 /* Typing indicator animation */
@@ -82,75 +80,14 @@
 }
 
 .scale-on-hover:hover {
-  transform: scale(1.05);
+  transform: scale(1.02);
 }
 
 /* Gradient text for welcome message */
 .gradient-text {
-  background: linear-gradient(90deg, var(--tw-gradient-stops));
+  background: linear-gradient(90deg, var(--primary), var(--primary-foreground));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   font-weight: bold;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-/* Custom scrollbar styles */
-.scrollbar-light::-webkit-scrollbar {
-  width: 8px;
-}
-
-.scrollbar-light::-webkit-scrollbar-track {
-  background: rgba(241, 245, 249, 0.5);
-  border-radius: 10px;
-}
-
-.scrollbar-light::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.5);
-  border-radius: 10px;
-}
-
-.scrollbar-light::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.7);
-}
-
-.scrollbar-dark::-webkit-scrollbar {
-  width: 8px;
-}
-
-.scrollbar-dark::-webkit-scrollbar-track {
-  background: rgba(30, 41, 59, 0.5);
-  border-radius: 10px;
-}
-
-.scrollbar-dark::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.5);
-  border-radius: 10px;
-}
-
-.scrollbar-dark::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.7);
-}
-
-/* Message bubble hover effect */
-.message-bubble {
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.message-bubble::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  transform: translateX(-100%);
-  transition: transform 0.6s;
-}
-
-.message-bubble:hover::before {
-  transform: translateX(100%);
 }

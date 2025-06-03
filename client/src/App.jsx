@@ -74,8 +74,8 @@ const App = () => {
   // or to a more specific top-level component wrapper.
 
   return (
-    // Add font-sans to the main wrapper div
-    <div className="font-sans">
+    // Apply the design system fonts and colors to the entire app
+    <div className="font-sans bg-background text-text-dark dark:bg-background-dark dark:text-text-white min-h-screen">
     <AuthProvider>
       <BrowserRouter>
         <AppContent />

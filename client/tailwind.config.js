@@ -7,7 +7,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['Open Sans', 'sans-serif'],
+        heading: ['Poppins', 'sans-serif'],
       },
       animation: {
         'fadeIn': 'fadeIn 0.3s ease-out forwards',
@@ -56,44 +57,64 @@ export default {
         'transform': 'transform',
       },
       colors: {
-        'primary': { // Green palette
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          200: '#bbf7d0',
-          300: '#86efac',
-          400: '#4ade80',
-          500: '#22c55e',
-          600: '#16a34a',
-          700: '#15803d',
-          800: '#166534',
-          900: '#14532d',
+        'primary': { // Soft Blue
+          DEFAULT: '#4A90E2',
+          hover: '#4178C2',
         },
-        'secondary': { // Accent palette based on #F3E6AF
-          50: '#FCF9F0',
-          100: '#FAF2D8',
-          200: '#F7ECC0',
-          300: '#F5E5A7',
-          400: '#F4E09F',
-          500: '#F3E6AF',
-          600: '#DBCDA0',
-          700: '#C4B491',
-          800: '#ACA082',
-          900: '#958D73',
+        'secondary': { // Soft Teal
+          DEFAULT: '#50E3C2',
+        },
+        'accent': { // Lavender
+          DEFAULT: '#C1C8E4',
+        },
+        'background': { // Off White
+          DEFAULT: '#F7F9FA',
+          dark: '#121212',
+        },
+        'text': { // Text colors
+          dark: '#333333',
+          light: '#777777',
+          white: '#EAEAEA',
+        },
+        'error': { // Light Red
+          DEFAULT: '#FF6B6B',
+        },
+        'success': { // Light Green
+          DEFAULT: '#7ED6A5',
+        },
+        'card': {
+          light: '#FFFFFF',
+          dark: '#1F1F1F',
         },
       },
       boxShadow: {
-        'soft': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-        'message': '0 2px 10px rgba(0, 0, 0, 0.1)',
-        'message-hover': '0 4px 15px rgba(0, 0, 0, 0.15)',
-        'input': '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)',
+        'soft': '0 1px 2px rgba(0, 0, 0, 0.04)',
+        'message': '0 1px 3px rgba(0, 0, 0, 0.05)',
+        'message-hover': '0 2px 5px rgba(0, 0, 0, 0.08)',
+        'input': '0 1px 2px rgba(0, 0, 0, 0.04)',
+        'card': '0 4px 12px rgba(0, 0, 0, 0.08)',
       },
       borderRadius: {
-        'bubble': '1.5rem',
+        'DEFAULT': '12px',
+        'bubble': '0.75rem',
+        'button': '12px',
+        'card': '12px',
+        'input': '10px',
+        'sm': '0.375rem',
+        'md': '0.5rem',
+        'lg': '0.75rem',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
         'gradient-primary': 'linear-gradient(to right, var(--tw-gradient-stops))',
+        'gradient-subtle': 'linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.02))',
+      },
+      opacity: {
+        '15': '0.15',
+        '35': '0.35',
+        '85': '0.85',
+        '95': '0.95',
       },
     },
   },

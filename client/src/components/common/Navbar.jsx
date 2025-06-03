@@ -20,8 +20,8 @@ const NavLink = ({ to, label, exact }) => (
     to={to}
     className={({ isActive }) =>
       cn(
-        "text-indigo-100 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors",
-        isActive ? "bg-purple-700 text-white shadow-md" : "hover:bg-purple-500 hover:bg-opacity-50"
+        "text-text-light hover:text-text-dark px-3 py-2 rounded-md text-sm font-medium transition-colors font-heading",
+        isActive ? "bg-accent text-text-dark shadow-sm" : "hover:bg-accent/50"
       )
     }
     end={exact}
@@ -59,7 +59,7 @@ const Navbar = () => {
   const ProfileDropdownLink = ({ to, children }) => (
     <Link
       to={to}
-      className="block px-4 py-2 text-sm text-indigo-100 hover:bg-purple-600 hover:text-white transition-colors"
+      className="block px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-primary transition-colors"
       onClick={() => setIsProfileDropdownOpen(false)}
     >
       {children}
@@ -73,7 +73,7 @@ const Navbar = () => {
         setIsMobileMenuOpen(false);
         if (externalOnClick) externalOnClick();
       }}
-      className="block px-3 py-2 rounded-md text-base font-medium text-indigo-100 hover:text-white hover:bg-purple-600 hover:bg-opacity-75 transition-colors"
+      className="block px-3 py-2 rounded-md text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent hover:bg-opacity-75 transition-colors"
     >
       {label}
     </Link>
@@ -89,12 +89,12 @@ const Navbar = () => {
   return (
     <>
       {/* Top Navbar */}
-      <header className="sticky top-0 z-50 w-full bg-gradient-to-r from-purple-600 to-indigo-700 bg-opacity-90 backdrop-blur-md shadow-xl border-b border-purple-400 dark:border-indigo-500">
+      <header className="sticky top-0 z-50 w-full bg-background shadow-sm border-b border-border/40 backdrop-blur-md">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           <div className="flex-shrink-0">
-            <Link to="/" className="flex items-center space-x-2 text-2xl font-bold text-white hover:text-purple-200 transition-colors">
-              <FaLeaf className="h-7 w-7 text-green-400" />
+            <Link to="/" className="flex items-center space-x-2 text-2xl font-bold text-text-dark hover:text-primary transition-colors font-heading">
+              <FaLeaf className="h-7 w-7 text-primary" />
               <span>MindCare</span>
             </Link>
           </div>
@@ -102,10 +102,10 @@ const Navbar = () => {
             <NavLink to="/" label="Home" exact />
             {location.pathname === '/' ? (
               <>
-                <button onClick={() => scrollToSection('features')} className="text-indigo-100 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-purple-500 hover:bg-opacity-50">Features</button>
-                <button onClick={() => scrollToSection('stories')} className="text-indigo-100 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-purple-500 hover:bg-opacity-50">Community</button>
-                <button onClick={() => scrollToSection('resources')} className="text-indigo-100 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-purple-500 hover:bg-opacity-50">Resources</button>
-                <button onClick={() => scrollToSection('footer-contact')} className="text-indigo-100 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-purple-500 hover:bg-opacity-50">Contact</button>
+                <button onClick={() => scrollToSection('features')} className="text-text-light hover:text-text-dark px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:bg-opacity-50 font-heading">Features</button>
+                <button onClick={() => scrollToSection('stories')} className="text-text-light hover:text-text-dark px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:bg-opacity-50 font-heading">Community</button>
+                <button onClick={() => scrollToSection('resources')} className="text-text-light hover:text-text-dark px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:bg-opacity-50 font-heading">Resources</button>
+                <button onClick={() => scrollToSection('footer-contact')} className="text-text-light hover:text-text-dark px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:bg-opacity-50 font-heading">Contact</button>
               </>
             ) : (
               <>
@@ -119,28 +119,24 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-3">
             {!session ? (
               <>
-                <ShineBorder color={["#A07CFE", "#FE8FB5", "#FFBE7B"]} borderWidth={2} borderRadius="0.375rem">
-                  <button
-                    onClick={() => navigate("/login")}
-                    className="px-4 py-2 text-sm font-medium text-white bg-transparent hover:bg-purple-500 hover:bg-opacity-75 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-purple-700"
-                  >
-                    Login
-                  </button>
-                </ShineBorder>
-                <ShineBorder color={["#A07CFE", "#FE8FB5", "#FFBE7B"]} borderWidth={2} borderRadius="0.375rem">
-                  <button
-                    onClick={() => navigate("/signup")}
-                    className="px-4 py-2 text-sm font-medium text-white bg-purple-500 hover:bg-purple-600 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-purple-700"
-                  >
-                    Sign Up
-                  </button>
-                </ShineBorder>
+                <button
+                  onClick={() => navigate("/login")}
+                  className="px-4 py-2 text-sm font-medium text-primary border border-primary hover:bg-accent hover:bg-opacity-75 rounded-button transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50 font-heading"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => navigate("/signup")}
+                  className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-hover rounded-button transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50 font-heading"
+                >
+                  Sign Up
+                </button>
               </>
             ) : (
               <div className="relative">
                 <button
                   onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                  className="flex items-center space-x-2 text-sm font-medium text-white hover:text-purple-200 transition-colors focus:outline-none"
+                  className="flex items-center space-x-2 text-sm font-medium text-foreground hover:text-primary/80 transition-colors focus:outline-none"
                 >
                   <FaUserCircle className="h-7 w-7 rounded-full" />
                   <span className="hidden lg:inline">{session.user?.email?.split('@')[0] || 'Profile'}</span>
@@ -152,12 +148,12 @@ const Navbar = () => {
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
-                      className="absolute right-0 mt-2 w-48 bg-purple-700 bg-opacity-90 backdrop-blur-sm rounded-md shadow-lg py-1 z-50 border border-purple-500"
+                      className="absolute right-0 mt-2 w-48 bg-card rounded-md shadow-md py-1 z-50 border border-border"
                     >
                       <ProfileDropdownLink to="/profile">Profile</ProfileDropdownLink>
                       <button
                         onClick={handleSignOut}
-                        className="block w-full text-left px-4 py-2 text-sm text-red-300 hover:bg-purple-600 hover:text-red-200 transition-colors"
+                        className="block w-full text-left px-4 py-2 text-sm text-destructive hover:bg-accent hover:text-destructive/80 transition-colors"
                       >
                         Logout
                       </button>
@@ -170,7 +166,7 @@ const Navbar = () => {
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-indigo-100 hover:text-white focus:outline-none focus:text-white p-2 rounded-md"
+              className="text-muted-foreground hover:text-foreground focus:outline-none focus:text-foreground p-2 rounded-md"
               aria-label="Open main menu"
             >
               {isMobileMenuOpen ? (
@@ -191,7 +187,7 @@ const Navbar = () => {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="md:hidden bg-purple-700 bg-opacity-95 backdrop-blur-sm border-t border-purple-500"
+            className="md:hidden bg-card border-t border-border"
           >
             <nav className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
               <MobileNavLink to="/" label="Home" onClick={() => setIsMobileMenuOpen(false)} />
@@ -256,7 +252,7 @@ const Navbar = () => {
     </header>
 
     {/* Bottom Navigation for Mobile */}
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 shadow-lg z-50">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card dark:bg-card-dark border-t border-border shadow-lg z-50">
       <div className="container mx-auto px-2">
         <div className="flex justify-around items-center h-16">
           {bottomNavItems.map((item) => (
@@ -265,10 +261,10 @@ const Navbar = () => {
               to={item.to}
               className={({ isActive }) =>
                 cn(
-                  "flex flex-col items-center justify-center text-xs font-medium w-full pt-2 pb-1 transition-colors",
+                  "flex flex-col items-center justify-center text-xs font-medium w-full pt-2 pb-1 transition-colors font-heading",
                   isActive
-                    ? "text-indigo-400 scale-105"
-                    : "text-gray-400 hover:text-indigo-300"
+                    ? "text-primary scale-105"
+                    : "text-text-light hover:text-primary"
                 )
               }
               end={item.to === "/"} // Exact match for Home

@@ -68,12 +68,12 @@ const AceternityCard = ({ className, children }) => {
   return (
     <div
       className={cn(
-        "rounded-2xl h-full w-full p-4 overflow-hidden bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-white/[0.2] group-hover:border-neutral-300 dark:group-hover:border-slate-700 relative z-20 transition-shadow duration-300 shadow-sm hover:shadow-lg",
+        "rounded-xl h-full w-full p-6 overflow-hidden bg-background dark:bg-background-dark border border-border dark:border-border group-hover:border-primary/30 dark:group-hover:border-primary/30 relative z-20 transition-shadow duration-300 shadow-card hover:shadow-lg",
         className
       )}
     >
       <div className="relative z-50">
-        <div className="p-1 sm:p-2 md:p-4">{children}</div>
+        <div className="p-2 md:p-4">{children}</div>
       </div>
     </div>
   );
@@ -81,7 +81,7 @@ const AceternityCard = ({ className, children }) => {
 
 const AceternityCardTitle = ({ className, children }) => {
   return (
-    <h4 className={cn("text-gray-800 dark:text-zinc-100 font-bold tracking-wide mt-2 sm:mt-4 text-base sm:text-lg md:text-xl", className)}>
+    <h4 className={cn("text-text-dark dark:text-text-white font-heading font-semibold tracking-wide mt-4 text-lg md:text-xl", className)}>
       {children}
     </h4>
   );
@@ -89,7 +89,7 @@ const AceternityCardTitle = ({ className, children }) => {
 
 const AceternityCardDescription = ({ className, children }) => {
   return (
-    <p className={cn("mt-2 sm:mt-4 md:mt-6 text-gray-600 dark:text-zinc-400 tracking-wide leading-relaxed text-xs sm:text-sm md:text-base", className)}>
+    <p className={cn("mt-4 text-text-light dark:text-text-light font-body tracking-wide leading-relaxed text-sm md:text-base", className)}>
       {children}
     </p>
   );
@@ -705,12 +705,11 @@ const Home = () => {
         gradientColor={chroma(feature.color).darken(0.5).hex()} // Darken the feature color for the gradient
         gradientFrom={chroma(feature.color).brighten(0.5).alpha(0.8).hex()} // Brighter, slightly transparent start
         gradientTo={chroma(feature.color).alpha(0.6).hex()} // Slightly transparent end
-        className="rounded-2xl shadow-2xl overflow-hidden p-1 bg-transparent cursor-pointer hover:shadow-3xl transition-all duration-300 ease-out"
+        className="rounded-xl shadow-card overflow-hidden p-1 bg-transparent cursor-pointer hover:shadow-lg transition-all duration-300 ease-out"
       >
         <motion.div
           ref={ref}
-          className={`flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12 py-10 md:py-12 px-6 md:px-10 bg-white dark:bg-gray-800 rounded-xl relative z-10`}
-          // className={`flex flex-col md:flex-row items-center justify-between gap-8 md:gap-16 py-12 md:py-16 ${index % 2 === 0 ? 'md:flex-row-reverse' : ''}`}
+          className={`flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12 py-10 md:py-12 px-6 md:px-10 bg-background dark:bg-background-dark rounded-xl relative z-10`}
           initial="hidden"
           animate={itemControls} // Animate the whole card container if needed, or rely on inner elements
         >
@@ -722,19 +721,19 @@ const Home = () => {
             <div className={`inline-block mb-6 ${index % 2 === 0 ? 'md:mr-0 md:ml-auto' : 'md:ml-0 md:mr-auto'}`}>
               <FeatureIcon icon={feature.icon} color={feature.color} />
             </div>
-            <h3 className="text-3xl lg:text-4xl font-bold text-gray-800 dark:text-white mb-4">{feature.title}</h3>
-            <p className="text-gray-600 dark:text-gray-300 text-lg lg:text-xl leading-relaxed mb-6">{feature.description}</p>
+            <h3 className="text-3xl lg:text-4xl font-heading font-semibold text-text-dark dark:text-text-white mb-4">{feature.title}</h3>
+            <p className="text-text-light dark:text-text-light font-body text-lg lg:text-xl leading-relaxed mb-6">{feature.description}</p>
             <motion.button
               onClick={() => navigate(feature.title.toLowerCase().includes('chat') ? '/chat' : '/resources')}
-              className="px-8 py-3 text-lg font-semibold rounded-lg text-white shadow-lg transition-transform duration-300 ease-out transform hover:scale-105 active:scale-95"
-              whileHover={{ boxShadow: "0px 0px 20px rgba(192, 132, 252, 0.6)" }}
+              className="px-8 py-3 text-lg font-heading font-semibold rounded-xl bg-primary text-white shadow-card transition-transform duration-300 ease-out transform hover:scale-105 hover:bg-primary-dark active:scale-95"
+              whileHover={{ boxShadow: "0px 0px 20px rgba(74, 144, 226, 0.6)" }}
             >
               Learn More <FaArrowRight className="inline ml-2" />
             </motion.button>
           </motion.div>
           {/* Image/Visual Placeholder */}
           <motion.div 
-            className={`md:w-1/2 w-full h-64 sm:h-80 md:h-96 mt-8 md:mt-0 rounded-xl shadow-xl overflow-hidden group relative bg-gray-200 ${index % 2 === 0 ? 'md:order-1' : 'md:order-2'}`}
+            className={`md:w-1/2 w-full h-64 sm:h-80 md:h-96 mt-8 md:mt-0 rounded-xl shadow-card overflow-hidden group relative bg-background-dark ${index % 2 === 0 ? 'md:order-1' : 'md:order-2'}`}
             variants={imageVariants}
           >
             <img 
@@ -742,8 +741,8 @@ const Home = () => {
               alt={feature.title}
               className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
-            <div className="absolute bottom-4 left-4 p-3 bg-black/60 rounded-lg">
+            <div className="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+            <div className="absolute bottom-4 left-4 p-3 bg-primary/60 rounded-xl">
               {React.cloneElement(feature.icon, { className: "h-10 w-10 text-white opacity-90" })}
             </div>
           </motion.div>
@@ -811,7 +810,7 @@ const Home = () => {
       {/* Hero Section */}
       <section
         id="home"
-        className="relative pt-24 py-20 sm:py-28 md:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden isolate bg-[#F3E6AF]"
+        className="relative pt-24 py-20 sm:py-28 md:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden isolate bg-background dark:bg-background-dark"
       >
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
@@ -822,28 +821,28 @@ const Home = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <div className="relative w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl">
+              <div className="relative w-full max-w-lg rounded-xl overflow-hidden shadow-card">
                 <img 
                   src="https://cdn.prod.website-files.com/62ab7d5ccc9f587bce83c183/62e54e7732c44c5f842541c4_ezgif.com-gif-maker%20(14).gif" // User provided GIF
                   alt="Mental Wellness Journey"
                   className="w-full h-auto object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-purple-900/40 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent"></div>
               </div>
             </motion.div>
             
             {/* Text Content Side */}
             <motion.div
               ref={heroRef}
-              className="w-full lg:w-1/2 text-center lg:text-left text-gray-800 order-1 lg:order-2"
+              className="w-full lg:w-1/2 text-center lg:text-left text-text-dark dark:text-text-white order-1 lg:order-2"
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
           <AuroraText
-            text="Discover Your Inner Strength. We're With You."
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-orange-600 to-red-700 drop-shadow-lg"
-            highlightClassName="text-orange-500"
+            text="Your Mental Wellness Matters"
+            className="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary/80 to-primary drop-shadow-lg"
+            highlightClassName="text-primary"
             animationConfig={{
               initial: { opacity: 0, scale: 0.8, y: -30 },
               animate: { opacity: 1, scale: 1, y: 0 },
@@ -851,15 +850,34 @@ const Home = () => {
             }}
           />
           <motion.p
-            className="mt-4 sm:mt-6 max-w-xl mx-auto lg:mx-0 text-sm sm:text-base md:text-lg text-gray-700 drop-shadow-sm leading-relaxed"
+            className="mt-6 max-w-xl mx-auto lg:mx-0 text-base md:text-lg text-text-light dark:text-text-light leading-relaxed font-body"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            Navigating life's challenges can be tough, but you don't have to do it alone. Explore tools and find support tailored to your journey towards a brighter, more resilient you.
+            Confidential, empathetic, and expert care just a click away. Explore tools and find support tailored to your journey towards a brighter, more resilient you.
           </motion.p>
 
-          {/* Buttons removed as per user request */}
+          {/* CTA Buttons */}
+          <motion.div 
+            className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+          >
+            <button 
+              onClick={() => navigate('/chat')} 
+              className="px-8 py-3 text-base font-semibold font-heading rounded-xl bg-primary text-white shadow-lg hover:bg-primary-hover transition-all duration-300 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50"
+            >
+              Get Started
+            </button>
+            <button 
+              onClick={() => navigate('/resources')} 
+              className="px-8 py-3 text-base font-semibold font-heading rounded-xl bg-white border border-primary text-primary shadow-sm hover:bg-primary/10 transition-all duration-300 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50"
+            >
+              Learn More
+            </button>
+          </motion.div>
 
               {/* Simplified CTA Card - Retained for quick access */}
               <motion.div
@@ -878,25 +896,25 @@ const Home = () => {
       {/* Section 2: Common Problems People Face Because of Depression */}
       <motion.section 
         id="common-problems"
-        className="py-12 sm:py-16 md:py-20 bg-gray-50 dark:bg-neutral-800"
+        className="py-20 bg-background-alt dark:bg-background-dark"
         initial={{ opacity: 0}}
         whileInView={{ opacity: 1}}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.8 }}
       >
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10 sm:mb-12 md:mb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
             <motion.h2 
-              className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-primary-700 dark:text-primary-300 mb-4 sm:mb-6 leading-tight"
+              className="font-heading text-3xl sm:text-4xl md:text-5xl font-semibold text-text-dark dark:text-text-white mb-6 leading-tight"
               initial={{ y: 20, opacity: 0}}
               whileInView={{ y: 0, opacity: 1}}
               viewport={{ once: true, amount: 0.3 }}
               transition={{ duration: 0.7, delay: 0.1 }}
             >
-              Unmasking Depression: <span className="block sm:inline text-secondary-500 dark:text-secondary-400">More Than Just Sadness</span>
+              Unmasking Depression: <span className="block sm:inline text-primary dark:text-primary">More Than Just Sadness</span>
             </motion.h2>
             <motion.p 
-              className="text-base sm:text-lg md:text-xl text-foreground/80 dark:text-foreground/70 max-w-3xl mx-auto leading-relaxed"
+              className="font-body text-base md:text-lg text-text-light dark:text-text-light max-w-3xl mx-auto leading-relaxed"
               initial={{ y: 20, opacity: 0}}
               whileInView={{ y: 0, opacity: 1}}
               viewport={{ once: true, amount: 0.3 }}
@@ -906,11 +924,11 @@ const Home = () => {
             </motion.p>
           </div>
           <SliderContainer 
-            itemWidth={320} // Slightly wider cards
-            gap={24} // Increased gap
+            itemWidth={400} // Reduced card width for better fit
+            gap={20} // Reduced gap between items
             visibleItems={3} 
             autoPlay={true} // Ensure autoplay is enabled
-            autoPlayInterval={1000} // Change interval to 2 seconds
+            autoPlayInterval={3000} // 3 seconds interval
             className="mt-12 mb-8 mx-auto" // Added margin bottom and centered
             showArrows={true} 
             showDots={true} 
@@ -927,13 +945,31 @@ const Home = () => {
             ].map((item, idx) => (
               <MagicCard
                 key={idx}
-                className="w-full h-[260px] flex flex-col items-center justify-start text-center p-6 bg-card dark:bg-card shadow-xl hover:shadow-2xl rounded-2xl border border-border dark:border-border transition-all duration-300 ease-in-out transform hover:-translate-y-1"
-                gradientSize={180}
-                gradientColor={chroma(item.color || '#F3E6AF').alpha(0.15).hex()} // Use actual hex codes
+                className="w-full bg-card dark:bg-card shadow-xl hover:shadow-2xl rounded-2xl border border-border dark:border-border transition-all duration-300 ease-in-out transform hover:-translate-y-1 overflow-hidden"
+                gradientSize={200}
+                gradientColor={chroma(item.color || '#F3E6AF').alpha(0.15).hex()}
               >
-                {item.icon && <div className="mb-4 p-3 rounded-full bg-secondary-500/20 dark:bg-secondary-500/30 inline-block">{React.cloneElement(item.icon, { className: "w-10 h-10 text-primary-600 dark:text-primary-300" })}</div>}
-                <h4 className="text-xl font-semibold text-foreground dark:text-foreground mb-2">{item.title}</h4>
-                <p className="text-sm text-foreground/70 dark:text-foreground/60 leading-relaxed px-2">{item.description}</p>
+                <div className="flex flex-col items-center justify-center p-6 text-center">
+                  {/* Profile Image Circle */}
+                  <div className="w-24 h-24 mb-4 rounded-full overflow-hidden border-4 border-white dark:border-gray-800 shadow-md bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
+                    {item.icon && React.cloneElement(item.icon, { className: "w-12 h-12 text-primary-600 dark:text-primary-300" })}
+                  </div>
+                  
+                  {/* Name/Title */}
+                  <h4 className="text-xl font-semibold text-foreground dark:text-foreground mb-1">{item.title}</h4>
+                  
+                  {/* Description/Role */}
+                  <p className="text-sm text-foreground/70 dark:text-foreground/60 mb-4 leading-relaxed px-2">
+                    {item.description.length > 60 ? `${item.description.substring(0, 60)}...` : item.description}
+                  </p>
+                  
+                  {/* Message Button */}
+                  <button 
+                    className="px-4 py-2 bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-white rounded-md shadow transition-colors duration-200 border border-gray-200 dark:border-gray-700"
+                  >
+                    Message
+                  </button>
+                </div>
               </MagicCard>
             ))}
           </SliderContainer>
@@ -960,15 +996,15 @@ const Home = () => {
       {/* Section 3: Why This Platform? */}
       <motion.section
         id="why-platform"
-        className="py-12 sm:py-16 md:py-20 bg-indigo-50 dark:bg-neutral-900"
+        className="py-20 bg-background dark:bg-background-dark"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.8 }}
       >
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2
-            className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white text-center mb-8 sm:mb-10 md:mb-12"
+            className="font-heading text-3xl sm:text-4xl md:text-5xl font-semibold text-text-dark dark:text-text-white text-center mb-12"
             initial={{ y: 20, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true, amount: 0.5 }}
@@ -985,7 +1021,7 @@ const Home = () => {
             ].map(reason => ({
               ...reason,
               // Convert string icon to a styled span for consistent display within AceternityCard
-              icon: <span className="text-3xl sm:text-4xl p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-full text-indigo-600 dark:text-indigo-300 group-hover:bg-indigo-200 dark:group-hover:bg-indigo-900 transition-colors duration-300">{reason.icon}</span>
+              icon: <span className="text-3xl sm:text-4xl p-2 bg-primary/10 dark:bg-primary/20 rounded-xl text-primary dark:text-primary group-hover:bg-primary/20 dark:group-hover:bg-primary/30 transition-colors duration-300">{reason.icon}</span>
             }))}
             className="lg:grid-cols-4 sm:grid-cols-2 grid-cols-1"
           />
@@ -995,15 +1031,15 @@ const Home = () => {
       {/* Section 4: What You Can Do Here */}
       <motion.section 
         id="what-to-do"
-        className="py-12 sm:py-16 md:py-20 bg-white dark:bg-slate-900"
+        className="py-20 bg-white dark:bg-slate-900"
         initial={{ opacity: 0}}
         whileInView={{ opacity: 1}}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.8 }}
       >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2 
-            className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white text-center mb-8 sm:mb-10 md:mb-12"
+            className="font-heading text-3xl sm:text-4xl md:text-5xl font-semibold text-text-dark dark:text-text-white text-center mb-12"
             initial={{ y: 20, opacity: 0}}
             whileInView={{ y: 0, opacity: 1}}
             viewport={{ once: true, amount: 0.5 }}
@@ -1077,18 +1113,18 @@ const Home = () => {
     <section 
       id="features" 
       ref={featuresRef} 
-      className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-50 to-gray-100 dark:from-neutral-800 dark:to-neutral-900 overflow-hidden"
+      className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-50 to-gray-100 dark:from-neutral-800 dark:to-neutral-900 overflow-hidden"
     >
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-10 sm:mb-12 md:mb-16">
+        <div className="text-center mb-12">
           <motion.h2 
-            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-3 sm:mb-4"
+            className="font-heading text-3xl sm:text-4xl md:text-5xl font-semibold text-text-dark dark:text-text-white tracking-tight mb-6"
             initial={{ opacity: 0, y: -30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.7, ease: "easeOut" }}
           >
-            Tools Designed for <span className="text-indigo-600">Your Wellbeing</span>
+            Tools Designed for <span className="text-primary">Your Wellbeing</span>
           </motion.h2>
           <motion.p 
             className="mt-3 sm:mt-4 text-base sm:text-lg md:text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed"
@@ -1264,12 +1300,14 @@ const Home = () => {
           </motion.div>
 
           <SliderContainer 
-            itemWidth={320} 
+            itemWidth={350} 
             gap={24} 
             visibleItems={3} 
             autoPlay={true} 
-            autoPlayInterval={7000}
+            autoPlayInterval={3000}
             className="mt-10 sm:mt-12 md:mt-16"
+            showArrows={true}
+            showDots={true}
           >
             {[
               {
@@ -1320,16 +1358,25 @@ const Home = () => {
             ].map((resource, idx) => (
               <MagicCard
                 key={idx}
-                className="w-full h-[280px] flex flex-col items-center justify-between text-center p-5 bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-2xl"
-                gradientSize={180}
-                gradientColor={chroma(resource.color).alpha(0.2).hex()}
+                className="w-full bg-card dark:bg-card shadow-xl hover:shadow-2xl rounded-2xl border border-border dark:border-border transition-all duration-300 ease-in-out transform hover:-translate-y-1 overflow-hidden"
+                gradientSize={200}
+                gradientColor={chroma(resource.color).alpha(0.15).hex()}
               >
-                <div>
-                  {resource.icon && <div className="mb-3 text-5xl">{resource.icon}</div>}
-                  <h4 className="text-xl font-semibold text-gray-800 dark:text-zinc-100 mb-2">{resource.title}</h4>
-                  <p className="text-sm text-gray-600 dark:text-zinc-400 leading-snug">{resource.description}</p>
-                </div>
-                {resource.buttonText && (
+                <div className="flex flex-col items-center justify-center p-6 text-center">
+                  {/* Profile Image Circle */}
+                  <div className="w-24 h-24 mb-4 rounded-full overflow-hidden border-4 border-white dark:border-gray-800 shadow-md bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
+                    {resource.icon && React.cloneElement(resource.icon, { className: "w-12 h-12 text-primary-600 dark:text-primary-300" })}
+                  </div>
+                  
+                  {/* Name/Title */}
+                  <h4 className="text-xl font-semibold text-foreground dark:text-foreground mb-1">{resource.title}</h4>
+                  
+                  {/* Description/Role */}
+                  <p className="text-sm text-foreground/70 dark:text-foreground/60 mb-4 leading-relaxed px-2">
+                    {resource.description.length > 60 ? `${resource.description.substring(0, 60)}...` : resource.description}
+                  </p>
+                  
+                  {/* Button */}
                   <button 
                     onClick={resource.buttonAction} 
                     className={`mt-4 px-5 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 ease-in-out w-full 
@@ -1339,7 +1386,7 @@ const Home = () => {
                   >
                     {resource.buttonText}
                   </button>
-                )}
+                </div>
               </MagicCard>
             ))}
           </SliderContainer>

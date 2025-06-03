@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FiMoreHorizontal, FiCopy, FiEdit2, FiTrash2, FiStar, FiShare2, FiCornerUpLeft, FiSmile } from 'react-icons/fi';
-import { IoMdVolumeHigh } from 'react-icons/io'; // Import volume icon for TTS
+import { IoMdVolumeHigh } from 'react-icons/io';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tooltip } from './Tooltip';
 
@@ -22,49 +22,52 @@ export const MessageMenu = ({ message, darkMode, onCopy, onEdit, onDelete, onSta
 
   const menuItems = [
     { label: 'Copy', icon: <FiCopy size={16} />, action: onCopy, show: !!onCopy },
-    { label: 'Edit', icon: <FiEdit2 size={16} />, action: onEdit, show: !!onEdit && message.role === 'user' }, // Only allow editing user messages
+    { label: 'Edit', icon: <FiEdit2 size={16} />, action: onEdit, show: !!onEdit && message.role === 'user' },
     { label: 'Delete', icon: <FiTrash2 size={16} />, action: onDelete, show: !!onDelete },
     { label: 'Star', icon: <FiStar size={16} />, action: onStar, show: !!onStar },
     { label: 'Share', icon: <FiShare2 size={16} />, action: onShare, show: !!onShare },
-    { label: 'Reply', icon: <FiCornerUpLeft size={16} />, action: onReply, show: !!onReply }, // Added Reply
-    { label: 'React', icon: <FiSmile size={16} />, action: onReact, show: !!onReact }, // Added React
-    { label: 'Speak', icon: <IoMdVolumeHigh size={16} />, action: onSpeak, show: !!onSpeak } // Added Speak for TTS
-  ].filter(item => item.show);
-
-  if (menuItems.length === 0) return null;
+    { label: 'Reply', icon: <FiCornerUpLeft size={16} />, action: onReply, show: !!onReply },
+    { label: 'React', icon: <FiSmile size={16} />, action: onReact, show: !!onReact },
+    { label: 'Speak', icon: <IoMdVolumeHigh size={16} />, action: onSpeak, show: !!onSpeak }
+  ];
 
   return (
     <div className="relative" ref={menuRef}>
-      <Tooltip content="More actions">
+      <Tooltip content="Message options">
         <button 
           onClick={() => setIsOpen(!isOpen)}
-          className={`p-1.5 rounded-full transition-colors ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-300'} ${isOpen ? (darkMode ? 'bg-gray-600' : 'bg-gray-300') : ''}`}
+          className="p-1.5 rounded-full bg-muted/80 hover:bg-muted text-muted-foreground transition-colors"
+          aria-label="Message options"
         >
-          <FiMoreHorizontal size={18} className={`${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+          <FiMoreHorizontal size={14} />
         </button>
       </Tooltip>
+      
       <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -10 }}
-            transition={{ duration: 0.15 }}
-            className={`absolute z-50 right-0 mt-2 w-48 rounded-md shadow-lg ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'} border ring-1 ring-black ring-opacity-5 focus:outline-none`}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.1 }}
+            className="absolute top-0 right-0 mt-8 w-36 bg-card border border-border rounded-md shadow-sm z-50"
           >
-            <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
-              {menuItems.map((item) => (
-                <button
-                  key={item.label}
-                  onClick={() => { item.action(message); setIsOpen(false); }}
-                  className={`flex items-center w-full px-4 py-2 text-sm ${darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'} transition-colors`}
-                  role="menuitem"
-                >
-                  <span className="mr-3">{item.icon}</span>
-                  {item.label}
-                </button>
+            <ul className="py-1">
+              {menuItems.filter(item => item.show).map((item, index) => (
+                <li key={index}>
+                  <button 
+                    onClick={() => {
+                      item.action();
+                      setIsOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-1.5 text-sm flex items-center gap-2 hover:bg-accent transition-colors text-foreground"
+                  >
+                    {item.icon}
+                    {item.label}
+                  </button>
+                </li>
               ))}
-            </div>
+            </ul>
           </motion.div>
         )}
       </AnimatePresence>
