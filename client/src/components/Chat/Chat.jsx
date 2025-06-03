@@ -1709,7 +1709,7 @@ export default function Chat() {
                           ) : (
                             <div className="prose prose-sm max-w-none break-words text-sm sm:text-base font-light">
                               {" "}
-                              {/* Added break-words, responsive text, and lighter font */}
+                              {/* Enhanced markdown rendering with better styling */}
                               <Markdown
                                 remarkPlugins={[remarkGfm]}
                                 components={{
@@ -1724,54 +1724,202 @@ export default function Chat() {
                                       className || ""
                                     );
                                     return !inline && match ? (
-                                      <div className="relative">
+                                      <div className="relative group overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 my-4">
                                         <div
-                                          className={`absolute top-2 right-2 text-xs ${darkMode
-                                              ? "text-gray-400"
-                                              : "text-gray-500"
+                                          className={`absolute top-0 left-0 right-0 px-4 py-2 text-xs font-medium flex justify-between items-center ${darkMode
+                                              ? "bg-gray-800 text-gray-300 border-b border-gray-700"
+                                              : "bg-gray-100 text-gray-700 border-b border-gray-200"
                                             }`}
                                         >
-                                          {match[1]}
-                                        </div>
-                                        <SyntaxHighlighter
-                                          language={match[1]}
-                                          style={
-                                            darkMode
-                                              ? darkCodeTheme
-                                              : lightCodeTheme
-                                          }
-                                          PreTag="div"
-                                          {...props}
-                                        >
-                                          {String(children).replace(/\n$/, "")}
-                                        </SyntaxHighlighter>
-                                        <button
-                                          onClick={() =>
-                                            handleCopyMessage(
-                                              String(children).replace(
-                                                /\n$/,
-                                                ""
+                                          <span className="flex items-center">
+                                            <span className="mr-2">{match[1]}</span>
+                                            {match[1] === "javascript" && <span className="text-yellow-500">●</span>}
+                                            {match[1] === "python" && <span className="text-blue-500">●</span>}
+                                            {match[1] === "jsx" && <span className="text-cyan-500">●</span>}
+                                            {match[1] === "css" && <span className="text-pink-500">●</span>}
+                                            {match[1] === "html" && <span className="text-orange-500">●</span>}
+                                          </span>
+                                          <button
+                                            onClick={() =>
+                                              handleCopyMessage(
+                                                String(children).replace(
+                                                  /\n$/,
+                                                  ""
+                                                )
                                               )
-                                            )
-                                          }
-                                          className={`absolute bottom-2 right-2 text-xs px-2 py-1 rounded ${darkMode
-                                              ? "bg-gray-600 hover:bg-gray-500"
-                                              : "bg-gray-200 hover:bg-gray-300"
-                                            }`}
-                                        >
-                                          Copy
-                                        </button>
+                                            }
+                                            className={`opacity-0 group-hover:opacity-100 transition-opacity text-xs px-2 py-1 rounded ${darkMode
+                                                ? "bg-gray-700 hover:bg-gray-600 text-gray-300"
+                                                : "bg-gray-200 hover:bg-gray-300 text-gray-700"
+                                              }`}
+                                          >
+                                            <span className="flex items-center">
+                                              <FiCopy className="mr-1" size={12} />
+                                              Copy
+                                            </span>
+                                          </button>
+                                        </div>
+                                        <div className="pt-10 pb-2 px-1">
+                                          <SyntaxHighlighter
+                                            language={match[1]}
+                                            style={
+                                              darkMode
+                                                ? darkCodeTheme
+                                                : lightCodeTheme
+                                            }
+                                            customStyle={{
+                                              margin: 0,
+                                              padding: '0.75rem',
+                                              background: darkMode ? '#1e1e1e' : '#f8f8f8',
+                                              borderRadius: '0',
+                                              fontSize: '0.875rem',
+                                              lineHeight: '1.5',
+                                            }}
+                                            showLineNumbers={true}
+                                            wrapLines={true}
+                                            PreTag="div"
+                                            {...props}
+                                          >
+                                            {String(children).replace(/\n$/, "")}
+                                          </SyntaxHighlighter>
+                                        </div>
                                       </div>
                                     ) : (
                                       <code
                                         className={`${className} ${darkMode
-                                            ? "bg-gray-600"
-                                            : "bg-gray-200"
-                                          } px-1 py-0.5 rounded`}
+                                            ? "bg-gray-700 text-gray-200"
+                                            : "bg-gray-100 text-gray-800"
+                                          } px-1.5 py-0.5 rounded font-mono text-sm`}
                                         {...props}
                                       >
                                         {children}
                                       </code>
+                                    );
+                                  },
+                                  p({ children }) {
+                                    return (
+                                      <p className="mb-4 leading-relaxed">
+                                        {children}
+                                      </p>
+                                    );
+                                  },
+                                  h1({ children }) {
+                                    return (
+                                      <h1 className="text-xl sm:text-2xl font-bold mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+                                        {children}
+                                      </h1>
+                                    );
+                                  },
+                                  h2({ children }) {
+                                    return (
+                                      <h2 className="text-lg sm:text-xl font-semibold mb-3 mt-6">
+                                        {children}
+                                      </h2>
+                                    );
+                                  },
+                                  h3({ children }) {
+                                    return (
+                                      <h3 className="text-md sm:text-lg font-medium mb-3 mt-5">
+                                        {children}
+                                      </h3>
+                                    );
+                                  },
+                                  ul({ children }) {
+                                    return (
+                                      <ul className="list-disc pl-5 mb-4 space-y-2">
+                                        {children}
+                                      </ul>
+                                    );
+                                  },
+                                  ol({ children }) {
+                                    return (
+                                      <ol className="list-decimal pl-5 mb-4 space-y-2">
+                                        {children}
+                                      </ol>
+                                    );
+                                  },
+                                  li({ children }) {
+                                    return (
+                                      <li className="mb-1">
+                                        {children}
+                                      </li>
+                                    );
+                                  },
+                                  blockquote({ children }) {
+                                    return (
+                                      <blockquote className={`border-l-4 ${darkMode ? 'border-indigo-400 bg-gray-800' : 'border-indigo-500 bg-gray-50'} pl-4 py-2 mb-4 italic rounded-r`}>
+                                        {children}
+                                      </blockquote>
+                                    );
+                                  },
+                                  a({ children, href }) {
+                                    return (
+                                      <a 
+                                        href={href} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer" 
+                                        className={`${darkMode ? 'text-indigo-400' : 'text-indigo-600'} hover:underline`}
+                                      >
+                                        {children}
+                                      </a>
+                                    );
+                                  },
+                                  table({ children }) {
+                                    return (
+                                      <div className="overflow-x-auto mb-4">
+                                        <table className={`min-w-full border ${darkMode ? 'border-gray-700' : 'border-gray-200'} rounded-lg`}>
+                                          {children}
+                                        </table>
+                                      </div>
+                                    );
+                                  },
+                                  thead({ children }) {
+                                    return (
+                                      <thead className={`${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                                        {children}
+                                      </thead>
+                                    );
+                                  },
+                                  tbody({ children }) {
+                                    return (
+                                      <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                                        {children}
+                                      </tbody>
+                                    );
+                                  },
+                                  tr({ children }) {
+                                    return (
+                                      <tr>
+                                        {children}
+                                      </tr>
+                                    );
+                                  },
+                                  th({ children }) {
+                                    return (
+                                      <th className="px-4 py-2 text-left text-sm font-medium">
+                                        {children}
+                                      </th>
+                                    );
+                                  },
+                                  td({ children }) {
+                                    return (
+                                      <td className="px-4 py-2 text-sm border-t dark:border-gray-700">
+                                        {children}
+                                      </td>
+                                    );
+                                  },
+                                  hr() {
+                                    return (
+                                      <hr className={`my-6 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`} />
+                                    );
+                                  },
+                                  img({ src, alt }) {
+                                    return (
+                                      <img 
+                                        src={src} 
+                                        alt={alt || 'Image'} 
+                                        className="max-w-full h-auto rounded-lg my-4 shadow-sm"
+                                      />
                                     );
                                   },
                                 }}
