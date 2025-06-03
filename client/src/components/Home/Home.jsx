@@ -778,102 +778,6 @@ const Home = () => {
     },
   });
 
-const items = [ 
-  { 
-    title: 'Evidence-Based Tools', 
-    link: '/loremcreative', 
-    text: `Guided by the latest psychology and neuroscience`, 
-  }, 
-  { 
-    title: 'Safe & Anonymous', 
-    link: '/loremconnect', 
-    text: `No judgments, just safe conversations`, 
-  }, 
-  { 
-    title: 'Real Human Support', 
-    link: '/training', 
-    text: `Kind empathetic listeners (AI-assisted for now)`, 
-  }, 
-  { 
-    title: 'Easy Access', 
-    link: '/training', 
-    text: `Anytime, anywhere, at your pace`, 
-  }, 
-]; 
-
-const InvestmentSupport = () => { 
-  const wrapperRef = useRef(null); 
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('active');
-            entry.target.classList.remove('hidden');
-          } else {
-            entry.target.classList.remove('active');
-            // Optionally add 'hidden' back if you want it to hide when not intersecting
-            // entry.target.classList.add('hidden'); 
-          }
-        });
-      },
-      { threshold: 0.1 } // Trigger when 10% of the element is visible
-    );
-
-    const currentRef = wrapperRef.current;
-
-    if (currentRef) {
-      observer.observe(currentRef);
-      // Set initial state: make it active and visible immediately
-      currentRef.classList.add('active');
-      currentRef.classList.remove('hidden');
-    }
-
-    return () => {
-      if (currentRef) {
-        observer.unobserve(currentRef);
-      }
-    };
-  }, []);
-
-  return ( 
-    <section id="features" className="investment_support"> 
-     <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white dark:text-white mb-10 text-center">
-        Our Features
-      </h2>
-      <div className="container"> 
-        <div className="wrapper" ref={wrapperRef}> 
-          <div className="focus_block"> 
-            <div className="focus_item"></div> 
-            <div className="focus_item"></div> 
-          </div> 
-          <div className="row"> 
-            {items.map((item, index) => ( 
-              <div className="item col-md-6 col-sm-12 col-12" key={index}> 
-                <div className="item_wrap"> 
-                  <div className="head"> 
-                    <h4><span>{item.title}</span></h4> 
-                    <a href={item.link}> 
-                      <img 
-                        src="themes/custom/resibario/images/dark_arrow_right.svg" 
-                        alt="" 
-                      /> 
-                    </a> 
-                  </div> 
-                  <div className="text"> 
-                    <p>{item.text}</p> 
-                  </div> 
-                </div> 
-              </div> 
-            ))} 
-          </div> 
-        </div> 
-      </div> 
-    </section> 
-  ); 
-};
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50 font-sans overflow-x-hidden">
       {/* Navbar has been moved to App.jsx for global use */}
@@ -971,9 +875,6 @@ const InvestmentSupport = () => {
         </div>
       </section>
 
-      {/* Investment Support Section (Moved Here) */}
-      <InvestmentSupport />
-
       {/* Section 2: Common Problems People Face Because of Depression */}
       <motion.section 
         id="common-problems"
@@ -1005,20 +906,14 @@ const InvestmentSupport = () => {
             </motion.p>
           </div>
           <SliderContainer 
-            itemWidth={Math.min(320, window.innerWidth - 48)} // Responsive card width
-            gap={Math.min(24, window.innerWidth * 0.05)} // Responsive gap
-            visibleItems={window.innerWidth < 640 ? 1 : window.innerWidth < 1024 ? 2 : 3} // Responsive visible items
-            autoPlay={true}
-            autoPlayInterval={3000}
-            className="mt-12 mb-8 max-w-[90vw] mx-auto relative" // Constrain width and center
-            showArrows={true}
-            showDots={true}
-            arrowClassName="absolute top-1/2 -translate-y-1/2 z-10 bg-white/80 dark:bg-gray-800/80 p-2 rounded-full shadow-lg hover:bg-white dark:hover:bg-gray-800 transition-all duration-300"
-            leftArrowClassName="-left-4 sm:-left-6"
-            rightArrowClassName="-right-4 sm:-right-6"
-            dotsClassName="mt-6 gap-2"
-            dotClassName="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 transition-all duration-300"
-            activeDotClassName="w-3 h-3 bg-primary-500 dark:bg-primary-400"
+            itemWidth={320} // Slightly wider cards
+            gap={24} // Increased gap
+            visibleItems={3} 
+            autoPlay={true} // Ensure autoplay is enabled
+            autoPlayInterval={1000} // Change interval to 2 seconds
+            className="mt-12 mb-8 mx-auto" // Added margin bottom and centered
+            showArrows={true} 
+            showDots={true} 
           >
             {[...depressionImpactCards, 
               { icon: <FaQuoteLeft className="w-12 h-12 mx-auto text-primary-500 dark:text-primary-400" />, title: "Suicidal Thoughts", description: "Overwhelming feelings that life isn’t worth living. If you are in crisis, please seek immediate professional help.", color: "#22c55e" },
@@ -1032,17 +927,13 @@ const InvestmentSupport = () => {
             ].map((item, idx) => (
               <MagicCard
                 key={idx}
-                className="w-full h-[280px] sm:h-[300px] flex flex-col items-center justify-start text-center p-4 sm:p-6 bg-card dark:bg-card shadow-xl hover:shadow-2xl rounded-2xl border border-border dark:border-border transition-all duration-300 ease-in-out transform hover:-translate-y-1 mx-auto max-w-[320px]"
+                className="w-full h-[260px] flex flex-col items-center justify-start text-center p-6 bg-card dark:bg-card shadow-xl hover:shadow-2xl rounded-2xl border border-border dark:border-border transition-all duration-300 ease-in-out transform hover:-translate-y-1"
                 gradientSize={180}
-                gradientColor={chroma(item.color || '#F3E6AF').alpha(0.15).hex()}
+                gradientColor={chroma(item.color || '#F3E6AF').alpha(0.15).hex()} // Use actual hex codes
               >
-                {item.icon && (
-                  <div className="mb-4 p-3 rounded-full bg-secondary-500/20 dark:bg-secondary-500/30 inline-block transform transition-transform duration-300 group-hover:scale-110">
-                    {React.cloneElement(item.icon, { className: "w-8 h-8 sm:w-10 sm:h-10 text-primary-600 dark:text-primary-300" })}
-                  </div>
-                )}
-                <h4 className="text-lg sm:text-xl font-semibold text-foreground dark:text-foreground mb-2 line-clamp-2">{item.title}</h4>
-                <p className="text-xs sm:text-sm text-foreground/70 dark:text-foreground/60 leading-relaxed px-2 flex-grow overflow-hidden line-clamp-4">{item.description}</p>
+                {item.icon && <div className="mb-4 p-3 rounded-full bg-secondary-500/20 dark:bg-secondary-500/30 inline-block">{React.cloneElement(item.icon, { className: "w-10 h-10 text-primary-600 dark:text-primary-300" })}</div>}
+                <h4 className="text-xl font-semibold text-foreground dark:text-foreground mb-2">{item.title}</h4>
+                <p className="text-sm text-foreground/70 dark:text-foreground/60 leading-relaxed px-2">{item.description}</p>
               </MagicCard>
             ))}
           </SliderContainer>
@@ -1511,6 +1402,7 @@ const InvestmentSupport = () => {
       </section>
 
       {/* Investment Support Section */}
+      <InvestmentSupport />
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white pt-12 sm:pt-16 pb-6 sm:pb-8">
@@ -1678,6 +1570,97 @@ export const Meteors = ({
   );
 };
 
+const items = [ 
+  { 
+    title: 'Evidence-Based Tools', 
+    link: '/loremcreative', 
+    text: `Guided by the latest psychology and neuroscience`, 
+  }, 
+  { 
+    title: 'Safe & Anonymous', 
+    link: '/loremconnect', 
+    text: `No judgments, just safe conversations`, 
+  }, 
+  { 
+    title: 'Real Human Support', 
+    link: '/training', 
+    text: `Kind empathetic listeners (AI-assisted for now)`, 
+  }, 
+  { 
+    title: 'Easy Access', 
+    link: '/training', 
+    text: `Anytime, anywhere, at your pace`, 
+  }, 
+]; 
 
+const InvestmentSupport = () => { 
+  const wrapperRef = useRef(null); 
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+            entry.target.classList.remove('hidden');
+          } else {
+            entry.target.classList.remove('active');
+            // Optionally add 'hidden' back if you want it to hide when not intersecting
+            // entry.target.classList.add('hidden'); 
+          }
+        });
+      },
+      { threshold: 0.1 } // Trigger when 10% of the element is visible
+    );
+
+    const currentRef = wrapperRef.current;
+
+    if (currentRef) {
+      observer.observe(currentRef);
+      // Set initial state: make it active and visible immediately
+      currentRef.classList.add('active');
+      currentRef.classList.remove('hidden');
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, []);
+
+  return ( 
+    <section className="investment_support"> 
+      <div className="container"> 
+        <div className="wrapper" ref={wrapperRef}> 
+          <div className="focus_block"> 
+            <div className="focus_item"></div> 
+            <div className="focus_item"></div> 
+          </div> 
+          <div className="row"> 
+            {items.map((item, index) => ( 
+              <div className="item col-md-6 col-sm-12 col-12" key={index}> 
+                <div className="item_wrap"> 
+                  <div className="head"> 
+                    <h4><span>{item.title}</span></h4> 
+                    <a href={item.link}> 
+                      <img 
+                        src="themes/custom/resibario/images/dark_arrow_right.svg" 
+                        alt="" 
+                      /> 
+                    </a> 
+                  </div> 
+                  <div className="text"> 
+                    <p>{item.text}</p> 
+                  </div> 
+                </div> 
+              </div> 
+            ))} 
+          </div> 
+        </div> 
+      </div> 
+    </section> 
+  ); 
+};
 
 export default Home;
