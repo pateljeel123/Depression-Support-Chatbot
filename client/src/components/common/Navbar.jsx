@@ -121,7 +121,14 @@ const Navbar = () => {
                 <button onClick={() => scrollToSection('stories')} className="text-text-light hover:text-text-dark px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:bg-opacity-50 font-heading">Community</button>
                 <button onClick={() => scrollToSection('resources')} className="text-text-light hover:text-text-dark px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:bg-opacity-50 font-heading">Resources</button>
                 <button onClick={() => scrollToSection('footer-contact')} className="text-text-light hover:text-text-dark px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:bg-opacity-50 font-heading">Contact</button>
-                {isLoggedIn && <NavLink to="/chat" label="AI Chat" />}
+                {isLoggedIn && (
+                  <button
+                    onClick={() => navigate("/chat")}
+                    className="flex items-center px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-hover rounded-button transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50 font-heading"
+                  >
+                    <FaComments className="mr-2" /> AI Chat
+                  </button>
+                )}
               </>
             ) : (
               <>
@@ -129,7 +136,14 @@ const Navbar = () => {
                 <NavLink to="/community" label="Community" />
                 <NavLink to="/resources" label="Resources" />
                 <NavLink to="/contact" label="Contact" />
-                {isLoggedIn && <NavLink to="/chat" label="AI Chat" />}
+                {isLoggedIn && (
+                  <button
+                    onClick={() => navigate("/chat")}
+                    className="flex items-center px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-hover dark:bg-primary-light dark:hover:bg-primary-light/80 rounded-button transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50 font-heading"
+                  >
+                    <FaComments className="mr-2" /> AI Chat
+                  </button>
+                )}
               </>
             )}
           </nav>
