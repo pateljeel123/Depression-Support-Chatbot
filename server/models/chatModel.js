@@ -432,13 +432,13 @@ const extractUserName = (messages) => {
 const trackEmotionalContext = (messages) => {
   // Initialize emotional context
   const emotionalContext = {
-    currentEmotion: "default", // Abhi ka emotion
-    persistentEmotions: new Set(), // Saare unique emotions
-    emotionFirstDetectedAt: {}, // Pehli baar kab aaya
-    emotionLastDetectedAt: {}, // Aakhri baar kab aaya
-    emotionMentionCount: {}, // Kitni baar aaya
-    primaryEmotion: null, // Sabse zyada baar aaya emotion
-    secondaryEmotion: null, // Dusra sabse zyada baar aaya emotion
+    currentEmotion: "default",
+    persistentEmotions: new Set(),
+    emotionFirstDetectedAt: {},
+    emotionLastDetectedAt: {},
+    emotionMentionCount: {},
+    primaryEmotion: null,
+    secondaryEmotion: null,
   };
 
   // Process all user messages to build emotional context
@@ -545,32 +545,32 @@ const trackEmotionalContext = (messages) => {
 /**
  * Detects the Emotional Weather
  * Listens for the subtle climate of the heart
-//   param {Array} messages - The shared words between souls
-//  returns {String} - The name of the emotional season detected
+ * @param {Array} messages - The shared words between souls
+ * @returns {String} - The name of the emotional season detected
  */
 
-// const detectEmotion = (messages) => {
-//   const lastUserMessage = messages.filter((msg) => msg.role === "user").pop();
-//   if (!lastUserMessage) return "default";
+const detectEmotion = (messages) => {
+  const lastUserMessage = messages.filter((msg) => msg.role === "user").pop();
+  if (!lastUserMessage) return "default";
 
-//   const content = lastUserMessage.content.toLowerCase();
+  const content = lastUserMessage.content.toLowerCase();
 
-//   // Check most urgent first
-//   for (const pattern of emotionPatterns.suicidal) {
-//     if (pattern.test(content)) return "suicidal";
-//   }
+  // Check most urgent first
+  for (const pattern of emotionPatterns.suicidal) {
+    if (pattern.test(content)) return "suicidal";
+  }
 
-//   // Listen for other emotional tones
-//   for (const [emotion, patterns] of Object.entries(emotionPatterns)) {
-//     if (emotion === "suicidal") continue;
+  // Listen for other emotional tones
+  for (const [emotion, patterns] of Object.entries(emotionPatterns)) {
+    if (emotion === "suicidal") continue;
 
-//     for (const pattern of patterns) {
-//       if (pattern.test(content)) return emotion;
-//     }
-//   }
+    for (const pattern of patterns) {
+      if (pattern.test(content)) return emotion;
+    }
+  }
 
-//   return "default";
-// };
+  return "default";
+};
 
 /**
  * Sends a Chat Message

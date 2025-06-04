@@ -211,9 +211,7 @@ export default function Chat() {
   const createNewChat = useCallback(() => {
     return {
       id: Date.now().toString(),
-      title: "New Chat",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      title: "New Chat"
     };
   }, []); // Added empty dependency array for useCallback
 
@@ -320,9 +318,34 @@ export default function Chat() {
   // Create a new chat
   const handleNewChat = useCallback(
     async (isInitialSetup = false) => {
+      console.log("handleNewChat called with isInitialSetup:", isInitialSetup);
+      
+      // Check if there's already an empty chat we can use
+      const existingEmptyChat = chats.find(chat => 
+        chat.messages?.length === 0 || 
+        (chat.isTemporary === true && (!chat.messages || chat.messages.length === 0))
+      );
+      
+      if (existingEmptyChat) {
+        console.log("Using existing empty chat:", existingEmptyChat.id);
+        setActiveChat(existingEmptyChat.id);
+        setMessages([]);
+        
+        if (!isInitialSetup) {
+          setInput("");
+          setSidebarOpen(false);
+          setAttachments([]);
+          setAttachmentPreviews([]);
+          playSound("newChat");
+        }
+        
+        return existingEmptyChat;
+      }
+      
       setIsLoading(true);
       let newChatData;
       const localNewChat = createNewChat(); // Create basic structure locally first
+      localNewChat.isTemporary = true; // Mark as temporary/empty
 
       if (userID) {
         try {
@@ -339,6 +362,7 @@ export default function Chat() {
             title: data.session_title,
             createdAt: data.created_at,
             messages: [],
+            isTemporary: true
           };
         } catch (error) {
           console.error("Error creating new chat in Supabase:", error);
@@ -350,7 +374,20 @@ export default function Chat() {
         newChatData = { ...localNewChat, messages: [] };
       }
 
-      setChats((prevChats) => [newChatData, ...prevChats]);
+      setChats((prevChats) => {
+        // Double-check that we don't already have a temporary chat
+        const hasTemporaryChat = prevChats.some(chat => 
+          chat.isTemporary === true && (!chat.messages || chat.messages.length === 0)
+        );
+        
+        if (hasTemporaryChat) {
+          console.log("Found temporary chat during setChats, not creating a new one");
+          return prevChats;
+        }
+        
+        return [newChatData, ...prevChats];
+      });
+      
       setActiveChat(newChatData.id);
       setMessages([]); // New chat starts with no messages displayed
 
@@ -364,22 +401,25 @@ export default function Chat() {
       setIsLoading(false);
       return newChatData; // Return the new chat data for potential chaining
     },
-    [userID, chats, createNewChat, playSound] // Assuming playSound is stable or defined earlier
+    [userID, chats, createNewChat, playSound] // Added chats as dependency
   );
 
   // Helper: Fetch all chat sessions for the current user from Supabase
   const fetchChatsFromSupabase = useCallback(
     async (currentUserID) => {
+      console.log("fetchChatsFromSupabase called for user:", currentUserID);
       setIsLoading(true);
       try {
         const { data: sessions, error: sessionsError } = await supabase
           .from("sessions")
           .select("*")
-          .eq("user_id", currentUserID);
+          .eq("user_id", currentUserID)
+          .order("created_at", { ascending: false });
 
         if (sessionsError) throw sessionsError;
 
         if (sessions && sessions.length > 0) {
+          console.log("Found", sessions.length, "sessions in Supabase");
           const loadedChats = sessions.map((s) => ({
             id: s.id,
             title: s.session_title,
@@ -390,8 +430,15 @@ export default function Chat() {
           setActiveChat(currentActiveChatId);
           await fetchMessagesForChat(currentActiveChatId);
         } else {
-          // No sessions in Supabase, create a new one (will also save to Supabase)
-          await handleNewChat(true); // Pass true for initial setup context
+          console.log("No sessions found in Supabase, checking if we need to create a new chat");
+          // Only create a new chat if there are no chats in the state
+          if (chats.length === 0) {
+            console.log("No chats in state, creating a new one");
+            // No sessions in Supabase, create a new one (will also save to Supabase)
+            await handleNewChat(true); // Pass true for initial setup context
+          } else {
+            console.log("Chats already exist in state, not creating a new one");
+          }
         }
       } catch (error) {
         console.error("Error fetching chats from Supabase:", error);
@@ -404,7 +451,8 @@ export default function Chat() {
     [
       fetchMessagesForChat,
       loadDataFromLocalStorage,
-      handleNewChat // Ensure handleNewChat is stable (e.g., wrapped in useCallback)
+      handleNewChat, // Ensure handleNewChat is stable (e.g., wrapped in useCallback)
+      chats // Added chats as dependency to check its length
     ]
   );
 
@@ -807,8 +855,14 @@ export default function Chat() {
   // Delete a chat
   const handleDeleteChat = async (chatId, e) => {
     e.stopPropagation();
+    console.log("Deleting chat:", chatId);
     const updatedChats = chats.filter((chat) => chat.id !== chatId);
     setChats(updatedChats);
+
+    // If this was the active chat, clear messages immediately
+    if (activeChat === chatId) {
+      setMessages([]);
+    }
 
     if (userID) {
       try {
@@ -817,7 +871,11 @@ export default function Chat() {
           .from('messages')
           .delete()
           .eq('session_id', chatId);
-        if (messagesError) throw messagesError;
+        
+        if (messagesError) {
+          console.error('Error deleting messages from Supabase:', messagesError);
+          // Continue with deletion even if messages deletion fails
+        }
 
         // Then, delete the chat session itself
         const { error: sessionError } = await supabase
@@ -825,16 +883,21 @@ export default function Chat() {
           .delete()
           .eq('id', chatId)
           .eq('user_id', userID);
-        if (sessionError) throw sessionError;
+        
+        if (sessionError) {
+          console.error('Error deleting session from Supabase:', sessionError);
+          // Continue with UI update even if session deletion fails
+        }
 
       } catch (error) {
         console.error('Error deleting chat from Supabase:', error);
-        // Optionally, revert local state changes or notify user
+        // We'll continue with the UI update even if the database deletion fails
       }
     }
 
     if (activeChat === chatId) {
       if (updatedChats.length > 0) {
+        console.log("Setting new active chat after deletion:", updatedChats[0].id);
         setActiveChat(updatedChats[0].id);
         // Fetch messages for the new active chat if not already loaded
         const newActiveChatDetails = updatedChats.find(c => c.id === updatedChats[0].id);
@@ -842,7 +905,13 @@ export default function Chat() {
           fetchMessagesForChat(updatedChats[0].id);
         }
       } else {
-        await handleNewChat(); // Ensure handleNewChat completes if it's async
+        console.log("No chats left after deletion, creating a new one");
+        // Use setTimeout to ensure state updates have completed
+        setTimeout(() => {
+          if (chats.length === 0) {
+            handleNewChat(true); // Create a new chat with initial setup flag
+          }
+        }, 500); // Increased timeout to prevent state conflicts
       }
     }
     playSound("delete");
@@ -1552,7 +1621,6 @@ export default function Chat() {
                           handleSaveEdit={handleSaveEdit}
                           handleDeleteChat={handleDeleteChat}
                           isNewUI={true}
-                          timestamp={chat.createdAt}
                         />
                       ))}
                     </div>
