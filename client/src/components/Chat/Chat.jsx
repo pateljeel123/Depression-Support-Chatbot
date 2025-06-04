@@ -2137,7 +2137,7 @@ export default function Chat() {
                           {message.role === "assistant" && (
                             <span className="flex items-center">
                               <AiOutlineRobot className="mr-1" />
-                              <span className="font-serif">AI Assistant</span>
+                              <span className="font-serif"></span>
                             </span>
                           )}
                         </div>

@@ -551,6 +551,7 @@ const Home = () => {
   const { session, signOut } = useAuth();
   const [showMore, setShowMore] = useState(false);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const [activeWord, setActiveWord] = useState(0); // State for tracking the animated changing word
   const [isHovered, setIsHovered] = useState(false); // This state seems unused, consider removing if not needed for other parts.
   const controls = useAnimation(); // Retained for other potential animations, but hero parallax is handled differently.
   const navigate = useNavigate();
@@ -588,6 +589,15 @@ const Home = () => {
     };
     window.addEventListener("scroll", handleHeroScroll);
     return () => window.removeEventListener("scroll", handleHeroScroll);
+  }, []);
+
+  // Effect for changing words animation
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveWord((prev) => (prev + 1) % 5); // Cycle through 5 words: heart, day, mind, soul, world
+    }, 2000); // Change word every 2 seconds
+    
+    return () => clearInterval(interval);
   }, []);
 
   const testimonials = [
@@ -847,7 +857,7 @@ const Home = () => {
               transition={{ duration: 0.8, delay: 0.2 }}
             >
           <AuroraText
-            text="Your Mental Wellness Matters"
+            text="One message can change a life."
             className="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary/80 to-primary drop-shadow-lg"
             highlightClassName="text-primary"
             animationConfig={{
@@ -856,6 +866,29 @@ const Home = () => {
               transition: { duration: 0.9, delay: 0.2, type: "spring", stiffness: 100, damping: 18 },
             }}
           />
+          
+          {/* Animated changing words */}
+          <motion.div 
+            className="mt-4 flex items-center justify-center lg:justify-start text-xl sm:text-2xl md:text-3xl font-medium text-primary"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+          >
+            <span className="mr-2">One message can change a</span>
+            <AnimatePresence mode="wait">
+              <motion.span
+                key={activeWord}
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -20, opacity: 0 }}
+                transition={{ duration: 0.5 }}
+                className="inline-block font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600"
+              >
+                {["heart", "day", "mind", "soul", "world"][activeWord]}
+              </motion.span>
+            </AnimatePresence>
+            {activeWord === 0 && <FaHeart className="ml-2 text-red-500 animate-pulse" />}
+          </motion.div>
           <motion.p
             className="mt-6 max-w-xl mx-auto lg:mx-0 text-base md:text-lg text-text-light dark:text-text-light leading-relaxed font-body"
             initial={{ opacity: 0, y: 20 }}
@@ -1681,7 +1714,7 @@ const Home = () => {
       </section>
 
       {/* CTA Section has been removed */}
-
+      
       {/* Investment Support Section */}
 
       {/* Footer */}
