@@ -6,6 +6,7 @@ const config = require("../config/config");
  * Carefully crafted to listen for the whispers of the heart
  */
 
+//RegEx (Regular Expression) Pattern Matching
 const emotionPatterns = {
   sadness: [
     /sad|depressed|unhappy|miserable|down|blue|gloomy|heartbroken|hopeless|grief|crying/i,
@@ -196,12 +197,6 @@ These intense feelings can change with proper support. Right now, reaching out f
 };
 
 /**
- * Detects the Emotional Weather
- * Listens for the subtle climate of the heart
- * @param {Array} messages - The shared words between souls
- * @returns {String} - The name of the emotional season detected
- */
-/**
  * Analyzes the user's message style for language, tone, and colloquialisms.
  * @param {string} messageContent - The content of the user's message.
  * @returns {object} - An object containing language, colloquialisms, tone, and speech patterns.
@@ -210,7 +205,7 @@ const analyzeUserMessageStyle = (messageContent) => {
   if (!messageContent) {
     return {
       language: "English", // Default language
-      colloquialisms: [],
+      colloquialisms: [], // non-formal words
       tone: "neutral", // Default tone: neutral, friendly, formal, casual
       speechPatterns: { codeSwitching: "moderate" }, // e.g., for Hinglish
     };
@@ -437,13 +432,13 @@ const extractUserName = (messages) => {
 const trackEmotionalContext = (messages) => {
   // Initialize emotional context
   const emotionalContext = {
-    currentEmotion: "default",
-    persistentEmotions: new Set(),
-    emotionFirstDetectedAt: {},
-    emotionLastDetectedAt: {},
-    emotionMentionCount: {},
-    primaryEmotion: null,
-    secondaryEmotion: null,
+    currentEmotion: "default", // Abhi ka emotion
+    persistentEmotions: new Set(), // Saare unique emotions
+    emotionFirstDetectedAt: {}, // Pehli baar kab aaya
+    emotionLastDetectedAt: {}, // Aakhri baar kab aaya
+    emotionMentionCount: {}, // Kitni baar aaya
+    primaryEmotion: null, // Sabse zyada baar aaya emotion
+    secondaryEmotion: null, // Dusra sabse zyada baar aaya emotion
   };
 
   // Process all user messages to build emotional context
@@ -547,31 +542,38 @@ const trackEmotionalContext = (messages) => {
   return emotionalContext;
 };
 
-const detectEmotion = (messages) => {
-  const lastUserMessage = messages.filter((msg) => msg.role === "user").pop();
-  if (!lastUserMessage) return "default";
+/**
+ * Detects the Emotional Weather
+ * Listens for the subtle climate of the heart
+//   param {Array} messages - The shared words between souls
+//  returns {String} - The name of the emotional season detected
+ */
 
-  const content = lastUserMessage.content.toLowerCase();
+// const detectEmotion = (messages) => {
+//   const lastUserMessage = messages.filter((msg) => msg.role === "user").pop();
+//   if (!lastUserMessage) return "default";
 
-  // Check most urgent first
-  for (const pattern of emotionPatterns.suicidal) {
-    if (pattern.test(content)) return "suicidal";
-  }
+//   const content = lastUserMessage.content.toLowerCase();
 
-  // Listen for other emotional tones
-  for (const [emotion, patterns] of Object.entries(emotionPatterns)) {
-    if (emotion === "suicidal") continue;
+//   // Check most urgent first
+//   for (const pattern of emotionPatterns.suicidal) {
+//     if (pattern.test(content)) return "suicidal";
+//   }
 
-    for (const pattern of patterns) {
-      if (pattern.test(content)) return emotion;
-    }
-  }
+//   // Listen for other emotional tones
+//   for (const [emotion, patterns] of Object.entries(emotionPatterns)) {
+//     if (emotion === "suicidal") continue;
 
-  return "default";
-};
+//     for (const pattern of patterns) {
+//       if (pattern.test(content)) return emotion;
+//     }
+//   }
+
+//   return "default";
+// };
 
 /**
- * Sends a Chat Message 
+ * Sends a Chat Message
  * A bridge between hearts and AI wisdom
  * @param {Array} messages - The conversation's tapestry
  * @returns {Object} - The API's thoughtful response
