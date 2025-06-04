@@ -256,14 +256,14 @@ const SliderContainer = ({
       
       {/* Dots navigation */}
       {showDots && totalItems > responsiveVisibleItems && (
-        <div className="flex justify-center mt-4 space-x-2">
+        <div className="flex justify-center mt-4 space-x-3">
           {Array.from({ length: Math.ceil((maxIndex + 1) / responsiveVisibleItems) }).map((_, idx) => {
             const dotIndex = idx * responsiveVisibleItems;
             return (
               <button
                 key={idx}
                 onClick={() => goToSlide(dotIndex)}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${currentIndex === dotIndex ? 'bg-primary scale-125' : 'bg-muted hover:bg-primary/50'}`}
+                className={`w-2 h-2 rounded-full transition-all duration-300 border border-blue-300 dark:border-blue-500 ${currentIndex === dotIndex ? 'bg-primary scale-110 shadow-md' : 'bg-gray-200 dark:bg-gray-700 hover:bg-blue-200 dark:hover:bg-blue-900'}`}
                 aria-label={`Go to slide ${idx + 1}`}
               />
             );

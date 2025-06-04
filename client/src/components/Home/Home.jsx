@@ -415,7 +415,7 @@ export const AnimatedTestimonials = () => {
 
   return (
     <div 
-      className="relative flex flex-col items-center justify-center w-full h-[20rem] md:h-[24rem] lg:h-[28rem] overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 p-3 md:p-6 shadow-xl"
+      className="relative flex flex-col items-center justify-center w-full h-[15rem] md:h-[18rem] lg:h-[20rem] overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 p-3 md:p-6 shadow-xl"
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
@@ -475,7 +475,78 @@ const FeatureIcon = ({ icon, color }) => {
   );
 };
 
-// AnimatedTooltip Component has been removed
+// Aceternity UI AnimatedTooltip Component
+export const AnimatedTooltip = ({ items }) => {
+  const [hoveredIndex, setHoveredIndex] = React.useState(null);
+  const springConfig = { stiffness: 100, damping: 5 };
+  const x = useMotionValue(0);
+  const rotate = useSpring(
+    useTransform(x, [-100, 100], [-45, 45]),
+    springConfig
+  );
+  const translateX = useSpring(
+    useTransform(x, [-100, 100], [-50, 50]),
+    springConfig
+  );
+  const handleMouseMove = (event) => {
+    const halfWidth = event.target.offsetWidth / 2;
+    x.set(event.nativeEvent.offsetX - halfWidth);
+  };
+
+  return (
+    <>
+      {items.map((item) => (
+        <div
+          className="-mr-4 relative group"
+          key={item.id} 
+          onMouseEnter={() => setHoveredIndex(item.id)}
+          onMouseLeave={() => setHoveredIndex(null)}
+          onClick={item.onClick} 
+          style={{ cursor: item.onClick ? 'pointer' : 'default' }} 
+        >
+          <AnimatePresence mode="popLayout">
+            {hoveredIndex === item.id && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.6 }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                  scale: 1,
+                  transition: {
+                    type: "spring",
+                    stiffness: 260,
+                    damping: 10,
+                  },
+                }}
+                exit={{ opacity: 0, y: 20, scale: 0.6 }}
+                style={{
+                  translateX: translateX,
+                  rotate: rotate,
+                  whiteSpace: "nowrap",
+                }}
+                className="absolute -top-16 -left-1/2 translate-x-1/2 flex text-xs flex-col items-center justify-center rounded-md bg-black z-50 shadow-xl px-4 py-2"
+              >
+                <div className="absolute inset-x-10 z-30 w-[20%] -bottom-px bg-gradient-to-r from-transparent via-emerald-500 to-transparent h-px " />
+                <div className="absolute left-10 w-[40%] z-30 -bottom-px bg-gradient-to-r from-transparent via-sky-500 to-transparent h-px " />
+                <div className="font-bold text-white relative z-30 text-base">
+                  {item.name}
+                </div>
+                <div className="text-white text-xs">{item.designation}</div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <img
+            onMouseMove={handleMouseMove}
+            src={item.image}
+            alt={item.name}
+            className="object-cover !m-0 !p-0 object-top rounded-full h-14 w-14 border-2 group-hover:scale-105 group-hover:z-30 border-white relative transition duration-500"
+          />
+        </div>
+      ))}
+    </>
+  );
+};
+// End of AnimatedTooltip Component
 const Home = () => {
   const { session, signOut } = useAuth();
   const [showMore, setShowMore] = useState(false);
@@ -666,7 +737,21 @@ const Home = () => {
               Learn More <FaArrowRight className="inline ml-2" />
             </motion.button>
           </motion.div>
-          {/* Image section removed */}
+          {/* Image/Visual Placeholder */}
+          <motion.div 
+            className={`md:w-1/2 w-full h-64 sm:h-80 md:h-96 mt-8 md:mt-0 rounded-xl shadow-card overflow-hidden group relative bg-background-dark ${index % 2 === 0 ? 'md:order-1' : 'md:order-2'}`}
+            variants={imageVariants}
+          >
+            <img 
+              src={`https://source.unsplash.com/random/800x600?${feature.title.split(' ')[0].toLowerCase()}&sig=${index}`}
+              alt={feature.title}
+              className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+            <div className="absolute bottom-4 left-4 p-3 bg-primary/60 rounded-xl">
+              {React.cloneElement(feature.icon, { className: "h-10 w-10 text-white opacity-90" })}
+            </div>
+          </motion.div>
         </motion.div>
       </MagicCard>
     );
@@ -732,7 +817,7 @@ const Home = () => {
       {/* Hero Section */}
       <section
         id="home"
-        className="relative pt-24 py-20 sm:py-28 md:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden isolate bg-background dark:bg-background-dark"
+        className="relative pt-24 py-20 sm:py-28 md:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden isolate bg-background/80 dark:bg-background-dark/90 shadow-md border-b border-border/40 backdrop-blur-lg"
       >
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
@@ -809,7 +894,7 @@ const Home = () => {
       {/* Section 2: Common Problems People Face Because of Depression */}
       <motion.section 
         id="common-problems"
-        className="py-20 bg-background-alt dark:bg-background-dark"
+        className="py-20 bg-background/80 dark:bg-background-dark/90 shadow-md border-b border-border/40 backdrop-blur-lg"
         initial={{ opacity: 0}}
         whileInView={{ opacity: 1}}
         viewport={{ once: true, amount: 0.2 }}
@@ -863,9 +948,15 @@ const Home = () => {
                 gradientColor={chroma(item.color || '#F3E6AF').alpha(0.15).hex()}
               >
                 <div className="flex flex-col items-center justify-center p-6 text-center">
+<<<<<<< HEAD
                   {/* Icon Circle (replaced profile image) */}
                   <div className="w-16 h-16 mb-4 rounded-full border-2 border-red-500 shadow-md bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
                     {item.icon && React.cloneElement(item.icon, { className: "w-8 h-8 text-primary-600 dark:text-primary-300" })}
+=======
+                  {/* Profile Image Circle */}
+                  <div className="w-24 h-24 mb-4 rounded-full overflow-hidden border-4 border-white dark:border-gray-800 shadow-md bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
+                    {item.icon && React.cloneElement(item.icon, { className: "w-12 h-12 text-primary-600 dark:text-primary-300" })}
+>>>>>>> 405b708a50bcd987c99b9409f7e3a0100d1fcf06
                   </div>
                   
                   {/* Name/Title */}
@@ -920,7 +1011,7 @@ const Home = () => {
       {/* Section 3: Why This Platform? */}
       <motion.section
         id="why-platform"
-        className="py-20 bg-background dark:bg-background-dark overflow-hidden"
+        className="py-20 bg-background/80 dark:bg-background-dark/90 shadow-md border-b border-border/40 backdrop-blur-lg overflow-hidden"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true, amount: 0.2 }}
@@ -1061,7 +1152,7 @@ const Home = () => {
               { icon: "🧠", title: "Evidence-Based", description: "Guided by the latest psychology and neuroscience", color: "#6366F1", direction: "left" },
               { icon: "💬", title: "Safe & Anonymous", description: "No judgments, just safe conversations", color: "#10B981", direction: "right" },
               { icon: "👂", title: "Human Support", description: "Kind empathetic listeners (AI-assisted for now)", color: "#0EA5E9", direction: "left" },
-              { icon: "📱", title: "Easy Access", description: "Anytime, anywhere, at your pace", color: "#F59E0B", direction: "right" },
+              { icon: "📱", title: "Easy Access", description: "Access your content anytime, anywhere, and learn at your own pace with complete flexibility.", color: "#F59E0B", direction: "right" },
             ].map((reason, index) => (
               <div key={index} className="card-container">
                 <div 
@@ -1109,7 +1200,7 @@ const Home = () => {
       {/* Section 4: What You Can Do Here */}
       <motion.section 
         id="what-to-do"
-        className="py-20 bg-white dark:bg-slate-900"
+        className="py-20 bg-background/80 dark:bg-background-dark/90 shadow-md border-b border-border/40 backdrop-blur-lg"
         initial={{ opacity: 0}}
         whileInView={{ opacity: 1}}
         viewport={{ once: true, amount: 0.2 }}
@@ -1191,7 +1282,7 @@ const Home = () => {
     <section 
       id="features" 
       ref={featuresRef} 
-      className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-50 to-gray-100 dark:from-neutral-800 dark:to-neutral-900 overflow-hidden"
+      className="py-20 px-4 sm:px-6 lg:px-8 bg-background/80 dark:bg-background-dark/90 shadow-md border-b border-border/40 backdrop-blur-lg overflow-hidden"
     >
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
@@ -1502,14 +1593,14 @@ const Home = () => {
           </motion.div>
 
           <SliderContainer 
-            itemWidth={350} // Further reduced card width for better mobile fit
-            gap={16} // Further reduced gap between items for mobile view
+            itemWidth={350} 
+            gap={24} 
             visibleItems={3} 
-            autoPlay={true} // Ensure autoplay is enabled
-            autoPlayInterval={3000} // 3 seconds interval
-            className="mt-12 mb-8 mx-auto max-w-full sm:max-w-[90%] md:max-w-[95%] lg:max-w-full" // Improved responsive width control
-            showArrows={true} 
-            showDots={true} 
+            autoPlay={true} 
+            autoPlayInterval={3000}
+            className="mt-10 sm:mt-12 md:mt-16"
+            showArrows={true}
+            showDots={true}
           >
             {[
               {
@@ -1542,7 +1633,7 @@ const Home = () => {
               {
                 icon: <GiMeditation className="text-purple-400 dark:text-purple-300" />,
                 title: "Mindfulness Tools",
-                description: "Guided meditations and exercises to calm your mind. Build daily habits that support inner peace and emotional balance.",
+                description: "Guided meditations and exercises to calm your mind.",
                 color: "#a855f7", // Purple
                 buttonText: "Practice Mindfulness",
                 buttonAction: () => navigate('/mindfulness'), // Assuming a route
@@ -1565,8 +1656,8 @@ const Home = () => {
                 gradientColor={chroma(resource.color).alpha(0.15).hex()}
               >
                 <div className="flex flex-col items-center justify-center p-6 text-center">
-                  {/* Icon Circle (replaced profile image) */}
-                  <div className="w-24 h-24 mb-4 rounded-full border-4 border-white dark:border-gray-800 shadow-md bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
+                  {/* Profile Image Circle */}
+                  <div className="w-24 h-24 mb-4 rounded-full overflow-hidden border-4 border-white dark:border-gray-800 shadow-md bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
                     {resource.icon && React.cloneElement(resource.icon, { className: "w-12 h-12 text-primary-600 dark:text-primary-300" })}
                   </div>
                   
@@ -1596,7 +1687,7 @@ const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-r from-indigo-500 to-purple-600 text-white relative overflow-hidden">
+      <section className="py-12 sm:py-16 md:py-20 bg-background/80 dark:bg-background-dark/90 shadow-md border-b border-border/40 backdrop-blur-lg text-text-dark dark:text-text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0 bg-gradient-to-br from-white via-transparent to-transparent opacity-20"></div>
         </div>
@@ -1654,7 +1745,7 @@ const Home = () => {
       <InvestmentSupport />
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white pt-12 sm:pt-16 pb-6 sm:pb-8">
+      <footer className="bg-background/80 dark:bg-background-dark/90 shadow-md border-b border-border/40 backdrop-blur-lg text-text-dark dark:text-text-white pt-12 sm:pt-16 pb-6 sm:pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-10">
             {/* Logo and description */}
@@ -1665,10 +1756,10 @@ const Home = () => {
               transition={{ duration: 0.8 }}
             >
               <div className="flex items-center">
-                <FaLeaf className="h-8 w-8 text-indigo-400" />
+                <FaLeaf className="h-8 w-8 text-blue-400" />
                 <span className="ml-2 text-xl font-bold">MindCare</span>
               </div>
-              <p className="mt-4 text-gray-400">
+              <p className="mt-4 text-gray-500">
                 A compassionate mental health support platform powered by AI and
                 human understanding.
               </p>
@@ -1678,7 +1769,7 @@ const Home = () => {
                     <motion.a
                       key={i}
                       href="#"
-                      className="text-gray-400 hover:text-indigo-400"
+                      className="text-gray-500 hover:text-blue-400"
                       whileHover={{ y: -3, scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
                     >
@@ -1702,7 +1793,7 @@ const Home = () => {
                   <motion.li key={i} whileHover={{ x: 5 }}>
                     <a
                       href={`#${item.toLowerCase()}`}
-                      className="text-gray-400 hover:text-indigo-400"
+                      className="text-gray-500 hover:text-indigo-400"
                     >
                       {item}
                     </a>
@@ -1727,7 +1818,7 @@ const Home = () => {
                   "Terms of Service",
                 ].map((item, i) => (
                   <motion.li key={i} whileHover={{ x: 5 }}>
-                    <a href="#" className="text-gray-400 hover:text-indigo-400">
+                    <a href="#" className="text-gray-500 hover:text-indigo-400">
                       {item}
                     </a>
                   </motion.li>
@@ -1743,7 +1834,7 @@ const Home = () => {
               transition={{ delay: 0.3, duration: 0.8 }}
             >
               <h3 className="text-lg font-semibold">Stay Updated</h3>
-              <p className="mt-4 text-gray-400">
+              <p className="mt-4 text-gray-500">
                 Subscribe to our newsletter for mental health tips and updates.
               </p>
               <div className="mt-4 flex">
@@ -1754,7 +1845,7 @@ const Home = () => {
                 />
                 <motion.button
                   onClick={() => console.log('Newsletter subscribe clicked:', document.querySelector('input[type="email"]').value)}
-                  className="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-r-lg"
+                  className="bg-blue-400 hover:bg-blue-500 text-white px-4 py-2 rounded-r-lg"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -1766,7 +1857,7 @@ const Home = () => {
 
           {/* Copyright */}
           <motion.div
-            className="mt-12 sm:mt-16 pt-6 sm:pt-8 border-t border-gray-800 text-center text-gray-400"
+            className="mt-12 sm:mt-16 pt-6 sm:pt-8 border-t border-gray-800 text-center text-gray-500"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -1907,7 +1998,7 @@ const InvestmentSupport = () => {
   }, []);
 
   return ( 
-    <section className="investment_support"> 
+    <section className="investment_support bg-background/80 dark:bg-background-dark/90 shadow-md border-b border-border/40 backdrop-blur-lg"> 
       <div className="container"> 
         <div className="wrapper" ref={wrapperRef}> 
           <div className="focus_block"> 
@@ -1921,7 +2012,10 @@ const InvestmentSupport = () => {
                   <div className="head"> 
                     <h4><span>{item.title}</span></h4> 
                     <a href={item.link}> 
-                      <FaArrowRight className="w-5 h-5" />
+                      <img 
+                        src="themes/custom/resibario/images/dark_arrow_right.svg" 
+                        alt="" 
+                      /> 
                     </a> 
                   </div> 
                   <div className="text"> 
