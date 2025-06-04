@@ -472,78 +472,7 @@ const FeatureIcon = ({ icon, color }) => {
   );
 };
 
-// Aceternity UI AnimatedTooltip Component
-export const AnimatedTooltip = ({ items }) => {
-  const [hoveredIndex, setHoveredIndex] = React.useState(null);
-  const springConfig = { stiffness: 100, damping: 5 };
-  const x = useMotionValue(0);
-  const rotate = useSpring(
-    useTransform(x, [-100, 100], [-45, 45]),
-    springConfig
-  );
-  const translateX = useSpring(
-    useTransform(x, [-100, 100], [-50, 50]),
-    springConfig
-  );
-  const handleMouseMove = (event) => {
-    const halfWidth = event.target.offsetWidth / 2;
-    x.set(event.nativeEvent.offsetX - halfWidth);
-  };
-
-  return (
-    <>
-      {items.map((item) => (
-        <div
-          className="-mr-4 relative group"
-          key={item.id} 
-          onMouseEnter={() => setHoveredIndex(item.id)}
-          onMouseLeave={() => setHoveredIndex(null)}
-          onClick={item.onClick} 
-          style={{ cursor: item.onClick ? 'pointer' : 'default' }} 
-        >
-          <AnimatePresence mode="popLayout">
-            {hoveredIndex === item.id && (
-              <motion.div
-                initial={{ opacity: 0, y: 20, scale: 0.6 }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                  scale: 1,
-                  transition: {
-                    type: "spring",
-                    stiffness: 260,
-                    damping: 10,
-                  },
-                }}
-                exit={{ opacity: 0, y: 20, scale: 0.6 }}
-                style={{
-                  translateX: translateX,
-                  rotate: rotate,
-                  whiteSpace: "nowrap",
-                }}
-                className="absolute -top-16 -left-1/2 translate-x-1/2 flex text-xs flex-col items-center justify-center rounded-md bg-black z-50 shadow-xl px-4 py-2"
-              >
-                <div className="absolute inset-x-10 z-30 w-[20%] -bottom-px bg-gradient-to-r from-transparent via-emerald-500 to-transparent h-px " />
-                <div className="absolute left-10 w-[40%] z-30 -bottom-px bg-gradient-to-r from-transparent via-sky-500 to-transparent h-px " />
-                <div className="font-bold text-white relative z-30 text-base">
-                  {item.name}
-                </div>
-                <div className="text-white text-xs">{item.designation}</div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <img
-            onMouseMove={handleMouseMove}
-            src={item.image}
-            alt={item.name}
-            className="object-cover !m-0 !p-0 object-top rounded-full h-14 w-14 border-2 group-hover:scale-105 group-hover:z-30 border-white relative transition duration-500"
-          />
-        </div>
-      ))}
-    </>
-  );
-};
-// End of AnimatedTooltip Component
+// AnimatedTooltip Component has been removed
 const Home = () => {
   const { session, signOut } = useAuth();
   const [showMore, setShowMore] = useState(false);
@@ -734,21 +663,7 @@ const Home = () => {
               Learn More <FaArrowRight className="inline ml-2" />
             </motion.button>
           </motion.div>
-          {/* Image/Visual Placeholder */}
-          <motion.div 
-            className={`md:w-1/2 w-full h-64 sm:h-80 md:h-96 mt-8 md:mt-0 rounded-xl shadow-card overflow-hidden group relative bg-background-dark ${index % 2 === 0 ? 'md:order-1' : 'md:order-2'}`}
-            variants={imageVariants}
-          >
-            <img 
-              src={`https://source.unsplash.com/random/800x600?${feature.title.split(' ')[0].toLowerCase()}&sig=${index}`}
-              alt={feature.title}
-              className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
-            <div className="absolute bottom-4 left-4 p-3 bg-primary/60 rounded-xl">
-              {React.cloneElement(feature.icon, { className: "h-10 w-10 text-white opacity-90" })}
-            </div>
-          </motion.div>
+          {/* Image section removed */}
         </motion.div>
       </MagicCard>
     );
@@ -1010,8 +925,8 @@ const Home = () => {
                 gradientColor={chroma(item.color || '#F3E6AF').alpha(0.15).hex()}
               >
                 <div className="flex flex-col items-center justify-center p-6 text-center">
-                  {/* Profile Image Circle */}
-                  <div className="w-24 h-24 mb-4 rounded-full overflow-hidden border-4 border-white dark:border-gray-800 shadow-md bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
+                  {/* Icon Circle (replaced profile image) */}
+                  <div className="w-24 h-24 mb-4 rounded-full border-4 border-white dark:border-gray-800 shadow-md bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
                     {item.icon && React.cloneElement(item.icon, { className: "w-12 h-12 text-primary-600 dark:text-primary-300" })}
                   </div>
                   
@@ -1701,8 +1616,8 @@ const Home = () => {
                 gradientColor={chroma(resource.color).alpha(0.15).hex()}
               >
                 <div className="flex flex-col items-center justify-center p-6 text-center">
-                  {/* Profile Image Circle */}
-                  <div className="w-24 h-24 mb-4 rounded-full overflow-hidden border-4 border-white dark:border-gray-800 shadow-md bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
+                  {/* Icon Circle (replaced profile image) */}
+                  <div className="w-24 h-24 mb-4 rounded-full border-4 border-white dark:border-gray-800 shadow-md bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
                     {resource.icon && React.cloneElement(resource.icon, { className: "w-12 h-12 text-primary-600 dark:text-primary-300" })}
                   </div>
                   
@@ -2057,10 +1972,7 @@ const InvestmentSupport = () => {
                   <div className="head"> 
                     <h4><span>{item.title}</span></h4> 
                     <a href={item.link}> 
-                      <img 
-                        src="themes/custom/resibario/images/dark_arrow_right.svg" 
-                        alt="" 
-                      /> 
+                      <FaArrowRight className="w-5 h-5" />
                     </a> 
                   </div> 
                   <div className="text"> 

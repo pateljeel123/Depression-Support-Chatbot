@@ -84,12 +84,13 @@ export default function Chat() {
   const animationFrameIdRef = useRef(null);
   const [isHistoryExpanded, setIsHistoryExpanded] = useState(true); // For chat history toggle
 
-  // Effect to hide scrollbars globally
+  // Effect to hide scrollbars globally and set fonts
   useEffect(() => {
     const style = document.createElement('style');
     style.innerHTML = `
       body, html {
         overflow: hidden !important;
+        font-family: 'Poppins', sans-serif !important;
       }
       ::-webkit-scrollbar {
         display: none !important; /* For Webkit browsers */
@@ -98,6 +99,18 @@ export default function Chat() {
         scrollbar-width: none; /* For Firefox */
         -ms-overflow-style: none; /* For IE and Edge */
       }
+      .chat-container, .chat-message, .chat-input, .message-content, .sidebar-content {
+        font-family: 'Poppins', sans-serif !important;
+      }
+      .message-content, .prose p, .prose li, .prose code, .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+        font-family: 'Poppins', sans-serif !important;
+        font-size: 1.1rem !important;
+        line-height: 1.6 !important;
+      }
+      .chat-input {
+        font-size: 1.05rem !important;
+      }
+      }
     `;
     document.head.appendChild(style);
 
@@ -105,6 +118,24 @@ export default function Chat() {
     return () => {
       document.head.removeChild(style);
     };
+  }, []); // Empty dependency array ensures this runs only once on mount
+ 
+  // Effect to handle responsive sidebar behavior
+  useEffect(() => {
+    const handleResize = () => {
+      // Desktop: >= 1024px (open by default)
+      // Tablet/Mobile: < 1024px (closed by default)
+      setSidebarOpen(window.innerWidth >= 1024);
+    };
+   
+    // Set initial state based on screen size
+    handleResize();
+   
+    // Add event listener for window resize
+    window.addEventListener('resize', handleResize);
+   
+    // Cleanup
+    return () => window.removeEventListener('resize', handleResize);
   }, []); // Empty dependency array ensures this runs only once on mount
 
   const handleClearCurrentChat = () => {
@@ -1424,7 +1455,7 @@ export default function Chat() {
 
         {/* Sidebar */}
         <AnimatePresence>
-          {(sidebarOpen || window.innerWidth >= 768) && (
+          {sidebarOpen && (
             <motion.div
               initial={{ x: -300 }}
               animate={{ x: 0 }}
@@ -1465,7 +1496,7 @@ export default function Chat() {
                     />
                   </div>
                 </div>
-                
+               
                 {/* Scrollable Chat History Section */}
                 <div className="px-4 flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
                   <div className="flex items-center justify-between px-1 mb-2">
@@ -1500,7 +1531,7 @@ export default function Chat() {
                     </div>
                   )}
                 </div>
-                
+               
                 {/* Fixed Footer Navigation */}
                 <div className={`mt-auto p-3 border-t ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
                   <nav className="space-y-1 mb-3">
@@ -1532,47 +1563,77 @@ export default function Chat() {
         {/* Main chat area */}
         <div className="flex-1 flex flex-col h-full overflow-hidden w-full">
           {/* Header */}
-          <header
-            className={`p-4 flex items-center justify-between border-b shadow-sm ${
+          <motion.header
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className={`p-3.5 flex items-center justify-between border-b ${
               darkMode
-                ? "border-gray-700 bg-gray-800 text-white" 
-                : "border-gray-200 bg-white text-gray-800"
-              }`}
+                ? "border-gray-700 bg-gradient-to-r from-gray-800 via-gray-750 to-gray-800"
+                : "border-gray-200 bg-gradient-to-r from-white via-gray-50 to-white"
+              } shadow-md`}
           >
             <div className="flex items-center">
-              <button // Hamburger menu to toggle sidebar
+              <motion.button 
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.9 }}
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className={`p-2 rounded-full transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-700" : "text-gray-600 hover:bg-gray-100"
-                  }`}
+                className={`p-2 rounded-full transition-all duration-200 ${darkMode 
+                  ? "text-gray-300 hover:bg-gray-700 hover:text-indigo-300" 
+                  : "text-gray-600 hover:bg-gray-100 hover:text-indigo-600"
+                }`}
               >
                 <FiMenu size={22} />
-              </button>
-              <h1 className="ml-2.5 text-md font-semibold flex items-center text-gray-900 dark:text-gray-100">
-                {/* Optional: Icon for NiveshPath AI, e.g., <RiRobot2Line className="mr-2" /> */}
-                MindCare {/* Static title from image */}
-              </h1>
+              </motion.button>
+              <motion.h3 
+                className="ml-3 text-lg font-bold flex items-center"
+                whileHover={{ scale: 1.03 }}
+              >
+                <motion.div
+                  initial={{ rotate: 0 }}
+                  animate={{ rotate: [0, 10, -10, 0] }}
+                  transition={{ duration: 1, repeat: Infinity, repeatDelay: 5 }}
+                  className={`mr-2 p-1.5 rounded-full ${darkMode ? "bg-gray-700" : "bg-indigo-50"}`}
+                >
+                  <RiRobot2Line className="text-indigo-500" size={22} />
+                </motion.div>
+                <span className={`bg-clip-text text-transparent bg-gradient-to-r ${darkMode 
+                  ? "from-indigo-400 to-purple-400" 
+                  : "from-indigo-600 to-purple-600"}`}>
+                  MindCare
+                </span>
+              </motion.h3>
             </div>
             <div className="flex items-center space-x-3">
-              <span className={`text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
-                {userPreferences.username || "Bertha Roy"} {/* User name */}
-              </span>
-              <button
-                onClick={handleClearCurrentChat}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${darkMode
-                    ? "border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-gray-200"
-                    : "border-gray-300 text-gray-600 hover:bg-gray-100 hover:text-gray-800"
-                  }`}
+              <motion.span 
+                whileHover={{ scale: 1.05 }}
+                className={`text-sm font-medium px-3 py-1 rounded-full ${darkMode 
+                  ? "bg-gray-700 text-gray-200" 
+                  : "bg-gray-100 text-gray-700"}`}
               >
-                Clear
-              </button>
+                {userPreferences.username || "Bertha Roy"}
+              </motion.span>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleClearCurrentChat}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium border shadow-sm transition-all duration-200 ${darkMode
+                  ? "border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-gray-200 hover:border-gray-500"
+                  : "border-gray-300 text-gray-600 hover:bg-gray-100 hover:text-gray-800 hover:border-gray-400"
+                }`}
+              >
+                <span className="flex items-center">
+                  <FiTrash2 className="mr-1" size={14} />
+                  Clear
+                </span>
+              </motion.button>
             </div>
-          </header>
+          </motion.header>
 
           {/* Messages */}
           <div
             className={`flex-1 overflow-y-auto ${darkMode ? "bg-gray-900" : "bg-gray-50"
-              } px-3 sm:px-6 py-4`}
-            ref={messagesEndRef}
+              } px-2 sm:px-4`}
           >
             {messages.length === 0 ? (
               <WelcomePage darkMode={darkMode} setInput={setInput} />
@@ -1581,12 +1642,10 @@ export default function Chat() {
                 {Object.entries(groupedMessages).map(([date, dateMessages]) => (
                   <div key={date} className="mb-6">
                     <div
-                      className={`text-center mb-6 text-sm ${darkMode ? "text-gray-400" : "text-gray-500"
+                      className={`text-center mb-4 text-sm ${darkMode ? "text-gray-400" : "text-gray-500"
                         }`}
                     >
-                      <span className={`px-4 py-1 rounded-full ${darkMode ? "bg-gray-800" : "bg-gray-100"}`}>
-                        {formatDate(dateMessages[0].timestamp)}
-                      </span>
+                      {formatDate(dateMessages[0].timestamp)}
                     </div>
                     {dateMessages.map((message) => (
                       <motion.div
@@ -1597,16 +1656,16 @@ export default function Chat() {
                         className={`flex ${message.role === "user"
                             ? "justify-end"
                             : "justify-start"
-                          } mb-6 sm:mb-8`}
+                          } mb-4`}
                       >
                         <div
-                          className={`max-w-[85%] sm:max-w-[75%] md:max-w-[65%] rounded-lg p-3 sm:p-4 relative group ${message.role === "user"
+                          className={`max-w-full sm:max-w-3xl rounded-lg p-4 sm:p-5 relative group ${message.role === "user"
                               ? darkMode
-                                ? "bg-indigo-600 text-white"
-                                : "bg-indigo-500 text-white"
+                                ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md"
+                                : "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md"
                               : darkMode
-                                ? "bg-gray-700 text-gray-100"
-                                : "bg-white border border-gray-200 shadow-sm text-gray-800"
+                                ? "bg-gray-800 border border-gray-700 shadow-md"
+                                : "bg-white border border-gray-200 shadow-sm"
                             }`}
                         >
                           <div className="absolute top-1 right-1 flex opacity-0 group-hover:opacity-100 transition-opacity items-center z-10">
@@ -1801,67 +1860,68 @@ export default function Chat() {
                                   },
                                   p({ children }) {
                                     return (
-                                      <p className="mb-4 leading-relaxed">
+                                      <p className="mb-4 leading-relaxed font-poppins" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.1rem' }}>
                                         {children}
                                       </p>
                                     );
                                   },
                                   h1({ children }) {
                                     return (
-                                      <h1 className="text-xl sm:text-2xl font-bold mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+                                      <h1 className="text-xl sm:text-2xl font-bold mb-4 pb-2 border-b border-gray-200 dark:border-gray-700 font-poppins" style={{ fontFamily: 'Poppins, sans-serif' }}>
                                         {children}
                                       </h1>
                                     );
                                   },
                                   h2({ children }) {
                                     return (
-                                      <h2 className="text-lg sm:text-xl font-semibold mb-3 mt-6">
+                                      <h2 className="text-lg sm:text-xl font-semibold mb-3 mt-6 font-poppins" style={{ fontFamily: 'Poppins, sans-serif' }}>
                                         {children}
                                       </h2>
                                     );
                                   },
                                   h3({ children }) {
                                     return (
-                                      <h3 className="text-md sm:text-lg font-medium mb-3 mt-5">
+                                      <h3 className="text-md sm:text-lg font-medium mb-3 mt-5 font-poppins" style={{ fontFamily: 'Poppins, sans-serif' }}>
                                         {children}
                                       </h3>
                                     );
                                   },
                                   ul({ children }) {
                                     return (
-                                      <ul className="list-disc pl-5 mb-4 space-y-2">
+                                      <ul className="list-disc pl-5 mb-4 space-y-2 font-poppins" style={{ fontFamily: 'Poppins, sans-serif' }}>
                                         {children}
                                       </ul>
                                     );
                                   },
                                   ol({ children }) {
                                     return (
-                                      <ol className="list-decimal pl-5 mb-4 space-y-2">
+                                      <ol className="list-decimal pl-5 mb-4 space-y-2 font-poppins" style={{ fontFamily: 'Poppins, sans-serif' }}>
                                         {children}
                                       </ol>
                                     );
                                   },
                                   li({ children }) {
                                     return (
-                                      <li className="mb-1">
+                                      <li className="mb-1 font-poppins" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.1rem' }}>
                                         {children}
                                       </li>
                                     );
                                   },
                                   blockquote({ children }) {
                                     return (
-                                      <blockquote className={`border-l-4 ${darkMode ? 'border-indigo-400 bg-gray-800' : 'border-indigo-500 bg-gray-50'} pl-4 py-2 mb-4 italic rounded-r`}>
+                                      <blockquote className={`border-l-4 ${darkMode ? 'border-indigo-400 bg-gray-800' : 'border-indigo-500 bg-gray-50'} pl-4 py-2 mb-4 italic rounded-r font-poppins`} style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.1rem' }}>
                                         {children}
                                       </blockquote>
                                     );
                                   },
                                   a({ children, href }) {
                                     return (
-                                      <a 
-                                        href={href} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer" 
-                                        className={`${darkMode ? 'text-indigo-400' : 'text-indigo-600'} hover:underline`}
+                                      <a
+                                        href={href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`${darkMode ? 'text-indigo-400' : 'text-indigo-600'} hover:underline font-poppins`}
+                                        style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.1rem' }}
                                       >
                                         {children}
                                       </a>
@@ -1899,14 +1959,14 @@ export default function Chat() {
                                   },
                                   th({ children }) {
                                     return (
-                                      <th className="px-4 py-2 text-left text-sm font-medium">
+                                      <th className="px-4 py-2 text-left text-sm font-medium font-poppins" style={{ fontFamily: 'Poppins, sans-serif' }}>
                                         {children}
                                       </th>
                                     );
                                   },
                                   td({ children }) {
                                     return (
-                                      <td className="px-4 py-2 text-sm border-t dark:border-gray-700">
+                                      <td className="px-4 py-2 text-sm border-t dark:border-gray-700 font-poppins" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.05rem' }}>
                                         {children}
                                       </td>
                                     );
@@ -1918,9 +1978,9 @@ export default function Chat() {
                                   },
                                   img({ src, alt }) {
                                     return (
-                                      <img 
-                                        src={src} 
-                                        alt={alt || 'Image'} 
+                                      <img
+                                        src={src}
+                                        alt={alt || 'Image'}
                                         className="max-w-full h-auto rounded-lg my-4 shadow-sm"
                                       />
                                     );
@@ -1937,27 +1997,39 @@ export default function Chat() {
                         {/* Reactions Display */}
                         {message.reactions &&
                           Object.keys(message.reactions).length > 0 && (
-                            <div className="flex space-x-1 mt-1.5 pl-0">
+                            <motion.div 
+                              initial={{ opacity: 0, y: 5 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="flex flex-wrap gap-1.5 mt-2 pl-0"
+                            >
                               {Object.entries(message.reactions).map(
                                 ([emoji, count]) => (
-                                  <button
+                                  <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.95 }}
                                     key={emoji}
                                     onClick={() =>
                                       addReactionToMessage(message.id, emoji)
                                     }
-                                    className={`px-1.5 py-0.5 text-xs rounded-full transition-colors ${darkMode
-                                        ? "bg-gray-600 hover:bg-gray-500"
-                                        : "bg-gray-200 hover:bg-gray-300"
+                                    className={`px-2 py-1 text-sm rounded-full transition-all duration-200 shadow-sm ${darkMode
+                                        ? "bg-gray-700 hover:bg-indigo-600 hover:bg-opacity-40"
+                                        : "bg-gray-100 hover:bg-indigo-100"
                                       } ${darkMode
-                                        ? "text-gray-300"
-                                        : "text-gray-700"
-                                      }`}
+                                        ? "text-gray-200"
+                                        : "text-gray-800"
+                                      } flex items-center space-x-1`}
                                   >
-                                    {emoji} {count > 1 ? count : ""}
-                                  </button>
+                                    <span className="text-base">{emoji}</span>
+                                    {count > 1 && (
+                                      <span className={`text-xs font-medium ml-1 ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
+                                        {count}
+                                      </span>
+                                    )}
+                                  </motion.button>
                                 )
                               )}
-                            </div>
+                            </motion.div>
                           )}
                         <div
                           className={`text-xs mt-2 flex justify-between ${message.role === "user"
@@ -1989,35 +2061,54 @@ export default function Chat() {
                 <div ref={messagesEndRef} />
                 {/* Reaction Picker */}
                 {reactingToMessageId && (
-                  <div
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.8, y: 10 }}
+                    transition={{ duration: 0.2 }}
                     ref={reactionPickerRef}
-                    className={`absolute z-30 p-2 rounded-lg shadow-xl flex space-x-1 ${darkMode
-                        ? "bg-gray-700 border border-gray-600"
-                        : "bg-white border border-gray-300"
+                    className={`absolute z-30 p-3 rounded-xl shadow-2xl flex space-x-2 ${darkMode
+                        ? "bg-gray-800 border border-gray-600"
+                        : "bg-white border border-gray-200"
                       }`}
-                    style={{ bottom: "80px", right: "20px" }} // Example fixed position, ideally dynamic
+                    style={{ 
+                      bottom: "80px", 
+                      right: "20px",
+                      backdropFilter: "blur(8px)",
+                      boxShadow: darkMode ? "0 10px 25px -5px rgba(0, 0, 0, 0.5)" : "0 10px 25px -5px rgba(0, 0, 0, 0.1)"
+                    }}
                   >
-                    {["👍", "❤️", "😂", "😮", "😢", "🙏", "🎉"].map((emoji) => (
-                      <button
-                        key={emoji}
-                        onClick={() => {
-                          addReactionToMessage(reactingToMessageId, emoji);
-                          setReactingToMessageId(null);
-                        }}
-                        className={`p-1.5 rounded-full text-xl transition-transform hover:scale-125 ${darkMode ? "hover:bg-gray-600" : "hover:bg-gray-200"
-                          }`}
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                    <button
+                    <div className="flex space-x-2 items-center">
+                      {["👍", "❤️", "😂", "😮", "😢", "🙏", "🎉"].map((emoji) => (
+                        <motion.button
+                          key={emoji}
+                          whileHover={{ scale: 1.2 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => {
+                            addReactionToMessage(reactingToMessageId, emoji);
+                            setReactingToMessageId(null);
+                          }}
+                          className={`p-2 rounded-full text-2xl transition-all duration-200 ${darkMode 
+                            ? "hover:bg-indigo-600 hover:bg-opacity-30" 
+                            : "hover:bg-indigo-100"
+                            } transform hover:-translate-y-1`}
+                        >
+                          {emoji}
+                        </motion.button>
+                      ))}
+                    </div>
+                    <motion.button
+                      whileHover={{ scale: 1.1, rotate: 90 }}
+                      whileTap={{ scale: 0.9 }}
                       onClick={() => setReactingToMessageId(null)}
-                      className={`p-1 ml-1 rounded-full ${darkMode ? "hover:bg-gray-500" : "hover:bg-gray-300"
-                        }`}
+                      className={`p-2 ml-1 rounded-full flex items-center justify-center ${darkMode 
+                        ? "bg-gray-700 hover:bg-gray-600 text-gray-300" 
+                        : "bg-gray-200 hover:bg-gray-300 text-gray-700"
+                        } transition-all duration-200`}
                     >
-                      <FiX size={16} />
-                    </button>
-                  </div>
+                      <FiX size={18} />
+                    </motion.button>
+                  </motion.div>
                 )}
               </>
             )}
@@ -2110,11 +2201,12 @@ export default function Chat() {
             )}
             <form
               onSubmit={handleSendMessage}
-              className="flex items-center justify-center space-x-2 px-2 sm:px-4"
+              className="flex items-center justify-center space-x-2" // Changed items-end to items-center
             >
               {/* Outer div for width control */}
-              <div className="w-full max-w-4xl">
-                <div className={`relative ${isBotSpeaking ? "mb-5" : ""}`}>
+              {/* Changed width classes and removed flex-grow for centering */}
+              <div className="w-full sm:w-3/4 md:w-3/5 lg:w-1/2">
+                <div className={`relative ${isBotSpeaking ? "mb-5" : ""}`}> {/* Removed flex-1, width is controlled by parent */}
                   {isBotSpeaking && (
                   <div className="absolute bottom-full left-0 right-0 mx-auto mb-1 text-center text-xs text-gray-500 dark:text-gray-400 animate-pulse p-1 bg-opacity-50 rounded-md">
                     AI is speaking...
@@ -2126,13 +2218,12 @@ export default function Chat() {
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Type a message..."
                   rows="1"
-                  autoFocus={true}
-                  className={`w-full py-3 px-4 pr-14 rounded-xl border ${darkMode
+                  className={`w-full py-3 px-4 pr-12 rounded-xl border ${darkMode
                       ? "bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500 shadow-md"
-                      : "bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
-                    } resize-none focus:outline-none focus:ring-2 transition-all duration-150 ease-in-out hover:shadow-lg text-sm sm:text-base leading-relaxed scrollbar-thin ${darkMode ? 'scrollbar-thumb-gray-500 scrollbar-track-gray-700' : 'scrollbar-thumb-gray-300 scrollbar-track-gray-100'}`}
+                      : "bg-white border-gray-200 text-gray-900 placeholder-gray-500 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
+                    } resize-none focus:outline-none focus:ring-1 transition-all duration-150 ease-in-out hover:shadow-lg text-sm sm:text-base leading-relaxed scrollbar-thin ${darkMode ? 'scrollbar-thumb-gray-500 scrollbar-track-gray-700' : 'scrollbar-thumb-gray-300 scrollbar-track-gray-100'}`}
                   disabled={isLoading || isBotSpeaking}
-                  style={{ minHeight: '50px', maxHeight: '150px' }}
+                  style={{ minHeight: '48px', maxHeight: '140px' }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
@@ -2140,17 +2231,17 @@ export default function Chat() {
                     }
                   }}
                 />
-                <div className="absolute right-3 bottom-3 flex space-x-2 sm:space-x-3">
+                <div className="absolute right-2 bottom-2 flex space-x-1 sm:space-x-2">
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowEmojiPicker(!showEmojiPicker);
                     }}
-                    className={`p-1.5 rounded-full ${darkMode
-                        ? "text-gray-300 hover:text-gray-200 hover:bg-gray-700"
-                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-                      } transition-all duration-150`}
+                    className={`p-1 rounded-full ${darkMode
+                        ? "text-gray-400 hover:text-gray-300"
+                        : "text-gray-500 hover:text-gray-700"
+                      }`}
                   >
                     <BsEmojiSmile size={20} />
                   </button>
@@ -2159,14 +2250,14 @@ export default function Chat() {
                     <button
                       type="button"
                       onClick={toggleMic}
-                      className={`p-1.5 rounded-full ${listening
+                      className={`p-1 rounded-full ${listening
                           ? darkMode
-                            ? "text-red-400 hover:text-red-300 bg-red-900 bg-opacity-30"
-                            : "text-red-600 hover:text-red-700 bg-red-100"
+                            ? "text-red-400 hover:text-red-300"
+                            : "text-red-600 hover:text-red-700"
                           : darkMode
-                            ? "text-gray-300 hover:text-gray-200 hover:bg-gray-700"
-                            : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-                        } transition-all duration-150`}
+                            ? "text-gray-400 hover:text-gray-300"
+                            : "text-gray-500 hover:text-gray-700"
+                        }`}
                       title={listening ? "Stop listening" : "Start listening"}
                     >
                       {listening ? (
@@ -2203,26 +2294,26 @@ export default function Chat() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={(e) => handleSendMessage(e)}
-                className={`p-2.5 rounded-full flex items-center justify-center ${!input.trim() || isLoading
+                className={`p-3 rounded-full shadow-md ${!input.trim() || isLoading
                     ? darkMode
-                      ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                      : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                      ? "bg-gray-700 text-gray-400"
+                      : "bg-gray-200 text-gray-400"
                     : darkMode
-                      ? "bg-indigo-600 text-white hover:bg-indigo-500"
-                      : "bg-indigo-500 text-white hover:bg-indigo-600"
+                      ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:opacity-90"
+                      : "bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:opacity-90"
                   }`}
               >
-                <FiSend size={20} className="text-current" />
+                <FiSend size={20} />
               </motion.button>
             </form>
 
             <div
-              className={`text-xs mt-4 mb-2 text-center font-light italic ${darkMode ? "text-gray-500" : "text-gray-400"
+              className={`text-xs mt-3 text-center font-light ${darkMode ? "text-gray-500" : "text-gray-400"
                 }`}
             >
-              <span className={`px-3 py-1.5 rounded-md ${darkMode ? "bg-gray-800" : "bg-gray-100"}`}>
-                AI Assistant may produce inaccurate information. Consider
-                verifying important details.
+              <span className="inline-flex items-center">
+                <RiRobot2Line className="mr-1.5" size={12} />
+                AI Assistant may produce inaccurate information. Consider verifying important details.
               </span>
             </div>
           </div>
@@ -2378,7 +2469,7 @@ const SettingsPanel = ({
                         className={`w-11 h-6 rounded-full peer ${userPreferences.animations
                             ? "bg-indigo-600"
                             : "bg-gray-200"
-                          } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}
+                          } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all transition-colors duration-300 ease-in-out`}
                       ></div>
                     </label>
                   </div>
@@ -2409,7 +2500,7 @@ const SettingsPanel = ({
                         className={`w-11 h-6 rounded-full peer ${userPreferences.soundEffects
                             ? "bg-indigo-600"
                             : "bg-gray-200"
-                          } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}
+                          } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all transition-colors duration-300 ease-in-out`}
                       ></div>
                     </label>
                   </div>
@@ -2445,7 +2536,7 @@ const SettingsPanel = ({
                         className={`w-11 h-6 rounded-full peer ${userPreferences.markdown
                             ? "bg-indigo-600"
                             : "bg-gray-200"
-                          } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}
+                          } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all transition-colors duration-300 ease-in-out`}
                       ></div>
                     </label>
                   </div>
@@ -2477,7 +2568,7 @@ const SettingsPanel = ({
                         className={`w-11 h-6 rounded-full peer ${userPreferences.syntaxHighlighting
                             ? "bg-indigo-600"
                             : "bg-gray-200 dark:bg-gray-600"
-                          } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}
+                          } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all transition-colors duration-300 ease-in-out`}
                       ></div>
                     </label>
                   </div>
@@ -2517,7 +2608,7 @@ const SettingsPanel = ({
                         className={`w-11 h-6 rounded-full peer ${userPreferences.ttsEnabled
                             ? "bg-indigo-600"
                             : "bg-gray-200 dark:bg-gray-600"
-                          } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}
+                          } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all transition-colors duration-300 ease-in-out`}
                       ></div>
                     </label>
                   </div>
@@ -2594,7 +2685,7 @@ const SettingsPanel = ({
                                     ttsSpeed: parseFloat(e.target.value),
                                   }))
                                 }
-                                className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 dark:accent-indigo-500 bg-gray-200 dark:bg-gray-600"
+                                className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 dark:accent-indigo-500 bg-gray-200 dark:bg-gray-600 transition-all duration-300 ease-in-out hover:h-3 focus:h-3 active:h-3"
                               />
                             </div>
                           </>
@@ -2666,7 +2757,7 @@ const SettingsPanel = ({
                           temperature: parseFloat(e.target.value),
                         })
                       }
-                      className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-indigo-500"
+                      className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-indigo-500 transition-all duration-300 ease-in-out hover:h-3 focus:h-3 active:h-3"
                     />
                     <div className="flex justify-between text-xs mt-1">
                       <span>Precise</span>
@@ -2701,7 +2792,7 @@ const SettingsPanel = ({
                           maxTokens: parseInt(e.target.value),
                         })
                       }
-                      className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-indigo-500"
+                      className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-indigo-500 transition-all duration-300 ease-in-out hover:h-3 focus:h-3 active:h-3"
                     />
                     <div className="flex justify-between text-xs mt-1">
                       <span>Short</span>
