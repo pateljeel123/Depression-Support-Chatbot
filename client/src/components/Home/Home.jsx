@@ -948,15 +948,9 @@ const Home = () => {
                 gradientColor={chroma(item.color || '#F3E6AF').alpha(0.15).hex()}
               >
                 <div className="flex flex-col items-center justify-center p-6 text-center">
-<<<<<<< HEAD
                   {/* Icon Circle (replaced profile image) */}
                   <div className="w-16 h-16 mb-4 rounded-full border-2 border-red-500 shadow-md bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
                     {item.icon && React.cloneElement(item.icon, { className: "w-8 h-8 text-primary-600 dark:text-primary-300" })}
-=======
-                  {/* Profile Image Circle */}
-                  <div className="w-24 h-24 mb-4 rounded-full overflow-hidden border-4 border-white dark:border-gray-800 shadow-md bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
-                    {item.icon && React.cloneElement(item.icon, { className: "w-12 h-12 text-primary-600 dark:text-primary-300" })}
->>>>>>> 405b708a50bcd987c99b9409f7e3a0100d1fcf06
                   </div>
                   
                   {/* Name/Title */}
