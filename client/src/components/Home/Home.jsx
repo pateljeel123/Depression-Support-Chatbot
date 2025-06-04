@@ -41,6 +41,7 @@ import chroma from "chroma-js"; // Added import for chroma-js
 import { cn } from "../../lib/utils"; // Import cn from utils
 import ShineBorder from "../ui/shine-border";
 import './InvestmentSupport.css';
+import InvestmentSupport from './InvestmentSupport';
 import { LineShadowText } from "../magicui/line-shadow-text";
 import ShoeCard from "./ff";
 
@@ -891,6 +892,9 @@ const Home = () => {
         </div>
       </section>
 
+     
+      <InvestmentSupport />
+
       {/* Section 2: Common Problems People Face Because of Depression */}
       <motion.section 
         id="common-problems"
@@ -1016,7 +1020,7 @@ const Home = () => {
             position: relative;
             width: 100%;
             height: 350px;
-            background: #232323;
+            background: #ffffff;
             border-radius: 20px;
             overflow: hidden;
             opacity: 0;
@@ -1090,14 +1094,14 @@ const Home = () => {
           }
           
           .mindcare-contentBx h2 {
-            color: #fff;
+            color: #000;
             font-weight: 600;
             letter-spacing: 1px;
             margin-bottom: 10px;
           }
           
           .mindcare-contentBx p {
-            color: #fff;
+            color: #000;
             opacity: 0;
             transform: translateY(30px);
             transition: 0.5s;
@@ -1143,10 +1147,10 @@ const Home = () => {
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             {[
-              { icon: "🧠", title: "Evidence-Based", description: "Guided by the latest psychology and neuroscience", color: "#6366F1", direction: "left" },
-              { icon: "💬", title: "Safe & Anonymous", description: "No judgments, just safe conversations", color: "#10B981", direction: "right" },
-              { icon: "👂", title: "Human Support", description: "Kind empathetic listeners (AI-assisted for now)", color: "#0EA5E9", direction: "left" },
-              { icon: "📱", title: "Easy Access", description: "Access your content anytime, anywhere, and learn at your own pace with complete flexibility.", color: "#F59E0B", direction: "right" },
+              { icon: "🧠", title: "Evidence-Based", description: "Guided by the latest psychology and neuroscience", color: "#FFFFFF", direction: "left" },
+              { icon: "💬", title: "Safe & Anonymous", description: "No judgments, just safe conversations", color: "#FFFFFF", direction: "right" },
+              { icon: "👂", title: "Human Support", description: "Kind empathetic listeners (AI-assisted for now)", color: "#FFFFFF", direction: "left" },
+              { icon: "📱", title: "Easy Access", description: "Access your content anytime, anywhere, and learn at your own pace with complete flexibility.", color: "#FFFFFF", direction: "right" },
             ].map((reason, index) => (
               <div key={index} className="card-container">
                 <div 
@@ -1299,6 +1303,7 @@ const Home = () => {
             Explore interactive resources and compassionate support systems, crafted to empower your mental health journey with clarity and ease.
           </motion.p>
         </div>
+        
 
         {/* Replace the HoverEffect component with Card components styled like ShoeCard */}
         <style jsx>{`
@@ -1736,7 +1741,6 @@ const Home = () => {
       </section>
 
       {/* Investment Support Section */}
-      <InvestmentSupport />
 
       {/* Footer */}
       <footer className="bg-background/80 dark:bg-background-dark/90 shadow-md border-b border-border/40 backdrop-blur-lg text-text-dark dark:text-text-white pt-12 sm:pt-16 pb-6 sm:pb-8">
@@ -1932,97 +1936,6 @@ export const Meteors = ({
   );
 };
 
-const items = [ 
-  { 
-    title: 'Evidence-Based Tools', 
-    link: '/loremcreative', 
-    text: `Guided by the latest psychology and neuroscience`, 
-  }, 
-  { 
-    title: 'Safe & Anonymous', 
-    link: '/loremconnect', 
-    text: `No judgments, just safe conversations`, 
-  }, 
-  { 
-    title: 'Real Human Support', 
-    link: '/training', 
-    text: `Kind empathetic listeners (AI-assisted for now)`, 
-  }, 
-  { 
-    title: 'Easy Access', 
-    link: '/training', 
-    text: `Anytime, anywhere, at your pace`, 
-  }, 
-]; 
-
-const InvestmentSupport = () => { 
-  const wrapperRef = useRef(null); 
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('active');
-            entry.target.classList.remove('hidden');
-          } else {
-            entry.target.classList.remove('active');
-            // Optionally add 'hidden' back if you want it to hide when not intersecting
-            // entry.target.classList.add('hidden'); 
-          }
-        });
-      },
-      { threshold: 0.1 } // Trigger when 10% of the element is visible
-    );
-
-    const currentRef = wrapperRef.current;
-
-    if (currentRef) {
-      observer.observe(currentRef);
-      // Set initial state: make it active and visible immediately
-      currentRef.classList.add('active');
-      currentRef.classList.remove('hidden');
-    }
-
-    return () => {
-      if (currentRef) {
-        observer.unobserve(currentRef);
-      }
-    };
-  }, []);
-
-  return ( 
-    <section className="investment_support bg-background/80 dark:bg-background-dark/90 shadow-md border-b border-border/40 backdrop-blur-lg"> 
-      <div className="container"> 
-        <div className="wrapper" ref={wrapperRef}> 
-          <div className="focus_block"> 
-            <div className="focus_item"></div> 
-            <div className="focus_item"></div> 
-          </div> 
-          <div className="row"> 
-            {items.map((item, index) => ( 
-              <div className="item col-md-6 col-sm-12 col-12" key={index}> 
-                <div className="item_wrap"> 
-                  <div className="head"> 
-                    <h4><span>{item.title}</span></h4> 
-                    <a href={item.link}> 
-                      <img 
-                        src="themes/custom/resibario/images/dark_arrow_right.svg" 
-                        alt="" 
-                      /> 
-                    </a> 
-                  </div> 
-                  <div className="text"> 
-                    <p>{item.text}</p> 
-                  </div> 
-                </div> 
-              </div> 
-            ))} 
-          </div> 
-        </div> 
-      </div> 
-    </section> 
-  ); 
-};
+// InvestmentSupport component has been moved to a separate file
 
 export default Home;

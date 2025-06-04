@@ -2,7 +2,7 @@
   position: sticky;
   top: 0;
   z-index: 100; /* Ensure it stays on top */
-  background-color: #121212; /* Add a background color to prevent content overlap issues */
+  background-color: #ffffff; /* Changed to white background */
 }
 
 .investment_support .wrapper {
@@ -20,7 +20,7 @@
   font-size: 18px;
   line-height: 20px;
   text-align: center;
-  color: #f5f5f5; /* Changed from #333 to light color for better visibility */
+  color: #333333; /* Changed to dark color for better visibility on white background */
   width: 0px;
   overflow: hidden;
   transition: all 0.4s ease-in-out;
@@ -42,7 +42,7 @@
   font-weight: 500;
   font-size: 20px;
   line-height: 120%;
-  color: #f5f5f5; /* Changed from #333 to light color for better visibility */
+  color: #333333; /* Changed to dark color for better visibility on white background */
   margin: 0 0 30px;
   text-transform: uppercase;
   position: absolute;
@@ -90,7 +90,7 @@
      font-family: monospace;
   font-size: 15px;
   line-height: 20px;
-  color: #f5f5f5; /* Changed from #333 to light color for better visibility */
+  color: #333333; /* Changed to dark color for better visibility on white background */
 }
 .investment_support .wrapper .item .item_wrap {
   padding: 40px;
@@ -341,7 +341,7 @@ section.investment_support {
   font-size: 18px;
   line-height: 20px;
   text-align: center;
-  color: #f5f5f5; /* Changed from #333 to light color for better visibility */
+  color: #333333; /* Changed to dark color for better visibility on white background */
   width: 0px;
   overflow: hidden;
   transition: all 0.4s ease-in-out;
@@ -363,7 +363,7 @@ section.investment_support {
   font-weight: 500;
   font-size: 20px;
   line-height: 120%;
-  color: #f5f5f5; /* Changed from #333 to light color for better visibility */
+  color: #333333; /* Changed to dark color for better visibility on white background */
   margin: 0 0 30px;
   text-transform: uppercase;
   position: absolute;
@@ -411,7 +411,7 @@ section.investment_support {
      font-family: monospace;
   font-size: 15px;
   line-height: 20px;
-  color: #f5f5f5; /* Changed from #333 to light color for better visibility */
+  color: #333333; /* Changed to dark color for better visibility on white background */
 }
 .investment_support .wrapper .item .item_wrap {
   padding: 40px;
