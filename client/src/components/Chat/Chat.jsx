@@ -61,7 +61,7 @@ export default function Chat() {
   const [editTitle, setEditTitle] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [activeTab, setActiveTab] = useState("chats"); // Added activeTab state for sidebar/settings
+  // Removed activeTab state as settings tab has been removed
   const [showMic, setShowMic] = useState(false); // Added showMic state
   const [modelSettings, setModelSettings] = useState({
     temperature: 0.7,
@@ -158,7 +158,7 @@ export default function Chat() {
     username: "", // This will store the full name
     email: "", // Added email
     darkMode: false, // Default to light mode (false)
-    ttsEnabled: false, // Added ttsEnabled for text-to-speech
+    ttsEnabled: true, // Changed to true to enable TTS by default
     ttsVoice: null, // Added ttsVoice
     ttsSpeed: 1, // Added ttsSpeed (0.1 to 10, default 1)
   });
@@ -504,25 +504,44 @@ export default function Chat() {
         return;
       }
 
+      console.log('Speaking text with TTS enabled:', userPreferences.ttsEnabled);
+      console.log('Current voice setting:', userPreferences.ttsVoice);
+      console.log('Available voices:', availableVoices.length);
+
       speechSynthesisRef.current.cancel(); // Cancel any ongoing speech
       const utterance = new SpeechSynthesisUtterance(text);
 
-      if (userPreferences.ttsVoice) {
-        const voices = speechSynthesisRef.current.getVoices();
+      // Get fresh list of voices
+      const voices = speechSynthesisRef.current.getVoices();
+      console.log('Current voices from speech synthesis:', voices.length);
+      
+      // If no voice is selected but voices are available, use the first one
+      if (!userPreferences.ttsVoice && voices.length > 0) {
+        utterance.voice = voices[0];
+        console.log('Using first available voice:', voices[0].name);
+      } else if (userPreferences.ttsVoice) {
         const selectedVoice = voices.find(
           (voice) => voice.name === userPreferences.ttsVoice
         );
         if (selectedVoice) {
           utterance.voice = selectedVoice;
+          console.log('Using selected voice:', selectedVoice.name);
+        } else if (voices.length > 0) {
+          utterance.voice = voices[0];
+          console.log('Selected voice not found, using first voice:', voices[0].name);
         }
       }
+      
       utterance.rate = userPreferences.ttsSpeed || 1;
+      utterance.lang = navigator.language || 'en-US'; // Set language to browser default or English
 
       utterance.onstart = () => {
         setIsBotSpeaking(true);
+        console.log('Speech started');
       };
       utterance.onend = () => {
         setIsBotSpeaking(false);
+        console.log('Speech ended');
       };
       utterance.onerror = (event) => {
         setIsBotSpeaking(false);
@@ -535,8 +554,18 @@ export default function Chat() {
       userPreferences.ttsEnabled,
       userPreferences.ttsVoice,
       userPreferences.ttsSpeed,
+      availableVoices, // Added dependency on availableVoices
     ]
   );
+
+  // Function to stop text-to-speech
+  const stopSpeaking = useCallback(() => {
+    if (speechSynthesisRef.current) {
+      speechSynthesisRef.current.cancel();
+      setIsBotSpeaking(false);
+      console.log('Speech stopped by user');
+    }
+  }, []);
 
   // Handle speech recognition transcript
   useEffect(() => {
@@ -551,6 +580,7 @@ export default function Chat() {
     const updateVoices = () => {
       if (speechSynthesisRef.current) {
         const voices = speechSynthesisRef.current.getVoices();
+        console.log('Available voices:', voices.length);
         setAvailableVoices(voices);
         // If no voice is selected and voices are available, select a default one
         if (!userPreferences.ttsVoice && voices.length > 0) {
@@ -561,14 +591,23 @@ export default function Chat() {
             ) ||
             voices[0];
           if (defaultVoice) {
+            console.log('Setting default voice:', defaultVoice.name);
             handlePreferenceChange("ttsVoice", defaultVoice.name);
           }
         }
       }
     };
 
+    // Force voices to load by calling getVoices() first
+    if (window.speechSynthesis) {
+      window.speechSynthesis.getVoices();
+    }
+
     if (speechSynthesisRef.current) {
-      updateVoices(); // Initial call to get voices
+      // Initial call to get voices with a short delay to ensure voices are loaded
+      updateVoices();
+      setTimeout(updateVoices, 500);
+      
       if (speechSynthesisRef.current.onvoiceschanged !== undefined) {
         speechSynthesisRef.current.onvoiceschanged = updateVoices;
       }
@@ -1426,18 +1465,6 @@ export default function Chat() {
 
   return (
     <div>
-      {/* Settings Panel Modal */}
-      {activeTab === "settings" && (
-        <SettingsPanel
-          darkMode={darkMode}
-          userPreferences={userPreferences}
-          setUserPreferences={setUserPreferences}
-          modelSettings={modelSettings}
-          setModelSettings={setModelSettings}
-          onClose={() => setActiveTab("chats")}
-          toggleMainDarkMode={toggleDarkMode}
-        />
-      )}
       <div
         className={`flex h-screen ${darkMode
             ? "dark bg-gray-900 text-gray-100"
@@ -2288,23 +2315,39 @@ export default function Chat() {
                 )}
               </div>
               </div> {/* Closing tag for the flex-grow w-4/5 max-w-[80%] div */}
-              <motion.button
-                type="submit"
-                disabled={!input.trim() || isLoading}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={(e) => handleSendMessage(e)}
-                className={`p-3 rounded-full shadow-md ${!input.trim() || isLoading
-                    ? darkMode
-                      ? "bg-gray-700 text-gray-400"
-                      : "bg-gray-200 text-gray-400"
-                    : darkMode
-                      ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:opacity-90"
-                      : "bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:opacity-90"
-                  }`}
-              >
-                <FiSend size={20} />
-              </motion.button>
+              {isBotSpeaking ? (
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={stopSpeaking}
+                  className={`p-3 rounded-full shadow-md ${darkMode
+                      ? "bg-red-600 text-white hover:bg-red-700"
+                      : "bg-red-500 text-white hover:bg-red-600"
+                    }`}
+                  title="Stop speaking"
+                >
+                  <FiX size={20} />
+                </motion.button>
+              ) : (
+                <motion.button
+                  type="submit"
+                  disabled={!input.trim() || isLoading}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={(e) => handleSendMessage(e)}
+                  className={`p-3 rounded-full shadow-md ${!input.trim() || isLoading
+                      ? darkMode
+                        ? "bg-gray-700 text-gray-400"
+                        : "bg-gray-200 text-gray-400"
+                      : darkMode
+                        ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:opacity-90"
+                        : "bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:opacity-90"
+                    }`}
+                >
+                  <FiSend size={20} />
+                </motion.button>
+              )}
             </form>
 
             <div
