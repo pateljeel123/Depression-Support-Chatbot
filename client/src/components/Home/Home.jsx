@@ -1056,12 +1056,131 @@ const Home = () => {
       {/* Section 3: Why This Platform? */}
       <motion.section
         id="why-platform"
-        className="py-20 bg-background dark:bg-background-dark"
+        className="py-20 bg-background dark:bg-background-dark overflow-hidden"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.8 }}
       >
+        <style jsx>{`
+          .mindcare-card {
+            position: relative;
+            width: 100%;
+            height: 350px;
+            background: #232323;
+            border-radius: 20px;
+            overflow: hidden;
+            opacity: 0;
+            transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 1s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+          }
+          
+          .mindcare-card.visible {
+            transform: translateX(0) !important;
+            opacity: 1;
+          }
+          
+          .mindcare-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--card-color, #6366F1);
+            clip-path: circle(150px at 80% 20%);
+            transition: 0.5s ease-in-out;
+          }
+          
+          .mindcare-card:hover::before {
+            clip-path: circle(300px at 80% -20%);
+          }
+          
+          .mindcare-card::after {
+            content: attr(data-title);
+            position: absolute;
+            top: 30%;
+            left: -10%;
+            font-size: 6em;
+            font-weight: 800;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.05);
+          }
+          
+          .mindcare-imgBx {
+            position: absolute;
+            top: 45%;
+            transform: translateY(-50%);
+            z-index: 10000;
+            width: 100%;
+            height: 120px;
+            transition: 0.5s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+          
+          .mindcare-card:hover .mindcare-imgBx {
+            top: 0;
+            transform: translateY(-5%);
+          }
+          
+          .mindcare-contentBx {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 100px;
+            text-align: center;
+            transition: 1s;
+            z-index: 10;
+          }
+          
+          .mindcare-card:hover .mindcare-contentBx {
+            height: 210px;
+            bottom: 20px;
+          }
+          
+          .mindcare-contentBx h2 {
+            color: #fff;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+          }
+          
+          .mindcare-contentBx p {
+            color: #fff;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: 0.5s;
+          }
+          
+          .mindcare-card:hover .mindcare-contentBx p {
+            opacity: 1;
+            transform: translateY(0px);
+            transition-delay: 0.5s;
+          }
+          
+          .mindcare-contentBx a {
+            display: inline-block;
+            padding: 8px 20px;
+            background: #fff;
+            color: #111;
+            font-weight: 500;
+            border-radius: 4px;
+            margin-top: 10px;
+            text-decoration: none;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: 0.5s;
+          }
+          
+          .mindcare-card:hover .mindcare-contentBx a {
+            opacity: 1;
+            transform: translateY(0px);
+            transition-delay: 0.75s;
+          }
+        `}</style>
+        
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2
             className="font-heading text-3xl sm:text-4xl md:text-5xl font-semibold text-text-dark dark:text-text-white text-center mb-12"
@@ -1072,19 +1191,54 @@ const Home = () => {
           >
             Why Choose MindCare?
           </motion.h2>
-          <HoverEffect
-            items={[
-              { icon: "🧠", title: "Evidence-Based Tools", description: "Guided by the latest psychology and neuroscience" },
-              { icon: "💬", title: "Safe & Anonymous", description: "No judgments, just safe conversations" },
-              { icon: "👂", title: "Real Human Support", description: "Kind empathetic listeners (AI-assisted for now)" },
-              { icon: "📱", title: "Easy Access", description: "Anytime, anywhere, at your pace" },
-            ].map(reason => ({
-              ...reason,
-              // Convert string icon to a styled span for consistent display within AceternityCard
-              icon: <span className="text-3xl sm:text-4xl p-2 bg-primary/10 dark:bg-primary/20 rounded-xl text-primary dark:text-primary group-hover:bg-primary/20 dark:group-hover:bg-primary/30 transition-colors duration-300">{reason.icon}</span>
-            }))}
-            className="lg:grid-cols-4 sm:grid-cols-2 grid-cols-1"
-          />
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+            {[
+              { icon: "🧠", title: "Evidence-Based", description: "Guided by the latest psychology and neuroscience", color: "#6366F1", direction: "left" },
+              { icon: "💬", title: "Safe & Anonymous", description: "No judgments, just safe conversations", color: "#10B981", direction: "right" },
+              { icon: "👂", title: "Human Support", description: "Kind empathetic listeners (AI-assisted for now)", color: "#0EA5E9", direction: "left" },
+              { icon: "📱", title: "Easy Access", description: "Anytime, anywhere, at your pace", color: "#F59E0B", direction: "right" },
+            ].map((reason, index) => (
+              <div key={index} className="card-container">
+                <div 
+                  className="mindcare-card" 
+                  data-title={reason.title.split(' ')[0]}
+                  style={{
+                    '--card-color': reason.color,
+                    transform: reason.direction === 'left' ? 'translateX(-100px)' : 'translateX(100px)',
+                    transitionDelay: `${index * 0.1}s`
+                  }}
+                  ref={(el) => {
+                    if (el) {
+                      const observer = new IntersectionObserver(
+                        ([entry]) => {
+                          if (entry.isIntersecting) {
+                            setTimeout(() => {
+                              el.classList.add('visible');
+                            }, index * 200); // Increased delay between cards
+                          } else {
+                            // Reset animation when out of view for replayability
+                            el.classList.remove('visible');
+                          }
+                        },
+                        { threshold: 0.2, rootMargin: '0px 0px -100px 0px' } // Improved threshold and rootMargin
+                      );
+                      observer.observe(el);
+                    }
+                  }}
+                >
+                  <div className="mindcare-imgBx">
+                    <span className="text-5xl">{reason.icon}</span>
+                  </div>
+                  <div className="mindcare-contentBx">
+                    <h2>{reason.title}</h2>
+                    <p>{reason.description}</p>
+                    <a href="#">Learn More</a>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </motion.section>
 
