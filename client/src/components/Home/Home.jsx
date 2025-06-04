@@ -814,7 +814,7 @@ const Home = () => {
       {/* Hero Section */}
       <section
         id="home"
-        className="relative pt-24 py-20 sm:py-28 md:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden isolate bg-background dark:bg-background-dark"
+        className="relative pt-24 py-20 sm:py-28 md:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden isolate bg-background/80 dark:bg-background-dark/90 shadow-md border-b border-border/40 backdrop-blur-lg"
       >
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
@@ -891,7 +891,7 @@ const Home = () => {
       {/* Section 2: Common Problems People Face Because of Depression */}
       <motion.section 
         id="common-problems"
-        className="py-20 bg-background-alt dark:bg-background-dark"
+        className="py-20 bg-background/80 dark:bg-background-dark/90 shadow-md border-b border-border/40 backdrop-blur-lg"
         initial={{ opacity: 0}}
         whileInView={{ opacity: 1}}
         viewport={{ once: true, amount: 0.2 }}
@@ -991,7 +991,7 @@ const Home = () => {
       {/* Section 3: Why This Platform? */}
       <motion.section
         id="why-platform"
-        className="py-20 bg-background dark:bg-background-dark overflow-hidden"
+        className="py-20 bg-background/80 dark:bg-background-dark/90 shadow-md border-b border-border/40 backdrop-blur-lg overflow-hidden"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true, amount: 0.2 }}
@@ -1180,7 +1180,7 @@ const Home = () => {
       {/* Section 4: What You Can Do Here */}
       <motion.section 
         id="what-to-do"
-        className="py-20 bg-white dark:bg-slate-900"
+        className="py-20 bg-background/80 dark:bg-background-dark/90 shadow-md border-b border-border/40 backdrop-blur-lg"
         initial={{ opacity: 0}}
         whileInView={{ opacity: 1}}
         viewport={{ once: true, amount: 0.2 }}
@@ -1262,7 +1262,7 @@ const Home = () => {
     <section 
       id="features" 
       ref={featuresRef} 
-      className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-50 to-gray-100 dark:from-neutral-800 dark:to-neutral-900 overflow-hidden"
+      className="py-20 px-4 sm:px-6 lg:px-8 bg-background/80 dark:bg-background-dark/90 shadow-md border-b border-border/40 backdrop-blur-lg overflow-hidden"
     >
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
@@ -1667,7 +1667,7 @@ const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-r from-indigo-500 to-purple-600 text-white relative overflow-hidden">
+      <section className="py-12 sm:py-16 md:py-20 bg-background/80 dark:bg-background-dark/90 shadow-md border-b border-border/40 backdrop-blur-lg text-text-dark dark:text-text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0 bg-gradient-to-br from-white via-transparent to-transparent opacity-20"></div>
         </div>
@@ -1725,7 +1725,7 @@ const Home = () => {
       <InvestmentSupport />
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white pt-12 sm:pt-16 pb-6 sm:pb-8">
+      <footer className="bg-background/80 dark:bg-background-dark/90 shadow-md border-b border-border/40 backdrop-blur-lg text-text-dark dark:text-text-white pt-12 sm:pt-16 pb-6 sm:pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-10">
             {/* Logo and description */}
@@ -1736,10 +1736,10 @@ const Home = () => {
               transition={{ duration: 0.8 }}
             >
               <div className="flex items-center">
-                <FaLeaf className="h-8 w-8 text-indigo-400" />
+                <FaLeaf className="h-8 w-8 text-blue-400" />
                 <span className="ml-2 text-xl font-bold">MindCare</span>
               </div>
-              <p className="mt-4 text-gray-400">
+              <p className="mt-4 text-gray-500">
                 A compassionate mental health support platform powered by AI and
                 human understanding.
               </p>
@@ -1749,7 +1749,7 @@ const Home = () => {
                     <motion.a
                       key={i}
                       href="#"
-                      className="text-gray-400 hover:text-indigo-400"
+                      className="text-gray-500 hover:text-blue-400"
                       whileHover={{ y: -3, scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
                     >
@@ -1773,7 +1773,7 @@ const Home = () => {
                   <motion.li key={i} whileHover={{ x: 5 }}>
                     <a
                       href={`#${item.toLowerCase()}`}
-                      className="text-gray-400 hover:text-indigo-400"
+                      className="text-gray-500 hover:text-indigo-400"
                     >
                       {item}
                     </a>
@@ -1798,7 +1798,7 @@ const Home = () => {
                   "Terms of Service",
                 ].map((item, i) => (
                   <motion.li key={i} whileHover={{ x: 5 }}>
-                    <a href="#" className="text-gray-400 hover:text-indigo-400">
+                    <a href="#" className="text-gray-500 hover:text-indigo-400">
                       {item}
                     </a>
                   </motion.li>
@@ -1814,7 +1814,7 @@ const Home = () => {
               transition={{ delay: 0.3, duration: 0.8 }}
             >
               <h3 className="text-lg font-semibold">Stay Updated</h3>
-              <p className="mt-4 text-gray-400">
+              <p className="mt-4 text-gray-500">
                 Subscribe to our newsletter for mental health tips and updates.
               </p>
               <div className="mt-4 flex">
@@ -1825,7 +1825,7 @@ const Home = () => {
                 />
                 <motion.button
                   onClick={() => console.log('Newsletter subscribe clicked:', document.querySelector('input[type="email"]').value)}
-                  className="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-r-lg"
+                  className="bg-blue-400 hover:bg-blue-500 text-white px-4 py-2 rounded-r-lg"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -1837,7 +1837,7 @@ const Home = () => {
 
           {/* Copyright */}
           <motion.div
-            className="mt-12 sm:mt-16 pt-6 sm:pt-8 border-t border-gray-800 text-center text-gray-400"
+            className="mt-12 sm:mt-16 pt-6 sm:pt-8 border-t border-gray-800 text-center text-gray-500"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -1978,7 +1978,7 @@ const InvestmentSupport = () => {
   }, []);
 
   return ( 
-    <section className="investment_support"> 
+    <section className="investment_support bg-background/80 dark:bg-background-dark/90 shadow-md border-b border-border/40 backdrop-blur-lg"> 
       <div className="container"> 
         <div className="wrapper" ref={wrapperRef}> 
           <div className="focus_block"> 
