@@ -1177,7 +1177,7 @@ const Home = () => {
                   }}
                 >
                   <div className="mindcare-imgBx">
-                    <span className="text-4xl bg-white w-12 h-12 flex items-center justify-center rounded-full border border-red-500">{reason.icon}</span>
+                    <span className="text-4xl bg-white w-14 h-14 flex items-center justify-center rounded-full border border-red-500">{reason.icon}</span>
                   </div>
                   <div className="mindcare-contentBx">
                     <h2>{reason.title}</h2>

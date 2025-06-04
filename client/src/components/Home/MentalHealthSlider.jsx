@@ -189,18 +189,18 @@ const MentalHealthSlider = () => {
         {/* Navigation Controls */}
         <button 
           onClick={prevSlide}
-          className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 transition-colors z-30"
+          className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-24 w-16 h-16 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 shadow-xl flex items-center justify-center text-white hover:scale-110 hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 z-30 border-2 border-white"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 stroke-3" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
           </svg>
         </button>
         
         <button 
           onClick={nextSlide}
-          className="absolute top-1/2 right-0 transform -translate-y-1/2 translate-x-1/2 w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 transition-colors z-30"
+          className="absolute top-1/2 right-0 transform -translate-y-1/2 translate-x-24 w-16 h-16 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 shadow-xl flex items-center justify-center text-white hover:scale-110 hover:from-purple-600 hover:to-indigo-600 transition-all duration-300 z-30 border-2 border-white"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 stroke-3" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
           </svg>
         </button>

@@ -200,10 +200,10 @@ const SliderContainer = ({
           <button
             onClick={handlePrev}
             disabled={currentIndex === 0}
-            className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-0 sm:-translate-x-1/2 z-10 bg-gradient-to-r from-blue-400 to-blue-300 text-white p-2 sm:p-3 rounded-full shadow-md transition-all duration-200 hover:scale-110 hover:shadow-lg border border-white dark:border-gray-800 ${currentIndex === 0 ? 'opacity-50 cursor-not-allowed' : 'opacity-100'}`}
+            className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-0 sm:-translate-x-1/2 z-10 bg-gradient-to-r from-indigo-500 to-blue-500 text-white p-2 sm:p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-lg border border-white dark:border-gray-800 ${currentIndex === 0 ? 'opacity-50 cursor-not-allowed' : 'opacity-100'}`}
             aria-label="Previous slide"
           >
-            <FaChevronLeft className="w-5 h-5" />
+            <FaChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         )}
         
@@ -246,10 +246,10 @@ const SliderContainer = ({
           <button
             onClick={handleNext}
             disabled={currentIndex >= maxIndex}
-            className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-0 sm:translate-x-1/2 z-10 bg-gradient-to-r from-blue-300 to-blue-400 text-white p-2 sm:p-3 rounded-full shadow-md transition-all duration-200 hover:scale-110 hover:shadow-lg border border-white dark:border-gray-800 ${currentIndex >= maxIndex ? 'opacity-50 cursor-not-allowed' : 'opacity-100'}`}
+            className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-0 sm:translate-x-1/2 z-10 bg-gradient-to-r from-blue-500 to-indigo-500 text-white p-2 sm:p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-lg border border-white dark:border-gray-800 ${currentIndex >= maxIndex ? 'opacity-50 cursor-not-allowed' : 'opacity-100'}`}
             aria-label="Next slide"
           >
-            <FaChevronRight className="w-5 h-5" />
+            <FaChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         )}
       </div>
