@@ -447,14 +447,16 @@ export const AnimatedTestimonials = () => {
           </p>
         </motion.div>
       </AnimatePresence>
-      <div className="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 flex space-x-2">
+      <div className="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 flex space-x-3">
         {testimonialsData.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
             className={cn(
-              "w-2 h-2 md:w-2.5 md:h-2.5 rounded-full transition-all duration-300",
-              currentIndex === index ? "bg-indigo-600 dark:bg-indigo-400 scale-125" : "bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500"
+              "w-2 h-2 rounded-full transition-all duration-300 border border-indigo-300 dark:border-indigo-500",
+              currentIndex === index 
+                ? "bg-indigo-600 dark:bg-indigo-400 scale-110 shadow-md" 
+                : "bg-gray-200 dark:bg-gray-700 hover:bg-indigo-200 dark:hover:bg-indigo-900"
             )}
             aria-label={`Go to testimonial ${index + 1}`}
           />
@@ -799,71 +801,6 @@ const Home = () => {
             </button>
           </motion.div>
 
-              {/* Orbiting Circles Animation */}
-              <motion.div
-                className="mt-12 w-full max-w-md mx-auto lg:mx-0"
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8, duration: 0.7 }}
-              >
-                <OrbitingCircles
-                  radius={120}
-                  className="h-[200px] w-[200px] mx-auto lg:mx-0"
-                  centerContent={
-                    <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-white shadow-lg">
-                      <FaHeart className="h-6 w-6" />
-                    </div>
-                  }
-                  centerClassName="w-16 h-16"
-                  items={[
-                    {
-                      content: (
-                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 text-white shadow-md">
-                          <FaComments className="h-5 w-5" />
-                        </div>
-                      ),
-                      size: 40,
-                      duration: 15,
-                    },
-                    {
-                      content: (
-                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-500 text-white shadow-md">
-                          <GiBrain className="h-4 w-4" />
-                        </div>
-                      ),
-                      size: 32,
-                      duration: 20,
-                    },
-                    {
-                      content: (
-                        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-purple-500 text-white shadow-md">
-                          <GiMeditation className="h-6 w-6" />
-                        </div>
-                      ),
-                      size: 48,
-                      duration: 18,
-                    },
-                    {
-                      content: (
-                        <div className="flex items-center justify-center w-9 h-9 rounded-full bg-amber-500 text-white shadow-md">
-                          <FaChartLine className="h-4 w-4" />
-                        </div>
-                      ),
-                      size: 36,
-                      duration: 22,
-                    },
-                    {
-                      content: (
-                        <div className="flex items-center justify-center w-7 h-7 rounded-full bg-indigo-500 text-white shadow-md">
-                          <IoMdHappy className="h-4 w-4" />
-                        </div>
-                      ),
-                      size: 28,
-                      duration: 25,
-                    },
-                  ]}
-                />
-              </motion.div>
             </motion.div>
           </div>
         </div>
@@ -927,8 +864,8 @@ const Home = () => {
               >
                 <div className="flex flex-col items-center justify-center p-6 text-center">
                   {/* Icon Circle (replaced profile image) */}
-                  <div className="w-24 h-24 mb-4 rounded-full border-4 border-white dark:border-gray-800 shadow-md bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
-                    {item.icon && React.cloneElement(item.icon, { className: "w-12 h-12 text-primary-600 dark:text-primary-300" })}
+                  <div className="w-16 h-16 mb-4 rounded-full border-2 border-red-500 shadow-md bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
+                    {item.icon && React.cloneElement(item.icon, { className: "w-8 h-8 text-primary-600 dark:text-primary-300" })}
                   </div>
                   
                   {/* Name/Title */}
@@ -1155,7 +1092,7 @@ const Home = () => {
                   }}
                 >
                   <div className="mindcare-imgBx">
-                    <span className="text-5xl">{reason.icon}</span>
+                    <span className="text-4xl bg-white w-12 h-12 flex items-center justify-center rounded-full border border-red-500">{reason.icon}</span>
                   </div>
                   <div className="mindcare-contentBx">
                     <h2>{reason.title}</h2>
@@ -1209,10 +1146,10 @@ const Home = () => {
               >
                 <div className="p-6 flex flex-col items-center text-center flex-grow transform transition-transform duration-300 ease-out group-hover:scale-[1.02]">
                   <div 
-                    className={`p-4 rounded-full shadow-md group-hover:shadow-xl mb-6 inline-flex items-center justify-center transition-all duration-300 ease-out transform group-hover:scale-110`}
+                    className={`p-3 rounded-full shadow-md group-hover:shadow-xl mb-6 inline-flex items-center justify-center transition-all duration-300 ease-out transform group-hover:scale-110 w-12 h-12 border border-red-500`}
                     style={{ backgroundColor: chroma(action.color).alpha(0.1).hex() }}
                   >
-                    {React.cloneElement(action.icon, { className: `h-10 w-10`, style: { color: action.color } })}
+                    {React.cloneElement(action.icon, { className: `h-6 w-6`, style: { color: action.color } })}
                   </div>
                   <h3 
                     className="text-xl font-semibold text-gray-900 dark:text-white mb-3 transition-colors duration-300 ease-out"

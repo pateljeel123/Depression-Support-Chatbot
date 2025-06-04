@@ -1,7 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { FaSkull, FaVenusMars, FaChild, FaGlobeAmericas, FaBalanceScale, FaMobileAlt } from 'react-icons/fa';
+import { GiBrain, GiMeditation, GiHeartBeats } from 'react-icons/gi';
+import { MdOutlineElderly } from 'react-icons/md';
+import { RiMentalHealthFill } from 'react-icons/ri';
 
 const MentalHealthSlider = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [rotation, setRotation] = useState(0);
 
   const slides = [
     {
@@ -13,7 +18,7 @@ const MentalHealthSlider = () => {
         "Hear the Silence. Stop the Suicide.",
         "One Every 40 Seconds — How Many More?"
       ],
-      emoji: "🧨"
+      icon: <FaSkull className="text-red-500" />
     },
     {
       title: "Girls Cry, Boys Die: The Gender Suicide Paradox",
@@ -24,7 +29,7 @@ const MentalHealthSlider = () => {
         "Masculinity Shouldn't Be a Death Sentence.",
         "He Was Strong. But Still Lost."
       ],
-      emoji: "🚻"
+      icon: <FaVenusMars className="text-blue-500" />
     },
     {
       title: "Teen Girls in Crisis: Suicide Attempts Are Soaring",
@@ -35,7 +40,7 @@ const MentalHealthSlider = () => {
         "A Generation Crying for Help — Loudly.",
         "She Deserves to Grow, Not Just Survive."
       ],
-      emoji: "👧"
+      icon: <FaChild className="text-pink-500" />
     },
     {
       title: "The Anxiety Explosion: A Youth Epidemic",
@@ -46,7 +51,7 @@ const MentalHealthSlider = () => {
         "We're Losing Our Calm — One Child at a Time.",
         "From Panic to Peace — With Help."
       ],
-      emoji: "😰"
+      icon: <GiBrain className="text-yellow-500" />
     },
     {
       title: "Global Depression: The Hidden Pandemic",
@@ -57,7 +62,7 @@ const MentalHealthSlider = () => {
         "Invisible. Untreated. Everywhere.",
         "One in Twenty Is Drowning Right Now."
       ],
-      emoji: "🌍"
+      icon: <FaGlobeAmericas className="text-green-500" />
     },
     {
       title: "Aging in Isolation: The Forgotten Mental Health Crisis",
@@ -68,7 +73,7 @@ const MentalHealthSlider = () => {
         "They Gave Us Everything — Let's Not Forget Them.",
         "Loneliness Is a Disease Too."
       ],
-      emoji: "👵"
+      icon: <MdOutlineElderly className="text-purple-500" />
     },
     {
       title: "Childhood Depression: Diagnosed Too Late, Too Often",
@@ -79,7 +84,7 @@ const MentalHealthSlider = () => {
         "Catch It Early. Heal for Life.",
         "Children Don't Always Say It. But They Feel It."
       ],
-      emoji: "🧒"
+      icon: <RiMentalHealthFill className="text-blue-400" />
     },
     {
       title: "Mental Health Inequality: A Global Disgrace",
@@ -90,7 +95,7 @@ const MentalHealthSlider = () => {
         "Mental Health Is Not a Privilege — It's a Right.",
         "Geography Shouldn't Decide Who Gets to Heal."
       ],
-      emoji: "⚖️"
+      icon: <FaBalanceScale className="text-gray-600" />
     },
     {
       title: "Indigenous Youth: Suicide at Catastrophic Rates",
@@ -101,7 +106,7 @@ const MentalHealthSlider = () => {
         "They Deserve More Than Our Apologies.",
         "Revive Their Futures. Respect Their Roots."
       ],
-      emoji: "🏹"
+      icon: <GiHeartBeats className="text-red-600" />
     },
     {
       title: "Social Media: The New Mental Health Battleground",
@@ -112,7 +117,7 @@ const MentalHealthSlider = () => {
         "What They Post Isn't Who They Are — But It Hurts All the Same.",
         "Don't Let Likes Define Their Life."
       ],
-      emoji: "📱"
+      icon: <FaMobileAlt className="text-indigo-500" />
     }
   ];
 
@@ -128,148 +133,113 @@ const MentalHealthSlider = () => {
     setCurrentSlide(index);
   };
 
+  // Calculate rotation when currentSlide changes
+  useEffect(() => {
+    setRotation(-currentSlide * (360 / slides.length));
+  }, [currentSlide, slides.length]);
+
   return (
-    <div className="w-full mx-auto p-8 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl shadow-xl">
-      <h1 className="text-4xl font-bold text-center mb-10 text-indigo-800 drop-shadow-sm">
-        🧠 <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">10 Alarming Mental Health Crises</span>
+    <div className="w-full mx-auto p-6 flex flex-col items-center justify-center">
+      <h1 className="text-2xl font-medium text-center mb-8 text-gray-800">
+        <span className="text-xl mr-2">🧠</span> Mental Health Awareness
       </h1>
       
-      <div className="relative overflow-hidden rounded-xl bg-white shadow-lg border border-indigo-100 hover:shadow-xl transition-shadow duration-300">
-        {/* Slide */}
-        <div className="p-8 transition-all duration-500 ease-in-out">
-          <div className="flex items-center mb-6 border-b border-indigo-100 pb-4">
-            <div className="bg-indigo-100 p-3 rounded-full mr-4">
-              <span className="text-5xl">{slides[currentSlide].emoji}</span>
+      {/* Circular Slider Container */}
+      <div className="relative w-[500px] h-[500px] mb-8">
+        {/* Center Content */}
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 w-[200px] h-[200px] rounded-full bg-white shadow-lg flex flex-col items-center justify-center text-center p-4 border-4 border-indigo-100">
+          <div className="text-5xl mb-2">{slides[currentSlide].icon}</div>
+          <h2 className="text-lg font-medium text-gray-800 leading-tight mb-2">{slides[currentSlide].title}</h2>
+          <div className="text-xs text-gray-500">{currentSlide + 1} / {slides.length}</div>
+        </div>
+        
+        {/* Circular Track */}
+        <div className="absolute top-0 left-0 w-full h-full rounded-full border-8 border-dashed border-gray-100"></div>
+        
+        {/* Slides positioned in a circle */}
+        <div 
+          className="absolute top-0 left-0 w-full h-full transition-transform duration-1000 ease-in-out" 
+          style={{ transform: `rotate(${rotation}deg)` }}
+        >
+          {slides.map((slide, index) => {
+            // Calculate position in the circle
+            const angle = (index * 360) / slides.length;
+            const radian = (angle * Math.PI) / 180;
+            const radius = 220; // Distance from center
+            
+            // Calculate x and y coordinates
+            const x = radius * Math.cos(radian);
+            const y = radius * Math.sin(radian);
+            
+            return (
+              <div 
+                key={index}
+                className={`absolute top-1/2 left-1/2 w-[100px] h-[100px] rounded-full shadow-md flex items-center justify-center transition-all duration-500 cursor-pointer ${currentSlide === index ? 'bg-indigo-100 scale-110 z-20' : 'bg-white hover:bg-gray-50'}`}
+                style={{
+                  transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) rotate(${-rotation}deg)`,
+                }}
+                onClick={() => goToSlide(index)}
+              >
+                <div className="text-2xl">{slide.icon}</div>
+              </div>
+            );
+          })}
+        </div>
+        
+        {/* Navigation Controls */}
+        <button 
+          onClick={prevSlide}
+          className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 transition-colors z-30"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+          </svg>
+        </button>
+        
+        <button 
+          onClick={nextSlide}
+          className="absolute top-1/2 right-0 transform -translate-y-1/2 translate-x-1/2 w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 transition-colors z-30"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+          </svg>
+        </button>
+      </div>
+      
+      {/* Current Slide Details */}
+      <div className="w-full max-w-2xl bg-white rounded-lg border border-gray-100 p-6 shadow-sm">
+        <div className="space-y-4">
+          <div className="flex">
+            <div className="w-1 bg-red-400 rounded-full mr-4 self-stretch"></div>
+            <div className="flex-1">
+              <p className="text-sm uppercase tracking-wider text-gray-500 mb-2">Problem</p>
+              <p className="text-gray-700">{slides[currentSlide].problem}</p>
             </div>
-            <h2 className="text-3xl font-bold text-gray-800 leading-tight">{slides[currentSlide].title}</h2>
           </div>
           
-          <div className="mb-8 space-y-6">
-            <div className="bg-red-50 p-4 rounded-lg border-l-4 border-red-500">
-              <p className="text-lg font-semibold text-red-600 mb-2 flex items-center">
-                <span className="mr-2">🧨</span> Problem:
-              </p>
-              <p className="text-gray-700 text-lg">{slides[currentSlide].problem}</p>
+          <div className="flex">
+            <div className="w-1 bg-blue-400 rounded-full mr-4 self-stretch"></div>
+            <div className="flex-1">
+              <p className="text-sm uppercase tracking-wider text-gray-500 mb-2">Statistics</p>
+              <p className="text-gray-700">{slides[currentSlide].stats}</p>
             </div>
-            
-            <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
-              <p className="text-lg font-semibold text-blue-600 mb-2 flex items-center">
-                <span className="mr-2">📊</span> Stats:
-              </p>
-              <p className="text-gray-700 text-lg">{slides[currentSlide].stats}</p>
-            </div>
-            
-            <div className="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-500">
-              <p className="text-lg font-semibold text-purple-600 mb-2 flex items-center">
-                <span className="mr-2">🔥</span> Taglines:
-              </p>
+          </div>
+          
+          <div className="flex">
+            <div className="w-1 bg-purple-400 rounded-full mr-4 self-stretch"></div>
+            <div className="flex-1">
+              <p className="text-sm uppercase tracking-wider text-gray-500 mb-2">Taglines</p>
               <ul className="list-none space-y-2">
                 {slides[currentSlide].taglines.map((tagline, index) => (
-                  <li key={index} className="text-gray-700 italic pl-4 border-l-2 border-purple-300 py-1">"{tagline}"</li>
+                  <li key={index} className="text-gray-700 italic">"{tagline}"</li>
                 ))}
               </ul>
             </div>
           </div>
         </div>
-        
-        {/* Navigation */}
-        <div className="flex justify-between items-center px-8 py-4 bg-gradient-to-r from-indigo-50 to-purple-50 border-t border-indigo-100">
-          <button 
-            onClick={prevSlide}
-            className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-800 transition shadow-md hover:shadow-lg flex items-center"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-            Previous
-          </button>
-          
-          <div className="flex space-x-3">
-            {slides.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => goToSlide(index)}
-                className={`w-3.5 h-3.5 rounded-full transition-all duration-300 ${currentSlide === index ? 'bg-gradient-to-r from-indigo-600 to-purple-600 scale-125' : 'bg-gray-300 hover:bg-gray-400'}`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
-          
-          <button 
-            onClick={nextSlide}
-            className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-800 transition shadow-md hover:shadow-lg flex items-center"
-          >
-            Next
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-            </svg>
-          </button>
-        </div>
       </div>
-      
-      {/* Summary Cards */}
-      <div className="mt-16">
-        <h3 className="text-2xl font-bold mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-indigo-700 to-purple-700">🔎 Mental Health Crisis Dashboard</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {slides.map((slide, index) => (
-            <div key={index} className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-indigo-100 transform hover:-translate-y-1">
-              <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 flex items-center">
-                <div className="bg-white bg-opacity-20 p-2 rounded-full mr-3">
-                  <span className="text-3xl">{slide.emoji}</span>
-                </div>
-                <h4 className="font-bold text-lg truncate">{slide.title}</h4>
-              </div>
-              <div className="p-5">
-                <div className="mb-4 bg-indigo-50 p-3 rounded-lg">
-                  <p className="text-sm font-semibold text-indigo-700 mb-1 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" />
-                      <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z" />
-                    </svg>
-                    Statistical Snapshot:
-                  </p>
-                  <p className="text-gray-700 text-sm">{slide.stats.split('—')[0].trim()}</p>
-                </div>
-                
-                {slide.stats.includes('—') && (
-                  <div className="mb-4 bg-red-50 p-3 rounded-lg">
-                    <p className="text-sm font-semibold text-red-600 mb-1 flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                      </svg>
-                      Time-Based Urgency:
-                    </p>
-                    <p className="text-gray-700 text-sm">{slide.stats.split('—')[1].trim()}</p>
-                  </div>
-                )}
-                
-                <div className="bg-purple-50 p-3 rounded-lg">
-                   <p className="text-sm font-semibold text-purple-600 mb-1 flex items-center">
-                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                       <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z" clipRule="evenodd" />
-                     </svg>
-                     Key Tagline:
-                   </p>
-                   <p className="text-gray-700 text-sm italic">"{slide.taglines[0]}"</p>
-                 </div>
-                 
-                 <button 
-                   onClick={() => goToSlide(index)}
-                   className="mt-5 w-full py-2.5 px-4 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-lg transition-all duration-300 text-sm font-medium flex items-center justify-center shadow-sm hover:shadow-md"
-                 >
-                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                     <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                     <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                   </svg>
-                   View Details
-                 </button>
-               </div>
-             </div>
-           ))}
-         </div>
-       </div>
-     </div>
-    );
+    </div>
+  );
 };
 
 export default MentalHealthSlider;
