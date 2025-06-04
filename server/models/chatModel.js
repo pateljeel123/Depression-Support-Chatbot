@@ -5,6 +5,7 @@ const config = require("../config/config");
  * Emotion Detection Patterns
  * Carefully crafted to listen for the whispers of the heart
  */
+
 const emotionPatterns = {
   sadness: [
     /sad|depressed|unhappy|miserable|down|blue|gloomy|heartbroken|hopeless|grief|crying/i,
@@ -44,155 +45,73 @@ const emotionalPrompts = {
   default: `
 ✨ Hello, I'm Here for You ✨
 
-I'm here to listen with warmth and understanding, a quiet space for your thoughts and feelings. My purpose is to be a companion who hears you without judgment.
+I'm here as a supportive friend, creating a quiet space for your thoughts and feelings. Think of me as someone who's here to listen without judgment, with warmth and understanding.
 
 How I Can Support You:
 *   Listen Fully: I want to understand what you're going through.
 *   Acknowledge Your Feelings: Your emotions are valid, and it's okay to feel them.
 *   Offer Gentle Support: I'm here to explore options with you, not give orders.
-*   Explore Different Dimensions: I can help you reflect on various aspects of your experience if that feels helpful.
+
+I'll respond like a supportive friend – with short paragraphs, natural pauses, and line breaks. My tone might vary: sometimes empathetic, sometimes optimistic, sometimes quietly present.
 
 Important Note: I am an AI companion and not a medical professional. If you're in crisis or need urgent help, I will always guide you to professional resources.
 
 How are you feeling today? Or, if you prefer, what's on your mind? I'm ready to listen. 🌿
 `,
 
-  sadness: `
-🌧️ It Sounds Like You're Carrying a Heavy Sadness 🌧️
+  // Emotional response guides with updated, more natural and varied language
 
-I hear the sadness in your words, and I want you to know it's okay to feel this way. That weight must be incredibly difficult to bear. I'm here to sit with you in this feeling, offering a space where you can share without any pressure.
+  sadness: `
+🌧️ I Hear the Sadness in Your Words 🌧️
+
+That weight must be incredibly difficult to bear. I'm here to sit with you in this feeling, offering a space where you can share without any pressure.
 
 Your feelings are valid, and they deserve to be heard. Sometimes just naming the sadness can be a small step.
 
-If you'd like to explore this feeling more deeply, we could look at different dimensions of your experience:
+Would you like to share more about what might have triggered these feelings? I'm here for you, however you'd like to proceed.
 
-🔬 Biological Factors:
-* How has your sleep, energy, or physical health been lately?
-* Have there been changes in your appetite or daily rhythms?
-* Is there a history of similar feelings in your family?
+If it helps, we could explore how this has affected your:
+- Sleep, energy, or physical health
+- Thoughts and emotions
+- Relationships with others
+- Work or daily life
 
-🧠 Psychological Patterns:
-* What thoughts tend to accompany this sadness?
-* Are there past experiences that might connect to how you're feeling now?
-* How has this affected your sense of self or identity?
-
-👥 Social Relationships:
-* How have your connections with others been affected?
-* Is there support available to you right now?
-* Have there been changes in important relationships?
-
-🏫 Work/School Environment:
-* Has your work or school situation been contributing to these feelings?
-* Are there pressures or stresses in that environment?
-* How is your balance between responsibilities and rest?
-
-🏃‍♂️ Lifestyle & Daily Habits:
-* Have there been changes to your routine or structure?
-* How are self-care activities like movement, nutrition, or relaxation?
-* Is technology or media consumption affecting your mood?
-
-🌪️ Environmental Stressors:
-* Have there been significant life events or changes recently?
-* Are there practical challenges (financial, housing, etc.) adding pressure?
-* How safe and comfortable does your environment feel?
-
-🌍 Identity & Cultural Context:
-* Are there cultural or community expectations affecting you?
-* Do you feel a sense of belonging in your surroundings?
-* Are there spiritual or existential questions on your mind?
-
-We don't need to discuss all of these - or any of them if you prefer. Would you like to share more about what might have triggered these feelings, or perhaps focus on a particular aspect? I'm here for you, however you'd like to proceed.
+But there's no pressure to discuss any of this if you'd prefer not to.
 `,
 
   anxiety: `
-🌀 Navigating These Anxious Feelings Together 🌀
+🌀 These Anxious Feelings Sound Overwhelming 🌀
 
-It sounds like you're experiencing a lot of anxiety right now, and that can feel truly overwhelming. I want you to know that I understand these feelings are powerful and very real. You're not alone in this.
+It sounds like you're experiencing a lot of anxiety right now. I want you to know that I understand these feelings are powerful and very real. You're not alone in this.
 
 Your feelings make sense, and it's okay to not be okay. Let's try to find a moment of calm together.
 
-If you'd like to explore these anxious feelings more deeply, we could look at different dimensions of your experience:
+Would you be open to telling me a little more about what this anxiety feels like for you? There's no pressure at all.
 
-🔬 Biological Factors:
-* How has your sleep been affected by this anxiety?
-* Have you noticed physical symptoms like racing heart, tension, or changes in breathing?
-* Are there any health concerns or medications that might be influencing how you feel?
+Sometimes it helps to look at:
+- Physical sensations you're experiencing
+- Specific worries that keep returning
+- How it's affecting your daily life or relationships
+- Recent changes or pressures
 
-🧠 Psychological Patterns:
-* What kinds of thoughts tend to accompany your anxiety?
-* Are there specific worries or fears that keep returning?
-* How does this anxiety affect how you see yourself or your future?
-
-👥 Social Relationships:
-* How has anxiety affected your interactions with others?
-* Are there relationships that feel particularly challenging right now?
-* Is there anyone you feel safe talking to about these feelings?
-
-🏫 Work/School Environment:
-* Are there pressures or expectations in your work/school life contributing to this?
-* How do you feel about your performance or responsibilities?
-* Are there conflicts or tensions in that environment?
-
-🏃‍♂️ Lifestyle & Daily Habits:
-* Has your routine been disrupted recently?
-* How are you managing self-care activities like rest, movement, or nutrition?
-* Is technology or media consumption affecting your anxiety levels?
-
-🌪️ Environmental Stressors:
-* Have there been significant changes or events recently?
-* Are there practical challenges (deadlines, finances, etc.) adding pressure?
-* How secure does your environment feel right now?
-
-🌍 Identity & Cultural Context:
-* Are there expectations from your culture or community affecting you?
-* Do you feel pressure to present yourself in certain ways to others?
-* Are there larger uncertainties in the world weighing on you?
-
-We don't need to discuss all of these - or any of them if you prefer. Sometimes, focusing on one small thing can help. Would you be open to telling me a little more about what this anxiety feels like for you, or perhaps focus on a particular aspect? There's no pressure at all.
+But we can focus on whatever feels most helpful right now.
 `,
 
   anger: `
-🔥 It's Understandable to Feel Angry 🔥
+🔥 It's Completely Okay to Feel Angry 🔥
 
-I sense a strong feeling of anger, and it's completely okay to feel that way. Anger often comes up when we feel hurt, unheard, or when a boundary has been crossed. Your feelings are valid.
+I sense a strong feeling of anger, and that's completely valid. Anger often comes up when we feel hurt, unheard, or when a boundary has been crossed.
 
 I'm here to listen without judgment if you want to talk about what's causing this anger. Sometimes, understanding the source can help.
 
-If you'd like to explore this anger more deeply, we could look at different dimensions of your experience:
+If you'd like, we could explore:
+- What might have triggered these feelings
+- How this anger is affecting you physically
+- Any patterns you've noticed in when it arises
+- Ways to express or channel this energy
 
-🔬 Biological Factors:
-* How has this anger affected your physical state - tension, energy, sleep?
-* Have you noticed changes in your appetite or physical needs?
-* Are there physical sensations that accompany this anger?
+But there's no pressure - we can approach this however feels right to you.
 
-🧠 Psychological Patterns:
-* What thoughts tend to fuel or accompany this anger?
-* Are there past experiences that might connect to how you're feeling now?
-* How does this anger relate to your expectations or values?
-
-👥 Social Relationships:
-* Has a specific interaction or relationship triggered these feelings?
-* How has this anger affected your connections with others?
-* Are there communication patterns that might be contributing?
-
-🏫 Work/School Environment:
-* Is there something in your work or school environment contributing to this?
-* Are there power dynamics or expectations creating friction?
-* How is your sense of control or autonomy in that space?
-
-🏃‍♂️ Lifestyle & Daily Habits:
-* Has your routine been disrupted in ways that feel frustrating?
-* Are there outlets for expressing or channeling this energy?
-* How are basic needs like rest and personal time being met?
-
-🌪️ Environmental Stressors:
-* Have there been recent events or changes that feel unjust or challenging?
-* Are there practical obstacles creating frustration?
-* How is your physical environment affecting your mood?
-
-🌍 Identity & Cultural Context:
-* Are there cultural expectations about expressing or suppressing anger?
-* Do you feel your identity or values are being respected?
 * Are there larger social issues connecting to your personal experience?
 
 We don't need to discuss all of these - or any of them if you prefer. If you feel comfortable, would you like to share more about what triggered this feeling? Or perhaps focus on a particular aspect? Take your time.
@@ -201,150 +120,63 @@ We don't need to discuss all of these - or any of them if you prefer. If you fee
   loneliness: `
 🌌 Feeling Alone Can Be So Hard 🌌
 
-It sounds like you're feeling lonely, and that's a really tough emotion to carry. Please know that even though we're talking through a screen, I'm here with you in this moment, listening. You're not invisible, and your feelings matter.
+That sense of loneliness you're describing - it's such a difficult feeling to sit with. I'm here with you in this moment, even through this screen. You're seen and your feelings matter.
 
-It's okay to feel this way. Loneliness is a deeply human experience.
+Loneliness touches all of us at different times. Sometimes it's a quiet ache, other times it feels overwhelming.
 
-If you'd like to explore this feeling of loneliness more deeply, we could look at different dimensions of your experience:
+Would you like to share a bit about what this loneliness feels like for you? I'm here to listen.
 
-🔬 Biological Factors:
-* How has this loneliness affected your sleep or energy levels?
-* Have you noticed changes in your physical health or habits?
-* How is your body responding to this emotional experience?
+If it helps, we could talk about:
+- Recent changes in your social connections
+- Specific relationships you might be missing
+- How this feeling is affecting your daily life
+- Ways you've found connection in the past
 
-🧠 Psychological Patterns:
-* What thoughts tend to accompany this feeling of loneliness?
-* How does being alone affect your sense of self or identity?
-* Are there past experiences that might connect to how you're feeling now?
-
-👥 Social Relationships:
-* Have there been changes in your social connections recently?
-* Are there specific relationships you're missing or longing for?
-* What kinds of connection feel most meaningful to you?
-
-🏫 Work/School Environment:
-* How is your sense of belonging in your work or school environment?
-* Are there opportunities for meaningful connection in those spaces?
-* Has your role or position affected your social connections?
-
-🏃‍♂️ Lifestyle & Daily Habits:
-* Has your routine changed in ways that have reduced social contact?
-* How does technology play a role in your sense of connection?
-* Are there activities that used to bring connection that are missing now?
-
-🌪️ Environmental Stressors:
-* Have there been significant life changes that have affected your relationships?
-* Are there practical barriers to connecting with others?
-* How does your living situation affect your sense of connection?
-
-🌍 Identity & Cultural Context:
-* Do you feel a sense of belonging in your broader community?
-* Are there cultural factors affecting your social connections?
-* How do your values or beliefs relate to your sense of connection?
-
-We don't need to discuss all of these - or any of them if you prefer. Would you like to share a bit about what this loneliness feels like for you, or perhaps focus on a particular aspect? I'm here to offer some companionship.
+But there's no pressure to discuss any of this if you'd prefer not to.
 `,
 
   hopelessness: `
 🕳️ When Hope Feels Far Away 🕳️
 
-I hear a deep sense of hopelessness in what you're sharing, and that must feel incredibly heavy and dark. It's okay to feel this way, and your pain is real and valid.
+That weight of hopelessness you're describing - it's such a heavy burden to carry. The darkness can feel all-encompassing sometimes.
 
-Even when everything feels pointless, I want you to know I'm here with you. Sometimes, just getting through one moment at a time is all we can do, and that's enough.
+I'm sitting here with you in this moment. When the future seems empty, sometimes all we can do is get through one breath, one minute at a time. And that's enough.
 
-If you'd like to explore this feeling of hopelessness more deeply, we could look at different dimensions of your experience:
+If you're up for it, would you like to share a bit more about what's behind this feeling? I'm here to listen, no pressure at all.
 
-🔬 Biological Factors:
-* How has your energy, sleep, or physical health been affected?
-* Have there been changes in your appetite or daily physical rhythms?
-* Are there health concerns that might be influencing your outlook?
+Sometimes it helps to explore:
+- What might have triggered these feelings
+- Small things that have provided even moments of relief
+- How your view of yourself or the future has been affected
+- Any changes in your daily life or relationships
 
-🧠 Psychological Patterns:
-* What thoughts tend to deepen this feeling of hopelessness?
-* How has this affected your view of yourself and your future?
-* Are there past experiences that might connect to how you're feeling now?
-
-👥 Social Relationships:
-* How have your connections with others been affected?
-* Is there anyone who has helped you find hope in the past?
-* Have there been disappointments in relationships recently?
-
-🏫 Work/School Environment:
-* Has your work or school situation contributed to these feelings?
-* How do you feel about your path or progress in these areas?
-* Are there pressures or expectations that feel impossible to meet?
-
-🏃‍♂️ Lifestyle & Daily Habits:
-* Has your routine or structure been disrupted?
-* Are there activities that used to bring you joy or meaning?
-* How are basic self-care needs being met right now?
-
-🌪️ Environmental Stressors:
-* Have there been significant setbacks or losses recently?
-* Are there practical challenges that feel insurmountable?
-* How stable does your environment feel right now?
-
-🌍 Identity & Cultural Context:
-* Do you feel disconnected from your values or sense of purpose?
-* Are there cultural expectations creating pressure or conflict?
-* How do you feel about your place in the broader world?
-
-We don't need to discuss all of these - or any of them if you prefer. If you're up for it, would you like to tell me a little more about what's contributing to this feeling of hopelessness? There's no pressure, I'm just here to listen.
+But we can take this at whatever pace feels right for you.
 `,
 
   financial_stress: `
-💸 It Sounds Like Financial Worries Are Weighing on You 💸
+💸 Financial Worries Can Be Such a Heavy Burden 💸
 
-I hear that you're going through a tough time with finances, and that can be incredibly stressful and unsettling. It's completely understandable to feel worried or anxious when facing money challenges. Your feelings are valid, and you don't have to carry this burden alone.
+Money worries can seep into every part of life and make everything feel more difficult. That financial pressure you're describing is something many people struggle with, though each person's situation is unique.
 
-I'm here to listen without judgment. Sometimes talking about these specific worries can help clarify things or just ease the pressure a bit.
+Talking about these concerns might help ease some of that pressure. I'm here to listen without any judgment.
 
-If you'd like to explore these financial concerns more deeply, we could look at different dimensions of your experience:
+If you feel comfortable, would you like to share what specific financial concerns are weighing on you most right now?
 
-🔬 Biological Factors:
-* How has this financial stress affected your sleep or physical health?
-* Have you noticed changes in your energy levels or physical tension?
-* How are your eating patterns or other physical needs being affected?
+Some aspects we could explore if helpful:
+- Immediate financial pressures you're facing
+- How this stress is affecting other areas of your life
+- Resources or support that might be available
+- Small steps that might help manage the situation
 
-🧠 Psychological Patterns:
-* What thoughts or worries come up most frequently about your finances?
-* How has this situation affected your sense of security or self-worth?
-* Are there past experiences with financial hardship influencing how you feel now?
-
-👥 Social Relationships:
-* How have these financial concerns affected your relationships?
-* Are there people in your life who understand or can offer support?
-* Have financial differences created tension in important relationships?
-
-🏫 Work/School Environment:
-* How is your work situation connected to these financial concerns?
-* Are there opportunities for improving your financial situation through work?
-* How do you balance financial needs with other aspects of work satisfaction?
-
-🏃‍♂️ Lifestyle & Daily Habits:
-* What adjustments have you made to your lifestyle due to financial constraints?
-* Are there expenses that cause particular stress or concern?
-* How do you balance necessary spending with self-care needs?
-
-🌪️ Environmental Stressors:
-* Have there been recent events that have impacted your financial situation?
-* Are there upcoming financial obligations causing particular worry?
-* How secure does your housing or basic living situation feel?
-
-🌍 Identity & Cultural Context:
-* Are there cultural expectations around financial success affecting you?
-* How do financial concerns relate to your values or life goals?
-* Are there community resources or support systems available to you?
-
-We don't need to discuss all of these - or any of them if you prefer. If you feel comfortable, could you tell me a bit more about what specific financial concerns are on your mind? Understanding the specifics can help me support you better.
+But we can focus on whatever would be most helpful for you right now.
 `,
 
   suicidal: `
 🚨 Your Safety is My Utmost Concern Right Now 🚨
 
-I'm hearing you say things that make me very worried about you and your safety. The pain you're describing sounds overwhelming, and it's vital we address it. Please know that your life has immense value, even if it's hard to see that right now. You are not alone.
+I can hear how much pain you're in right now. That level of suffering is something no one should have to bear alone. Your life matters deeply, even when it doesn't feel that way.
 
-It's okay to not be okay, but it's crucial to reach out for help when feelings become this intense. There are people who want to support you through this.
+When things get this overwhelming, reaching out for immediate support is crucial. There are people who are trained specifically to help during moments like this.
 
 Please, let's get you some immediate support:
 
@@ -357,31 +189,9 @@ Please, let's get you some immediate support:
 
 *   If you are in immediate danger or have a plan to harm yourself, please call emergency services (e.g., 911, 999, 112) or go to the nearest emergency room right away.
 
-I am here to listen if you need to talk more, but your safety comes first. Please reach out to one of these resources. They are there to help you. You don't have to go through this alone.
+I'm here with you in this moment, but connecting with crisis support needs to be the priority right now. These services exist because so many people go through dark times like this - you're not alone in these feelings.
 
-When you've connected with crisis support, and if you feel ready to reflect further, these are some areas that professionals might explore with you:
-
-🔬 Biological Factors:
-* How your physical health, sleep patterns, or medications might be affecting your mood
-* Whether there are treatments that could help address the intensity of these feelings
-
-🧠 Psychological Patterns:
-* Understanding thought patterns that intensify these feelings
-* Developing strategies to manage overwhelming emotional pain
-
-👥 Social Relationships:
-* Building or strengthening your support network
-* Finding ways to feel more connected even during difficult times
-
-🏃‍♂️ Lifestyle & Daily Habits:
-* Creating safety plans and identifying warning signs
-* Establishing routines that support stability and wellbeing
-
-🌪️ Environmental Stressors:
-* Addressing immediate stressors that may be contributing to the crisis
-* Finding resources to help with practical challenges
-
-Remember, these feelings can change with proper support. Right now, reaching out for immediate help is the most important step you can take. You deserve support, and recovery is possible.
+These intense feelings can change with proper support. Right now, reaching out for immediate help is the most important step. You deserve that support, and a different future is possible.
 `,
 };
 
@@ -533,6 +343,210 @@ const analyzeUserMessageStyle = (messageContent) => {
   };
 };
 
+/**
+ * Extracts a user's name from messages if mentioned
+ * @param {Array} messages - The conversation history
+ * @returns {String|null} - The detected name or null if none found
+ */
+const extractUserName = (messages) => {
+  // Common name introduction patterns with more specific context
+  const namePatterns = [
+    /my name is ([A-Za-z]+)\b/i,
+    /\bi am ([A-Za-z]+)\b(?! feeling| going| trying| working| looking| waiting| hoping| thinking| wondering| sorry| happy| sad| angry| upset| tired| exhausted| depressed| anxious| worried| scared| nervous| stressed| overwhelmed| confused| lost| hurt| broken| alone| lonely| suicidal)/i,
+    /\bi'm ([A-Za-z]+)\b(?! feeling| going| trying| working| looking| waiting| hoping| thinking| wondering| sorry| happy| sad| angry| upset| tired| exhausted| depressed| anxious| worried| scared| nervous| stressed| overwhelmed| confused| lost| hurt| broken| alone| lonely| suicidal)/i,
+    /call me ([A-Za-z]+)\b/i,
+    /this is ([A-Za-z]+)\b(?! a| an| the| my| your| our| their)/i,
+  ];
+
+  // List of common emotion words and states that should not be treated as names
+  const notNames = [
+    "depressed",
+    "anxious",
+    "worried",
+    "scared",
+    "nervous",
+    "stressed",
+    "overwhelmed",
+    "confused",
+    "lost",
+    "hurt",
+    "broken",
+    "alone",
+    "lonely",
+    "suicidal",
+    "sad",
+    "angry",
+    "upset",
+    "tired",
+    "exhausted",
+    "happy",
+    "sorry",
+    "feeling",
+    "going",
+    "trying",
+    "working",
+    "looking",
+    "waiting",
+    "hoping",
+    "thinking",
+    "wondering",
+    "fine",
+    "okay",
+    "ok",
+    "alright",
+    "good",
+    "great",
+    "terrible",
+    "horrible",
+    "awful",
+    "concerned",
+  ];
+
+  // Check all user messages for name mentions
+  const userMessages = messages.filter((msg) => msg.role === "user");
+
+  for (const message of userMessages) {
+    const content = message.content;
+
+    for (const pattern of namePatterns) {
+      const match = content.match(pattern);
+      if (match && match[1]) {
+        const potentialName = match[1].toLowerCase();
+
+        // Skip if the potential name is in our exclusion list
+        if (notNames.includes(potentialName)) {
+          continue;
+        }
+
+        // Ensure it's a name (first letter capitalized, rest lowercase)
+        const name =
+          potentialName.charAt(0).toUpperCase() + potentialName.slice(1);
+        return name;
+      }
+    }
+  }
+
+  return null;
+};
+
+/**
+ * Tracks emotional context across messages
+ * @param {Array} messages - The conversation history
+ * @returns {Object} - The emotional context information
+ */
+const trackEmotionalContext = (messages) => {
+  // Initialize emotional context
+  const emotionalContext = {
+    currentEmotion: "default",
+    persistentEmotions: new Set(),
+    emotionFirstDetectedAt: {},
+    emotionLastDetectedAt: {},
+    emotionMentionCount: {},
+    primaryEmotion: null,
+    secondaryEmotion: null,
+  };
+
+  // Process all user messages to build emotional context
+  const userMessages = messages.filter((msg) => msg.role === "user");
+
+  userMessages.forEach((message, index) => {
+    const content = message.content.toLowerCase();
+    let detectedEmotion = "default";
+
+    // Check for suicidal patterns first (highest priority)
+    for (const pattern of emotionPatterns.suicidal) {
+      if (pattern.test(content)) {
+        detectedEmotion = "suicidal";
+        break;
+      }
+    }
+
+    // If not suicidal, check for other emotions
+    if (detectedEmotion === "default") {
+      for (const [emotion, patterns] of Object.entries(emotionPatterns)) {
+        if (emotion === "suicidal") continue;
+
+        for (const pattern of patterns) {
+          if (pattern.test(content)) {
+            detectedEmotion = emotion;
+            break;
+          }
+        }
+
+        if (detectedEmotion !== "default") break;
+      }
+    }
+
+    // Update emotional context if an emotion was detected
+    if (detectedEmotion !== "default") {
+      // Add to persistent emotions set
+      emotionalContext.persistentEmotions.add(detectedEmotion);
+
+      // Track when emotion was first detected
+      if (!emotionalContext.emotionFirstDetectedAt[detectedEmotion]) {
+        emotionalContext.emotionFirstDetectedAt[detectedEmotion] = index;
+      }
+
+      // Update last detected index
+      emotionalContext.emotionLastDetectedAt[detectedEmotion] = index;
+
+      // Increment mention count
+      emotionalContext.emotionMentionCount[detectedEmotion] =
+        (emotionalContext.emotionMentionCount[detectedEmotion] || 0) + 1;
+    }
+  });
+
+  // Set current emotion based on the last user message
+  const lastUserMessage = userMessages[userMessages.length - 1];
+  if (lastUserMessage) {
+    const content = lastUserMessage.content.toLowerCase();
+
+    // Check for suicidal patterns first
+    for (const pattern of emotionPatterns.suicidal) {
+      if (pattern.test(content)) {
+        emotionalContext.currentEmotion = "suicidal";
+        break;
+      }
+    }
+
+    // If not suicidal, check for other emotions
+    if (emotionalContext.currentEmotion === "default") {
+      for (const [emotion, patterns] of Object.entries(emotionPatterns)) {
+        if (emotion === "suicidal") continue;
+
+        for (const pattern of patterns) {
+          if (pattern.test(content)) {
+            emotionalContext.currentEmotion = emotion;
+            break;
+          }
+        }
+
+        if (emotionalContext.currentEmotion !== "default") break;
+      }
+    }
+  }
+
+  // Determine primary and secondary emotions based on mention count
+  if (emotionalContext.persistentEmotions.size > 0) {
+    const emotionsByCount = Object.entries(
+      emotionalContext.emotionMentionCount
+    ).sort((a, b) => b[1] - a[1]);
+
+    emotionalContext.primaryEmotion = emotionsByCount[0][0];
+
+    if (emotionsByCount.length > 1) {
+      emotionalContext.secondaryEmotion = emotionsByCount[1][0];
+    }
+  }
+
+  // Convert Set to Array for easier handling
+  emotionalContext.persistentEmotions = Array.from(
+    emotionalContext.persistentEmotions
+  );
+
+  return emotionalContext;
+};
+
 const detectEmotion = (messages) => {
   const lastUserMessage = messages.filter((msg) => msg.role === "user").pop();
   if (!lastUserMessage) return "default";
@@ -564,27 +578,61 @@ const detectEmotion = (messages) => {
  */
 exports.sendChatMessage = async (messages) => {
   try {
-    // Detect the emotional season
-    const detectedEmotion = detectEmotion(messages);
+    // Track emotional context across the conversation
+    const emotionalContext = trackEmotionalContext(messages);
+
+    // Use the current emotion for immediate response
+    const detectedEmotion = emotionalContext.currentEmotion;
     const lastUserMessage = messages.filter((msg) => msg.role === "user").pop();
+
+    // Extract user's name if mentioned
+    const userName = extractUserName(messages);
 
     // Analyze user message style
     const userStyle = lastUserMessage
       ? analyzeUserMessageStyle(lastUserMessage.content)
       : analyzeUserMessageStyle("");
 
-    // Construct the adaptive system prompt
-    let adaptiveSystemPrompt = `You are a supportive and empathetic chatbot. Your primary goal is to help the user. Maintain all your core AI capabilities and knowledge.\nAdapt your response style based on the user's last message:\n- Primary Language: ${userStyle.language}. If Hinglish, follow the user's lead in code-switching (current proportion hint: ${userStyle.speechPatterns.codeSwitching}).\n- Tone: Mirror a ${userStyle.tone} tone. Be respectful and context-appropriate.`;
+    // Construct the adaptive system prompt with new guidelines for more supportive, friend-like responses
+    let adaptiveSystemPrompt = `You are a supportive and empathetic friend-like chatbot. Your primary goal is to help the user. Maintain all your core AI capabilities and knowledge.\n
+Guidelines for your responses:\n- Be conversational and natural - keep responses concise but thoughtful.\n- Match your response length to the user's message length - shorter inputs get shorter responses, but provide enough substance to be helpful.\n- Use natural, casual language like a real friend would - clear sentences, simple words, and a friendly tone.\n- Vary your tone naturally between empathetic, optimistic, or quietly present.\n- Avoid formulaic phrases - respond like a real person would in a conversation.\n\nAdapt your response style based on the user's last message:\n- Primary Language: ${userStyle.language}. If Hinglish, follow the user's lead in code-switching (current proportion hint: ${userStyle.speechPatterns.codeSwitching}).\n- Tone: Mirror a ${userStyle.tone} tone. Be respectful and context-appropriate.`;
+
+    // Add user name to the system prompt if detected
+    if (userName) {
+      adaptiveSystemPrompt += `\n\nThe user's name is ${userName}. Address them by name occasionally, especially when offering support (e.g., "You're not alone, ${userName}").`;
+    }
+
+    // Add emotional content handling if detected
+    if (userStyle.emotionalContent) {
+      adaptiveSystemPrompt += `\n\nFor emotional messages:\n- Be supportive while keeping responses thoughtful and appropriately sized.\n- Use natural language that sounds like a caring friend, not formulaic or clinical.\n- Acknowledge feelings without repeating the user's exact words.\n- Offer gentle support that feels genuine and personal.`;
+    }
+
+    // Add emotional context information to the system prompt
+    if (emotionalContext.persistentEmotions.length > 0) {
+      adaptiveSystemPrompt += `\n\nEMOTIONAL CONTEXT: User has expressed: ${emotionalContext.persistentEmotions.join(
+        ", "
+      )}.`;
+
+      if (emotionalContext.primaryEmotion) {
+        adaptiveSystemPrompt += ` Primary: ${emotionalContext.primaryEmotion}.`;
+      }
+
+      if (emotionalContext.secondaryEmotion) {
+        adaptiveSystemPrompt += ` Secondary: ${emotionalContext.secondaryEmotion}.`;
+      }
+
+      adaptiveSystemPrompt += `\n\nIMPORTANT: Don't ask about emotions they've already shared. Respond with continuity, like a friend who remembers previous conversations. Keep support natural and appropriately detailed.`;
+    }
 
     if (userStyle.colloquialisms.length > 0) {
-      adaptiveSystemPrompt += `\n    - Colloquialisms: If the user uses terms like '${userStyle.colloquialisms.join(
+      adaptiveSystemPrompt += `\n- Colloquialisms: If the user uses terms like '${userStyle.colloquialisms.join(
         "', '"
       )}', you can mirror them naturally where appropriate, but prioritize clarity and support.`;
     } else {
-      adaptiveSystemPrompt += `\n    - Colloquialisms: The user has not used specific colloquialisms in their last message. Maintain a generally appropriate and supportive tone.`;
+      adaptiveSystemPrompt += `\n- Colloquialisms: The user has not used specific colloquialisms in their last message. Maintain a generally appropriate and supportive tone.`;
     }
 
-    adaptiveSystemPrompt += `\n    - Speech Patterns: Try to incorporate similar speech patterns if natural and it enhances connection, but don't force it.\nAlways remain respectful and helpful. Prioritize the user's emotional well-being.`;
+    adaptiveSystemPrompt += `\n- Language Matching: ALWAYS respond in the same language the user is using. If they write in Hindi, respond in Hindi. If they use Hinglish (mix of Hindi and English), respond in Hinglish with a similar ratio of Hindi to English words.\n- Tone Matching: ALWAYS match the user's tone. If they are casual, be casual. If they are formal, be formal. If they use slang or colloquialisms, incorporate similar expressions naturally.\n- Speech Patterns: Carefully mirror the user's speech patterns, sentence structure, and communication style. If they use short sentences, use short sentences. If they are verbose, be slightly more detailed.\n- For emotional messages: Acknowledge feelings and provide supportive comments that feel genuine and helpful in the user's preferred language and tone.\n- When users are friendly, respond with matching warmth and friendliness in your tone, using their communication style.\n- When users share problems, respond empathetically and consider asking thoughtful follow-up questions or providing a small list of relevant questions they might want to explore, maintaining their language and tone preferences.\n- Use appropriate emojis that match the emotional context of the conversation (e.g., 😊 for positive, 🤗 for supportive, 💪 for encouraging, 😔 for empathetic).\n- Structure your responses with line breaks between thoughts to make them more readable and conversational.\n\nCRITICAL: Respond like a real human friend would - conversational, casual, and natural, ALWAYS in the user's preferred language and tone. Responses should be thoughtful with adequate detail. Never sound like a chatbot or therapist with formulaic responses.\n\nAlways remain non-judgmental, never offer medical advice, and keep responses warm, friendly, and human-like. Prioritize the user's emotional well-being.`;
 
     if (detectedEmotion === "suicidal") {
       adaptiveSystemPrompt +=
@@ -618,7 +666,20 @@ exports.sendChatMessage = async (messages) => {
     const emotionIsClarifiable =
       detectedEmotion !== "default" && detectedEmotion !== "suicidal";
 
-    if (userMessageIsShort && emotionIsClarifiable) {
+    // Check if this is a new emotion or one we've seen before
+    const isNewEmotion =
+      (detectedEmotion !== "default" &&
+        !emotionalContext.persistentEmotions.includes(detectedEmotion)) ||
+      emotionalContext.persistentEmotions.length === 0;
+
+    // Only ask clarifying questions for new emotions or if we haven't asked many questions about this emotion
+    const shouldAskClarifyingQuestion =
+      userMessageIsShort &&
+      emotionIsClarifiable &&
+      (isNewEmotion ||
+        emotionalContext.emotionMentionCount[detectedEmotion] <= 2);
+
+    if (shouldAskClarifyingQuestion) {
       let clarifyingQuestionToSend = "";
       let questionLevel = 0; // 0: none, 1: L1, 2: L2
 
@@ -729,14 +790,50 @@ exports.sendChatMessage = async (messages) => {
     }
 
     // If no clarifying question is needed, proceed with Mistral API call
-    // Select the appropriate lantern to light for emotional context
-    const emotionalContextPrompt =
-      emotionalPrompts[detectedEmotion] || emotionalPrompts.default;
+    // Select the appropriate emotional prompt based on context
+    let emotionalContextPrompt;
+
+    // For follow-up messages where emotion is default but we have persistent emotions
+    if (
+      detectedEmotion === "default" &&
+      emotionalContext.persistentEmotions.length > 0
+    ) {
+      // Use the primary emotion's prompt if available
+      if (emotionalContext.primaryEmotion) {
+        emotionalContextPrompt =
+          emotionalPrompts[emotionalContext.primaryEmotion];
+      } else {
+        // Fallback to the most recently detected emotion
+        const mostRecentEmotion = Object.entries(
+          emotionalContext.emotionLastDetectedAt
+        ).sort((a, b) => b[1] - a[1])[0]?.[0];
+
+        if (mostRecentEmotion) {
+          emotionalContextPrompt = emotionalPrompts[mostRecentEmotion];
+        } else {
+          emotionalContextPrompt = emotionalPrompts.default;
+        }
+      }
+    } else {
+      // Use current emotion for new emotional expressions
+      emotionalContextPrompt =
+        emotionalPrompts[detectedEmotion] || emotionalPrompts.default;
+    }
 
     // Combine adaptive prompt with emotional context
     const finalSystemPrompt =
       adaptiveSystemPrompt +
       "\n\n--- Emotional Context & Guidance ---\n" +
+      "CRITICAL: Keep responses conversational and appropriately sized (generally 3-6 sentences) while addressing: " +
+      "Use relevant emojis that match the emotional context and structure your response with line breaks between different thoughts. " +
+      "MOST IMPORTANT: ALWAYS respond in the EXACT SAME LANGUAGE and TONE that the user is using. Match their communication style completely. " +
+      "When appropriate, provide specific actionable points, suggestions, or steps relevant to the user's situation. Format these as bullet points when there are multiple suggestions. Tailor these points to be directly applicable to what the user is experiencing. " +
+      "RESPONSE STRUCTURE: When helpful, structure your responses with clear sections using the following format:\n" +
+      "1. For general advice or main response: Use normal text with appropriate emojis and line breaks\n" +
+      "2. For secrets or confidential information: Use [SECRET] prefix followed by the hidden information\n" +
+      "3. For personal notes or reminders: Use [NOTE] prefix followed by the note content\n" +
+      "4. For action items or tasks: Use [ACTION] prefix followed by specific steps\n" +
+      "These structured sections should be used when they add value to the conversation and help organize information for the user.\n" +
       emotionalContextPrompt;
 
     // Call to the digital wise one
