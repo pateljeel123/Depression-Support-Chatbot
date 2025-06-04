@@ -123,13 +123,13 @@ const Navbar = () => {
                 >
                   <FaLeaf className="h-8 w-8 text-primary transform transition-transform group-hover:rotate-12 group-hover:scale-110" />
                   <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary"></span>
                     <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
                   </span>
                 </motion.div>
                 <div className="flex flex-col">
-                  <span className="bg-gradient-to-r from-primary via-purple-500 to-primary-light bg-clip-text text-transparent font-bold">MindCare</span>
-                  <span className="text-xs text-muted-foreground">Mental Wellness</span>
+                  <span className="text-primary font-bold">MindCare</span>
+                  <span className="text-xs text-foreground">Mental Wellness</span>
                 </div>
               </Link>
             </div>
@@ -171,6 +171,7 @@ const Navbar = () => {
                     </motion.button>
                   )}
                 </>
+
               ) : (
                 <>
                   <NavLink to="/features" label="Features" icon={<FaHeart className="w-4 h-4" />} />
