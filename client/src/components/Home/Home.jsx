@@ -962,7 +962,7 @@ const Home = () => {
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.8 }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden">
           <div className="text-center mb-16">
             <motion.h2 
               className="font-heading text-3xl sm:text-4xl md:text-5xl font-semibold text-text-dark dark:text-text-white mb-6 leading-tight"
@@ -984,12 +984,12 @@ const Home = () => {
             </motion.p>
           </div>
           <SliderContainer 
-            itemWidth={400} // Reduced card width for better fit
-            gap={20} // Reduced gap between items
+            itemWidth={350} // Further reduced card width for better mobile fit
+            gap={16} // Further reduced gap between items for mobile view
             visibleItems={3} 
             autoPlay={true} // Ensure autoplay is enabled
             autoPlayInterval={3000} // 3 seconds interval
-            className="mt-12 mb-8 mx-auto" // Added margin bottom and centered
+            className="mt-12 mb-8 mx-auto max-w-full sm:max-w-[90%] md:max-w-[95%] lg:max-w-full" // Improved responsive width control
             showArrows={true} 
             showDots={true} 
           >
@@ -1638,14 +1638,14 @@ const Home = () => {
           </motion.div>
 
           <SliderContainer 
-            itemWidth={350} 
-            gap={24} 
+            itemWidth={350} // Further reduced card width for better mobile fit
+            gap={16} // Further reduced gap between items for mobile view
             visibleItems={3} 
-            autoPlay={true} 
-            autoPlayInterval={3000}
-            className="mt-10 sm:mt-12 md:mt-16"
-            showArrows={true}
-            showDots={true}
+            autoPlay={true} // Ensure autoplay is enabled
+            autoPlayInterval={3000} // 3 seconds interval
+            className="mt-12 mb-8 mx-auto max-w-full sm:max-w-[90%] md:max-w-[95%] lg:max-w-full" // Improved responsive width control
+            showArrows={true} 
+            showDots={true} 
           >
             {[
               {
@@ -1678,7 +1678,7 @@ const Home = () => {
               {
                 icon: <GiMeditation className="text-purple-400 dark:text-purple-300" />,
                 title: "Mindfulness Tools",
-                description: "Guided meditations and exercises to calm your mind.",
+                description: "Guided meditations and exercises to calm your mind. Build daily habits that support inner peace and emotional balance.",
                 color: "#a855f7", // Purple
                 buttonText: "Practice Mindfulness",
                 buttonAction: () => navigate('/mindfulness'), // Assuming a route

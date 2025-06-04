@@ -1,88 +1,151 @@
-"use client";;
-import { motion, useMotionTemplate, useMotionValue } from "motion/react";
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 
-import { cn } from "@/lib/utils";
-
-export function MagicCard({
+// Changed to named export to match the import in Home.jsx
+export const MagicCard = ({
   children,
-  className,
-  gradientSize = 200,
-  gradientColor = "#262626",
-  gradientOpacity = 0.8,
-  gradientFrom = "#9E7AFF",
-  gradientTo = "#FE8BBB"
-}) {
+  className = '',
+  gradientSize = 400, // Size of the gradient in pixels
+  gradientColor = 'rgba(200, 200, 200, 0.15)', // Color of the gradient
+  gradientOpacity = 0.5, // Opacity of the gradient
+  gradientBorderColor = 'rgba(255, 255, 255, 0.15)', // Border color
+  gradientBorderWidth = 1, // Border width
+  gradientStartColor = 'rgba(255, 255, 255, 0.4)', // Start color of the gradient
+  gradientEndColor = 'rgba(255, 255, 255, 0)', // End color of the gradient
+  ...props
+}) => {
+  const [isMobile, setIsMobile] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
   const cardRef = useRef(null);
-  const mouseX = useMotionValue(-gradientSize);
-  const mouseY = useMotionValue(-gradientSize);
 
-  const handleMouseMove = useCallback((e) => {
-    if (cardRef.current) {
-      const { left, top } = cardRef.current.getBoundingClientRect();
-      const clientX = e.clientX;
-      const clientY = e.clientY;
-      mouseX.set(clientX - left);
-      mouseY.set(clientY - top);
-    }
-  }, [mouseX, mouseY]);
-
-  const handleMouseOut = useCallback((e) => {
-    if (!e.relatedTarget) {
-      document.removeEventListener("mousemove", handleMouseMove);
-      mouseX.set(-gradientSize);
-      mouseY.set(-gradientSize);
-    }
-  }, [handleMouseMove, mouseX, gradientSize, mouseY]);
-
-  const handleMouseEnter = useCallback(() => {
-    document.addEventListener("mousemove", handleMouseMove);
-    mouseX.set(-gradientSize);
-    mouseY.set(-gradientSize);
-  }, [handleMouseMove, mouseX, gradientSize, mouseY]);
-
+  // Check if device is mobile
   useEffect(() => {
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseout", handleMouseOut);
-    document.addEventListener("mouseenter", handleMouseEnter);
-
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseout", handleMouseOut);
-      document.removeEventListener("mouseenter", handleMouseEnter);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
     };
-  }, [handleMouseEnter, handleMouseMove, handleMouseOut]);
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
-  useEffect(() => {
-    mouseX.set(-gradientSize);
-    mouseY.set(-gradientSize);
-  }, [gradientSize, mouseX, mouseY]);
+  // Handle mouse movement for desktop
+  const handleMouseMove = (e) => {
+    if (!cardRef.current || isMobile) return;
+    
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    setPosition({ x, y });
+  };
+
+  // Handle mouse enter for desktop
+  const handleMouseEnter = () => {
+    if (isMobile) return;
+    
+    setIsHovered(true);
+    
+    // Center the gradient initially
+    if (cardRef.current) {
+      const rect = cardRef.current.getBoundingClientRect();
+      setPosition({ 
+        x: rect.width / 2, 
+        y: rect.height / 2 
+      });
+    }
+  };
+
+  // Handle mouse leave for desktop
+  const handleMouseLeave = () => {
+    if (isMobile) return;
+    setIsHovered(false);
+  };
+
+  // Handle touch events for mobile
+  const handleTouchStart = (e) => {
+    if (!isMobile || !cardRef.current) return;
+    
+    setIsHovered(true);
+    
+    // Center the gradient initially on touch
+    const rect = cardRef.current.getBoundingClientRect();
+    setPosition({ 
+      x: rect.width / 2, 
+      y: rect.height / 2 
+    });
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isMobile || !cardRef.current) return;
+    
+    const rect = cardRef.current.getBoundingClientRect();
+    const touch = e.touches[0];
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    
+    setPosition({ x, y });
+  };
+
+  const handleTouchEnd = () => {
+    if (!isMobile) return;
+    
+    // Keep the hover effect for a moment after touch ends for better UX
+    setTimeout(() => {
+      setIsHovered(false);
+    }, 300);
+  };
 
   return (
-    <div
+    <motion.div
       ref={cardRef}
-      className={cn("group relative rounded-[inherit]", className)}>
-      <motion.div
-        className="pointer-events-none absolute inset-0 rounded-[inherit] bg-border duration-300 group-hover:opacity-100"
-        style={{
-          background: useMotionTemplate`
-          radial-gradient(${gradientSize}px circle at ${mouseX}px ${mouseY}px,
-          ${gradientFrom}, 
-          ${gradientTo}, 
-          var(--border) 100%
-          )
-          `,
-        }} />
-      <div className="absolute inset-px rounded-[inherit] bg-background" />
-      <motion.div
-        className="pointer-events-none absolute inset-px rounded-[inherit] opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-        style={{
-          background: useMotionTemplate`
-            radial-gradient(${gradientSize}px circle at ${mouseX}px ${mouseY}px, ${gradientColor}, transparent 100%)
-          `,
-          opacity: gradientOpacity,
-        }} />
-      <div className="relative">{children}</div>
-    </div>
+      className={`relative overflow-hidden ${className}`}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      style={{
+        boxShadow: isMobile && isHovered ? '0 10px 30px rgba(0, 0, 0, 0.1)' : undefined,
+      }}
+      {...props}
+    >
+      {/* Gradient overlay */}
+      {isHovered && (
+        <div
+          className="absolute pointer-events-none transition-opacity duration-300"
+          style={{
+            left: position.x - gradientSize / 2,
+            top: position.y - gradientSize / 2,
+            width: gradientSize,
+            height: gradientSize,
+            background: `radial-gradient(circle at center, ${gradientStartColor} 0%, ${gradientEndColor} 70%)`,
+            opacity: gradientOpacity,
+            zIndex: 1,
+          }}
+        />
+      )}
+      
+      {/* Border gradient */}
+      {isHovered && (
+        <div
+          className="absolute inset-0 pointer-events-none transition-opacity duration-300"
+          style={{
+            border: `${gradientBorderWidth}px solid ${gradientBorderColor}`,
+            borderRadius: 'inherit',
+            zIndex: 1,
+          }}
+        />
+      )}
+      
+      {/* Card content */}
+      <div className="relative z-0">{children}</div>
+    </motion.div>
   );
-}
+};
+
+// Also keep default export for backward compatibility
+export default MagicCard;
