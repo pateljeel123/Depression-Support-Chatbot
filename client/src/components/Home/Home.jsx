@@ -21,6 +21,7 @@ import {
   FaChevronRight,
   FaTimes, // Added FaTimes for AppleCard modal
 } from "react-icons/fa";
+import MentalHealthSlider from "./MentalHealthSlider"; // Import MentalHealthSlider component
 import { GiBrain, GiMeditation, GiHeartBeats } from "react-icons/gi";
 import { IoMdHappy, IoMdSad } from "react-icons/io";
 import { useAuth } from "../../context/AuthContext";
@@ -984,6 +985,17 @@ const Home = () => {
             >
               Take the Depression Self-Screening Quiz <FaArrowRight className="ml-2 h-4 w-4" />
             </motion.button>
+          </motion.div>
+          
+          {/* Mental Health Slider Section */}
+          <motion.div
+            className="mt-16"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.8 }}
+          >
+            <MentalHealthSlider />
           </motion.div>
         </div>
       </motion.section>
