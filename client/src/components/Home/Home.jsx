@@ -41,7 +41,6 @@ import chroma from "chroma-js"; // Added import for chroma-js
 import { cn } from "../../lib/utils"; // Import cn from utils
 import ShineBorder from "../ui/shine-border";
 import './InvestmentSupport.css';
-import InvestmentSupport from './InvestmentSupport';
 import { LineShadowText } from "../magicui/line-shadow-text";
 import ShoeCard from "./ff";
 
@@ -891,10 +890,7 @@ const Home = () => {
           </div>
         </div>
       </section>
-
-     
       <InvestmentSupport />
-
       {/* Section 2: Common Problems People Face Because of Depression */}
       <motion.section 
         id="common-problems"
@@ -1147,10 +1143,10 @@ const Home = () => {
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             {[
-              { icon: "🧠", title: "Evidence-Based", description: "Guided by the latest psychology and neuroscience", color: "#FFFFFF", direction: "left" },
-              { icon: "💬", title: "Safe & Anonymous", description: "No judgments, just safe conversations", color: "#FFFFFF", direction: "right" },
-              { icon: "👂", title: "Human Support", description: "Kind empathetic listeners (AI-assisted for now)", color: "#FFFFFF", direction: "left" },
-              { icon: "📱", title: "Easy Access", description: "Access your content anytime, anywhere, and learn at your own pace with complete flexibility.", color: "#FFFFFF", direction: "right" },
+              { icon: "🧠", title: "Evidence-Based", description: "Guided by the latest psychology and neuroscience", color: "#6366F1", direction: "left" },
+              { icon: "💬", title: "Safe & Anonymous", description: "No judgments, just safe conversations", color: "#10B981", direction: "right" },
+              { icon: "👂", title: "Human Support", description: "Kind empathetic listeners (AI-assisted for now)", color: "#0EA5E9", direction: "left" },
+              { icon: "📱", title: "Easy Access", description: "Access your content anytime, anywhere, and learn at your own pace with complete flexibility.", color: "#F59E0B", direction: "right" },
             ].map((reason, index) => (
               <div key={index} className="card-container">
                 <div 
@@ -1303,7 +1299,6 @@ const Home = () => {
             Explore interactive resources and compassionate support systems, crafted to empower your mental health journey with clarity and ease.
           </motion.p>
         </div>
-        
 
         {/* Replace the HoverEffect component with Card components styled like ShoeCard */}
         <style jsx>{`
@@ -1685,60 +1680,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-12 sm:py-16 md:py-20 bg-background/80 dark:bg-background-dark/90 shadow-md border-b border-border/40 backdrop-blur-lg text-text-dark dark:text-text-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0 bg-gradient-to-br from-white via-transparent to-transparent opacity-20"></div>
-        </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold">
-              Ready to prioritize your mental health?
-            </h2>
-            <p className="mt-3 sm:mt-4 max-w-3xl mx-auto text-base sm:text-lg md:text-xl text-indigo-100">
-              Join thousands who have found support and understanding through
-              our platform.
-            </p>
-            <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
-              <PinContainer 
-                title={session ? "Resume your conversation" : "Start your journey to wellbeing"} 
-                href={session ? "/chat" : "/login"}
-                containerClassName="w-full sm:w-auto"
-              >
-                <motion.button
-                  onClick={() =>
-                    session ? navigate("/chat") : navigate("/login")
-                  }
-                  className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 border bg-white border-transparent text-lg font-medium rounded-full shadow-lg text-indigo-600 group-hover/pin:scale-105 transition-transform duration-200"
-                >
-                  {session ? "Continue Your Journey" : "Get Started Now"}
-                  <FaArrowRight className="ml-2" />
-                </motion.button>
-              </PinContainer>
-              <motion.button
-                onClick={() =>
-                  document
-                    .getElementById("features")
-                    .scrollIntoView({ behavior: "smooth" })
-                }
-                className="inline-flex items-center justify-center px-8 py-4 border-2 hover:text-[#7E11DF] border-white text-lg font-medium rounded-full text-white hover:bg-white hover:bg-opacity-10"
-                whileHover={{
-                  scale: 1.05,
-                  backgroundColor: "rgba(255, 255, 255, 0.1)",
-                }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Learn More
-              </motion.button>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+      {/* CTA Section has been removed */}
 
       {/* Investment Support Section */}
 
@@ -1936,6 +1878,97 @@ export const Meteors = ({
   );
 };
 
-// InvestmentSupport component has been moved to a separate file
+const items = [ 
+  { 
+    title: 'Evidence-Based Tools', 
+    link: '/loremcreative', 
+    text: `Guided by the latest psychology and neuroscience`, 
+  }, 
+  { 
+    title: 'Safe & Anonymous', 
+    link: '/loremconnect', 
+    text: `No judgments, just safe conversations`, 
+  }, 
+  { 
+    title: 'Real Human Support', 
+    link: '/training', 
+    text: `Kind empathetic listeners (AI-assisted for now)`, 
+  }, 
+  { 
+    title: 'Easy Access', 
+    link: '/training', 
+    text: `Anytime, anywhere, at your pace`, 
+  }, 
+]; 
+
+const InvestmentSupport = () => { 
+  const wrapperRef = useRef(null); 
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+            entry.target.classList.remove('hidden');
+          } else {
+            entry.target.classList.remove('active');
+            // Optionally add 'hidden' back if you want it to hide when not intersecting
+            // entry.target.classList.add('hidden'); 
+          }
+        });
+      },
+      { threshold: 0.1 } // Trigger when 10% of the element is visible
+    );
+
+    const currentRef = wrapperRef.current;
+
+    if (currentRef) {
+      observer.observe(currentRef);
+      // Set initial state: make it active and visible immediately
+      currentRef.classList.add('active');
+      currentRef.classList.remove('hidden');
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, []);
+
+  return ( 
+    <section className="investment_support bg-background/80 dark:bg-background-dark/90 shadow-md border-b border-border/40 backdrop-blur-lg"> 
+      <div className="container"> 
+        <div className="wrapper" ref={wrapperRef}> 
+          <div className="focus_block"> 
+            <div className="focus_item"></div> 
+            <div className="focus_item"></div> 
+          </div> 
+          <div className="row"> 
+            {items.map((item, index) => ( 
+              <div className="item col-md-6 col-sm-12 col-12" key={index}> 
+                <div className="item_wrap"> 
+                  <div className="head"> 
+                    <h4><span>{item.title}</span></h4> 
+                    <a href={item.link}> 
+                      <img 
+                        src="themes/custom/resibario/images/dark_arrow_right.svg" 
+                        alt="" 
+                      /> 
+                    </a> 
+                  </div> 
+                  <div className="text"> 
+                    <p>{item.text}</p> 
+                  </div> 
+                </div> 
+              </div> 
+            ))} 
+          </div> 
+        </div> 
+      </div> 
+    </section> 
+  ); 
+};
 
 export default Home;

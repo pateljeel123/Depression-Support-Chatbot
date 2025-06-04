@@ -10,7 +10,7 @@ import {
   FaHeart,
   FaBookMedical,
 } from "react-icons/fa";
-import { MdDashboard, MdOutlineWavingHand } from "react-icons/md"; // Added icons
+import { MdOutlineWavingHand } from "react-icons/md"; // Added icons
 import { useAuth } from "../../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "../../lib/utils";
@@ -44,16 +44,51 @@ const Navbar = () => {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
 
   // Effect to update login state whenever session changes
   useEffect(() => {
     setIsLoggedIn(!!session);
   }, [session]);
 
+  // Effect to detect which section is currently in view
+  useEffect(() => {
+    if (location.pathname !== '/') return;
+    
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.6, // 60% of the element must be visible
+    };
+
+    const sectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          setActiveSection(entry.target.id);
+        }
+      });
+    }, observerOptions);
+
+    // Observe sections
+    const sections = ['features', 'stories', 'resources'];
+    sections.forEach(section => {
+      const element = document.getElementById(section);
+      if (element) sectionObserver.observe(element);
+    });
+
+    return () => {
+      sections.forEach(section => {
+        const element = document.getElementById(section);
+        if (element) sectionObserver.unobserve(element);
+      });
+    };
+  }, [location.pathname]);
+
   const scrollToSection = (id) => {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
+      setActiveSection(id); // Set active section when clicked
     }
     setIsMobileMenuOpen(false); // Close mobile menu after click
   };
@@ -102,7 +137,6 @@ const Navbar = () => {
 
   const bottomNavItems = [
     { label: "Home", to: "/", icon: <FaHome className="w-5 h-5 mb-1" /> },
-    { label: "Dashboard", to: "/dashboard", icon: <MdDashboard className="w-5 h-5 mb-1" /> },
     { label: "Profile", to: "/profile", icon: <FaUserCircle className="w-5 h-5 mb-1" /> },
     ...(isLoggedIn ? [{ label: "AI Chat", to: "/chat", icon: <FaComments className="w-5 h-5 mb-1" /> }] : []), // Only show AI Chat when logged in
   ];
@@ -141,31 +175,31 @@ const Navbar = () => {
                 <>
                   <button 
                     onClick={() => scrollToSection('features')} 
-                    className="text-text-light hover:text-text-dark px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:bg-opacity-50 font-heading flex items-center gap-2"
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors font-heading flex items-center gap-2 ${activeSection === 'features' ? 'bg-accent text-text-dark shadow-sm' : 'text-text-light hover:text-text-dark hover:bg-accent hover:bg-opacity-50'}`}
                   >
                     <FaHeart className="w-4 h-4 text-primary" />
                     Features
                   </button>
                   <button 
                     onClick={() => scrollToSection('stories')} 
-                    className="text-text-light hover:text-text-dark px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:bg-opacity-50 font-heading flex items-center gap-2"
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors font-heading flex items-center gap-2 ${activeSection === 'stories' ? 'bg-accent text-text-dark shadow-sm' : 'text-text-light hover:text-text-dark hover:bg-accent hover:bg-opacity-50'}`}
                   >
                     <MdOutlineWavingHand className="w-4 h-4 text-primary" />
                     Community
                   </button>
                   <button 
                     onClick={() => scrollToSection('resources')} 
-                    className="text-text-light hover:text-text-dark px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:bg-opacity-50 font-heading flex items-center gap-2"
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors font-heading flex items-center gap-2 ${activeSection === 'resources' ? 'bg-accent text-text-dark shadow-sm' : 'text-text-light hover:text-text-dark hover:bg-accent hover:bg-opacity-50'}`}
                   >
                     <FaBookMedical className="w-4 h-4 text-primary" />
                     Resources
                   </button>
                   {isLoggedIn && (
                     <motion.button
-                      whileHover={{ scale: 1.05 }}
+                      whileHover={{ scale: 1.05, boxShadow: "0 0 15px rgba(160, 124, 254, 0.6)" }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => navigate("/chat")}
-                      className="flex items-center px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-hover rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-primary/50 font-heading shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                      className="flex items-center px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-hover dark:bg-primary-light dark:hover:bg-primary-light/80 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-primary/50 font-heading shadow-md hover:shadow-lg transform hover:-translate-y-1"
                     >
                       <FaComments className="mr-2" /> AI Chat
                     </motion.button>
@@ -196,18 +230,18 @@ const Navbar = () => {
               {!session ? (
                 <>
                   <motion.button
-                    whileHover={{ scale: 1.05 }}
+                    whileHover={{ scale: 1.05, boxShadow: "0 0 15px rgba(160, 124, 254, 0.4)" }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => navigate("/login")}
-                    className={`px-4 py-2 text-sm font-medium ${location.pathname === '/' ? 'text-primary border-2 border-primary hover:bg-accent' : 'text-primary border-2 border-primary hover:bg-accent dark:text-primary-light dark:border-primary-light dark:hover:bg-accent-dark'} hover:bg-opacity-75 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-primary/50 font-heading hover:shadow-md transform hover:-translate-y-0.5`}
+                    className={`px-4 py-2 text-sm font-medium ${location.pathname === '/' ? 'text-primary border-2 border-primary hover:bg-accent' : 'text-primary border-2 border-primary hover:bg-accent dark:text-primary-light dark:border-primary-light dark:hover:bg-accent-dark'} hover:bg-opacity-75 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-primary/50 font-heading hover:shadow-md transform hover:-translate-y-1`}
                   >
                     Login
                   </motion.button>
                   <motion.button
-                    whileHover={{ scale: 1.05 }}
+                    whileHover={{ scale: 1.05, boxShadow: "0 0 15px rgba(160, 124, 254, 0.6)" }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => navigate("/signup")}
-                    className={`px-4 py-2 text-sm font-medium text-white ${location.pathname === '/' ? 'bg-primary hover:bg-primary-hover' : 'bg-primary hover:bg-primary-hover dark:bg-primary-light dark:hover:bg-primary-light/80'} rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-primary/50 font-heading shadow-md hover:shadow-lg transform hover:-translate-y-0.5`}
+                    className={`px-4 py-2 text-sm font-medium text-white ${location.pathname === '/' ? 'bg-primary hover:bg-primary-hover' : 'bg-primary hover:bg-primary-hover dark:bg-primary-light dark:hover:bg-primary-light/80'} rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-primary/50 font-heading shadow-md hover:shadow-lg transform hover:-translate-y-1`}
                   >
                     Sign Up
                   </motion.button>
@@ -215,9 +249,9 @@ const Navbar = () => {
               ) : (
                 <div className="relative">
                   <motion.button
-                    whileHover={{ scale: 1.05 }}
+                    whileHover={{ scale: 1.05, backgroundColor: "rgba(160, 124, 254, 0.15)" }}
                     onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                    className={`flex items-center space-x-2 text-sm font-medium ${location.pathname === '/' ? 'text-foreground hover:text-primary/80' : 'text-foreground hover:text-primary/80 dark:text-text-white dark:hover:text-primary-light/80'} transition-colors focus:outline-none p-2 rounded-full hover:bg-accent/50`}
+                    className={`flex items-center space-x-2 text-sm font-medium ${location.pathname === '/' ? 'text-foreground hover:text-primary/80' : 'text-foreground hover:text-primary/80 dark:text-text-white dark:hover:text-primary-light/80'} transition-all focus:outline-none p-2 rounded-full hover:bg-accent/50`}
                   >
                     <div className="relative">
                       <FaUserCircle className="h-8 w-8 rounded-full text-primary" />
@@ -242,7 +276,6 @@ const Navbar = () => {
                         </div>
                         <div className="py-1">
                           <ProfileDropdownLink to="/profile" icon={<FaUserCircle className="w-4 h-4" />}>Your Profile</ProfileDropdownLink>
-                          <ProfileDropdownLink to="/dashboard" icon={<MdDashboard className="w-4 h-4" />}>Dashboard</ProfileDropdownLink>
                           {isLoggedIn && (
                             <ProfileDropdownLink to="/chat" icon={<FaComments className="w-4 h-4" />}>AI Chat</ProfileDropdownLink>
                           )}
@@ -266,9 +299,10 @@ const Navbar = () => {
             {/* Mobile Menu Button */}
             <div className="md:hidden flex items-center">
               <motion.button
+                whileHover={{ scale: 1.05, backgroundColor: "rgba(160, 124, 254, 0.15)" }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className={`${location.pathname === '/' ? 'text-muted-foreground hover:text-foreground' : 'text-muted-foreground hover:text-foreground dark:text-text-white dark:hover:text-text-white'} focus:outline-none focus:text-foreground p-2 rounded-full hover:bg-accent/50`}
+                className={`${location.pathname === '/' ? 'text-muted-foreground hover:text-foreground' : 'text-muted-foreground hover:text-foreground dark:text-text-white dark:hover:text-text-white'} focus:outline-none focus:text-foreground p-2 rounded-full hover:bg-accent/50 transition-all`}
                 aria-label="Open main menu"
               >
                 {isMobileMenuOpen ? (
@@ -299,21 +333,21 @@ const Navbar = () => {
                   <>
                     <button 
                       onClick={() => scrollToSection('features')} 
-                      className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent hover:bg-opacity-75 transition-colors"
+                      className={`flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors ${activeSection === 'features' ? 'bg-accent text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-accent hover:bg-opacity-75'}`}
                     >
                       <FaHeart className="w-5 h-5 text-primary" />
                       Features
                     </button>
                     <button 
                       onClick={() => scrollToSection('stories')} 
-                      className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent hover:bg-opacity-75 transition-colors"
+                      className={`flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors ${activeSection === 'stories' ? 'bg-accent text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-accent hover:bg-opacity-75'}`}
                     >
                       <MdOutlineWavingHand className="w-5 h-5 text-primary" />
                       Community
                     </button>
                     <button 
                       onClick={() => scrollToSection('resources')} 
-                      className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent hover:bg-opacity-75 transition-colors"
+                      className={`flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors ${activeSection === 'resources' ? 'bg-accent text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-accent hover:bg-opacity-75'}`}
                     >
                       <FaBookMedical className="w-5 h-5 text-primary" />
                       Resources
@@ -365,7 +399,6 @@ const Navbar = () => {
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <MobileNavLink to="/profile" label="Your Profile" icon={<FaUserCircle className="w-4 h-4" />} />
-                      <MobileNavLink to="/dashboard" label="Dashboard" icon={<MdDashboard className="w-4 h-4" />} />
                     </div>
                     <button
                       onClick={() => { handleSignOut(); setIsMobileMenuOpen(false); }}

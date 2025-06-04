@@ -70,7 +70,7 @@ const InvestmentSupport = () => {
           </div> 
           <div className="row"> 
             {items.map((item, index) => ( 
-              <div className="item col-md-6 col-sm-12 col-12" key={index}> 
+              <div className="item col-lg-6 col-md-6 col-sm-12 col-12" key={index}> 
                 <div className="item_wrap"> 
                   <div className="head"> 
                     <h4><span>{item.title}</span></h4> 
