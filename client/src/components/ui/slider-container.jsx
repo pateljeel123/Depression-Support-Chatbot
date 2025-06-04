@@ -263,7 +263,11 @@ const SliderContainer = ({
               <button
                 key={idx}
                 onClick={() => goToSlide(dotIndex)}
-                className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${currentIndex === dotIndex ? 'bg-primary w-5' : 'bg-muted hover:bg-primary/50'}`}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  currentIndex === dotIndex 
+                    ? 'bg-gradient-to-r from-blue-400 to-blue-300 shadow-md shadow-blue-300/50 scale-110' 
+                    : 'bg-gray-300 dark:bg-gray-600 hover:bg-blue-300 hover:scale-105'
+                }`}
                 aria-label={`Go to slide ${idx + 1}`}
               />
             );
