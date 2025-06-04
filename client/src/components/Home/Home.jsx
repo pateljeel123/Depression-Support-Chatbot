@@ -1238,18 +1238,18 @@ const Home = () => {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            z-index: 1000;
+            z-index: 10;
             width: 100%;
             height: 220px;
-            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transition: 0.5s;
             display: flex;
             justify-content: center;
             align-items: center;
           }
           
           .feature-card:hover .imgBx {
-            top: 20%;
-            transform: translateY(-50%);
+            top: -15%;
+            transform: translateY(20%);
           }
           
           .contentBx {

@@ -571,7 +571,7 @@ const detectEmotion = (messages) => {
 };
 
 /**
- * Sends a Chat Message
+ * Sends a Chat Message 
  * A bridge between hearts and AI wisdom
  * @param {Array} messages - The conversation's tapestry
  * @returns {Object} - The API's thoughtful response

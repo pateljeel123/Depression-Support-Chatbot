@@ -1533,10 +1533,10 @@ export default function Chat() {
         <div className="flex-1 flex flex-col h-full overflow-hidden w-full">
           {/* Header */}
           <header
-            className={`p-3.5 flex items-center justify-between border-b ${ // Adjusted padding
+            className={`p-4 flex items-center justify-between border-b shadow-sm ${
               darkMode
-                ? "border-gray-700 bg-gray-800" // Darker header for dark mode
-                : "border-gray-200 bg-white"
+                ? "border-gray-700 bg-gray-800 text-white" 
+                : "border-gray-200 bg-white text-gray-800"
               }`}
           >
             <div className="flex items-center">
@@ -1571,7 +1571,8 @@ export default function Chat() {
           {/* Messages */}
           <div
             className={`flex-1 overflow-y-auto ${darkMode ? "bg-gray-900" : "bg-gray-50"
-              } px-2 sm:px-4`}
+              } px-3 sm:px-6 py-4`}
+            ref={messagesEndRef}
           >
             {messages.length === 0 ? (
               <WelcomePage darkMode={darkMode} setInput={setInput} />
@@ -1580,10 +1581,12 @@ export default function Chat() {
                 {Object.entries(groupedMessages).map(([date, dateMessages]) => (
                   <div key={date} className="mb-6">
                     <div
-                      className={`text-center mb-4 text-sm ${darkMode ? "text-gray-400" : "text-gray-500"
+                      className={`text-center mb-6 text-sm ${darkMode ? "text-gray-400" : "text-gray-500"
                         }`}
                     >
-                      {formatDate(dateMessages[0].timestamp)}
+                      <span className={`px-4 py-1 rounded-full ${darkMode ? "bg-gray-800" : "bg-gray-100"}`}>
+                        {formatDate(dateMessages[0].timestamp)}
+                      </span>
                     </div>
                     {dateMessages.map((message) => (
                       <motion.div
@@ -1594,16 +1597,16 @@ export default function Chat() {
                         className={`flex ${message.role === "user"
                             ? "justify-end"
                             : "justify-start"
-                          } mb-4`}
+                          } mb-6 sm:mb-8`}
                       >
                         <div
-                          className={`max-w-full sm:max-w-3xl rounded-lg p-4 sm:p-5 relative group ${message.role === "user"
+                          className={`max-w-[85%] sm:max-w-[75%] md:max-w-[65%] rounded-lg p-3 sm:p-4 relative group ${message.role === "user"
                               ? darkMode
-                                ? "bg-indigo-600"
+                                ? "bg-indigo-600 text-white"
                                 : "bg-indigo-500 text-white"
                               : darkMode
-                                ? "bg-gray-700"
-                                : "bg-white border border-gray-200 shadow-sm"
+                                ? "bg-gray-700 text-gray-100"
+                                : "bg-white border border-gray-200 shadow-sm text-gray-800"
                             }`}
                         >
                           <div className="absolute top-1 right-1 flex opacity-0 group-hover:opacity-100 transition-opacity items-center z-10">
@@ -2107,12 +2110,11 @@ export default function Chat() {
             )}
             <form
               onSubmit={handleSendMessage}
-              className="flex items-center justify-center space-x-2" // Changed items-end to items-center
+              className="flex items-center justify-center space-x-2 px-2 sm:px-4"
             >
               {/* Outer div for width control */}
-              {/* Changed width classes and removed flex-grow for centering */}
-              <div className="w-full sm:w-3/4 md:w-3/5 lg:w-1/2">
-                <div className={`relative ${isBotSpeaking ? "mb-5" : ""}`}> {/* Removed flex-1, width is controlled by parent */}
+              <div className="w-full max-w-4xl">
+                <div className={`relative ${isBotSpeaking ? "mb-5" : ""}`}>
                   {isBotSpeaking && (
                   <div className="absolute bottom-full left-0 right-0 mx-auto mb-1 text-center text-xs text-gray-500 dark:text-gray-400 animate-pulse p-1 bg-opacity-50 rounded-md">
                     AI is speaking...
@@ -2124,12 +2126,13 @@ export default function Chat() {
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Type a message..."
                   rows="1"
-                  className={`w-full py-2.5 px-3.5 pr-12 rounded-lg border ${darkMode
-                      ? "bg-gray-750 border-gray-600 text-gray-100 placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500 shadow-md"
-                      : "bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
-                    } resize-none focus:outline-none focus:ring-1 transition-all duration-150 ease-in-out hover:shadow-lg text-sm sm:text-base leading-relaxed scrollbar-thin ${darkMode ? 'scrollbar-thumb-gray-500 scrollbar-track-gray-700' : 'scrollbar-thumb-gray-300 scrollbar-track-gray-100'}`}
+                  autoFocus={true}
+                  className={`w-full py-3 px-4 pr-14 rounded-xl border ${darkMode
+                      ? "bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500 shadow-md"
+                      : "bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
+                    } resize-none focus:outline-none focus:ring-2 transition-all duration-150 ease-in-out hover:shadow-lg text-sm sm:text-base leading-relaxed scrollbar-thin ${darkMode ? 'scrollbar-thumb-gray-500 scrollbar-track-gray-700' : 'scrollbar-thumb-gray-300 scrollbar-track-gray-100'}`}
                   disabled={isLoading || isBotSpeaking}
-                  style={{ minHeight: '42px', maxHeight: '140px' }} /* Slightly reduced min/max height */
+                  style={{ minHeight: '50px', maxHeight: '150px' }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
@@ -2137,17 +2140,17 @@ export default function Chat() {
                     }
                   }}
                 />
-                <div className="absolute right-2 bottom-2 flex space-x-1 sm:space-x-2">
+                <div className="absolute right-3 bottom-3 flex space-x-2 sm:space-x-3">
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowEmojiPicker(!showEmojiPicker);
                     }}
-                    className={`p-1 rounded-full ${darkMode
-                        ? "text-gray-400 hover:text-gray-300"
-                        : "text-gray-500 hover:text-gray-700"
-                      }`}
+                    className={`p-1.5 rounded-full ${darkMode
+                        ? "text-gray-300 hover:text-gray-200 hover:bg-gray-700"
+                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                      } transition-all duration-150`}
                   >
                     <BsEmojiSmile size={20} />
                   </button>
@@ -2156,14 +2159,14 @@ export default function Chat() {
                     <button
                       type="button"
                       onClick={toggleMic}
-                      className={`p-1 rounded-full ${listening
+                      className={`p-1.5 rounded-full ${listening
                           ? darkMode
-                            ? "text-red-400 hover:text-red-300"
-                            : "text-red-600 hover:text-red-700"
+                            ? "text-red-400 hover:text-red-300 bg-red-900 bg-opacity-30"
+                            : "text-red-600 hover:text-red-700 bg-red-100"
                           : darkMode
-                            ? "text-gray-400 hover:text-gray-300"
-                            : "text-gray-500 hover:text-gray-700"
-                        }`}
+                            ? "text-gray-300 hover:text-gray-200 hover:bg-gray-700"
+                            : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                        } transition-all duration-150`}
                       title={listening ? "Stop listening" : "Start listening"}
                     >
                       {listening ? (
@@ -2200,25 +2203,27 @@ export default function Chat() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={(e) => handleSendMessage(e)}
-                className={`p-3 rounded-lg ${!input.trim() || isLoading
+                className={`p-2.5 rounded-full flex items-center justify-center ${!input.trim() || isLoading
                     ? darkMode
-                      ? "bg-gray-600 text-gray-400"
-                      : "bg-gray-200 text-gray-400"
+                      ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                      : "bg-gray-200 text-gray-400 cursor-not-allowed"
                     : darkMode
                       ? "bg-indigo-600 text-white hover:bg-indigo-500"
                       : "bg-indigo-500 text-white hover:bg-indigo-600"
                   }`}
               >
-                <FiSend size={20} />
+                <FiSend size={20} className="text-current" />
               </motion.button>
             </form>
 
             <div
-              className={`text-xs mt-3 text-center font-light italic ${darkMode ? "text-gray-500" : "text-gray-400"
+              className={`text-xs mt-4 mb-2 text-center font-light italic ${darkMode ? "text-gray-500" : "text-gray-400"
                 }`}
             >
-              AI Assistant may produce inaccurate information. Consider
-              verifying important details.
+              <span className={`px-3 py-1.5 rounded-md ${darkMode ? "bg-gray-800" : "bg-gray-100"}`}>
+                AI Assistant may produce inaccurate information. Consider
+                verifying important details.
+              </span>
             </div>
           </div>
         </div>
