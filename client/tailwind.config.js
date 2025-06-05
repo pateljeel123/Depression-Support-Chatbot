@@ -111,6 +111,27 @@ export default {
           light: '#FFFFFF',
           dark: '#1F1F1F',
         },
+        // Add CSS variable-based colors for shadcn/ui
+        foreground: 'var(--foreground)',
+        border: 'var(--border)',
+        input: 'var(--input)',
+        ring: 'var(--ring)',
+        muted: {
+          DEFAULT: 'var(--muted)',
+          foreground: 'var(--muted-foreground)',
+        },
+        destructive: {
+          DEFAULT: 'var(--destructive)',
+          foreground: 'var(--foreground)',
+        },
+        card: {
+          DEFAULT: 'var(--card)',
+          foreground: 'var(--card-foreground)',
+        },
+        popover: {
+          DEFAULT: 'var(--popover)',
+          foreground: 'var(--popover-foreground)',
+        },
       },
       boxShadow: {
         'soft': '0 1px 2px rgba(0, 0, 0, 0.04)',

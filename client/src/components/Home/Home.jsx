@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, Suspense, useCallback, createContext, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { AudioPlayer, HoverSoundProvider, useHoverSound } from "../AudioComponents";
 import {
   FaHeart,
   FaComments,
@@ -557,6 +558,18 @@ const Home = () => {
   const navigate = useNavigate();
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { playHoverSound } = useHoverSound();
+
+  // Function to handle mouse enter for hover sound effect
+  const handleMouseEnter = () => {
+    console.log("handleMouseEnter called");
+    if (typeof playHoverSound === 'function') {
+      console.log("Calling playHoverSound function");
+      playHoverSound();
+    } else {
+      console.error("playHoverSound is not a function:", playHoverSound);
+    }
+  };
 
   const depressionImpactCards = [
     {
@@ -794,8 +807,12 @@ const Home = () => {
     },
   });
 
+  // handleMouseEnter function is already defined above
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50 font-sans overflow-x-hidden">
+      {/* Background Music Player */}
+      <AudioPlayer />
       {/* Navbar has been moved to App.jsx for global use */}
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
@@ -907,12 +924,14 @@ const Home = () => {
           >
             <button 
               onClick={() => navigate('/chat')} 
+              onMouseEnter={handleMouseEnter}
               className="px-8 py-3 text-base font-semibold font-heading rounded-xl bg-primary text-white shadow-lg hover:bg-primary-hover transition-all duration-300 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
               Get Started
             </button>
             <button 
               onClick={() => navigate('/resources')} 
+              onMouseEnter={handleMouseEnter}
               className="px-8 py-3 text-base font-semibold font-heading rounded-xl bg-white border border-primary text-primary shadow-sm hover:bg-primary/10 transition-all duration-300 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
               Learn More
@@ -996,6 +1015,7 @@ const Home = () => {
                   
                   {/* Message Button */}
                   <button 
+                    onMouseEnter={handleMouseEnter}
                     className="px-4 py-2 bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-white rounded-md shadow transition-colors duration-200 border border-gray-200 dark:border-gray-700"
                   >
                     Message
@@ -1016,6 +1036,7 @@ const Home = () => {
             <p className="text-gray-700 mb-2 text-base sm:text-lg">Not sure if what you're feeling is depression?</p>
             <motion.button
               onClick={() => navigate("/phq9")}
+              onMouseEnter={handleMouseEnter}
               className="inline-flex items-center px-5 py-2.5 sm:px-6 sm:py-3 border border-transparent text-sm sm:text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95"
             >
               Take the Depression Self-Screening Quiz <FaArrowRight className="ml-2 h-4 w-4" />
@@ -2004,4 +2025,11 @@ const InvestmentSupport = () => {
   ); 
 };
 
-export default Home;
+// Wrap the export with the HoverSoundProvider
+export default function HomeWithSound() {
+  return (
+    <HoverSoundProvider>
+      <Home />
+    </HoverSoundProvider>
+  );
+};
