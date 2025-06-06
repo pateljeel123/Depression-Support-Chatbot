@@ -88,10 +88,20 @@ const Navbar = () => {
   }, [location.pathname]);
 
   const scrollToSection = (id) => {
-    const element = document.getElementById(id);
+    // Map the navigation labels to actual section IDs in Home.jsx
+    const sectionMap = {
+      'features': 'problem-section',
+      'stories': 'testimonials-section',
+      'resources': 'benefits-section'
+    };
+    
+    // Get the actual section ID from the map or use the provided ID if not in map
+    const actualSectionId = sectionMap[id] || id;
+    
+    const element = document.getElementById(actualSectionId);
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
-      setActiveSection(id); // Set active section when clicked
+      setActiveSection(id); // Keep the original ID for active section highlighting
     }
     setIsMobileMenuOpen(false); // Close mobile menu after click
   };
@@ -275,7 +285,7 @@ const Navbar = () => {
                       <div className="relative">
                         <FaUserCircle className="h-8 w-8 rounded-full text-purple-400" />
                         <motion.div 
-                          className="absolute rounded-full opacity-70 "
+                          className="absolute -inset-1 rounded-full opacity-70 "
                           animate={{ 
                             opacity: [0.3, 0.5, 0.3],
                             scale: [1, 1.05, 1],
