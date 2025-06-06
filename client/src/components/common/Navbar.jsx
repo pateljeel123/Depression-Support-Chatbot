@@ -29,8 +29,7 @@ const NavLink = ({ to, label, exact, icon }) => {
       to={to}
       className={({ isActive }) =>
         cn(
-          `${location.pathname === '/' ? 'text-text-light hover:text-text-dark' : 'text-text-light hover:text-text-dark dark:text-text-white dark:hover:text-text-dark'} px-3 py-2 rounded-md text-sm font-medium transition-colors font-heading flex items-center gap-2`,
-          isActive ? `${location.pathname === '/' ? 'bg-accent text-text-dark' : 'bg-accent text-text-dark dark:bg-accent-dark dark:text-text-white'} shadow-sm` : "hover:bg-accent/50"
+          `text-white hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors font-heading flex items-center gap-2`
         )
       }
       end={exact}
@@ -136,7 +135,7 @@ const Navbar = () => {
           setIsMobileMenuOpen(false);
           if (externalOnClick) externalOnClick();
         }}
-        className={`flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium ${location.pathname === '/' ? 'text-muted-foreground hover:text-foreground' : 'text-muted-foreground hover:text-foreground dark:text-text-white dark:hover:text-text-white'} hover:bg-accent hover:bg-opacity-75 transition-colors`}
+        className={`flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-white hover:text-white hover:bg-accent hover:bg-opacity-75 transition-colors`}
       >
         {icon && <span className="text-primary dark:text-primary-light">{icon}</span>}
         {label}
@@ -276,7 +275,7 @@ const Navbar = () => {
                       <div className="relative">
                         <FaUserCircle className="h-8 w-8 rounded-full text-purple-400" />
                         <motion.div 
-                          className="absolute -inset-1 rounded-full opacity-70 blur-sm bg-gradient-to-tr from-purple-500 to-pink-500"
+                          className="absolute rounded-full opacity-70 "
                           animate={{ 
                             opacity: [0.3, 0.5, 0.3],
                             scale: [1, 1.05, 1],

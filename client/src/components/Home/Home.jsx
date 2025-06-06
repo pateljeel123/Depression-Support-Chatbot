@@ -351,7 +351,7 @@ const ProblemSection = () => {
           </motion.p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto overflow-auto" style={{ scrollBehavior: 'smooth' }}>
+        <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto overflow-auto overflow-hidden" style={{ scrollBehavior: 'smooth' }}>
           {problems.map((problem, index) => (
             <motion.div
               key={index}
