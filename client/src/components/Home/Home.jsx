@@ -184,7 +184,7 @@ const HeroSection = () => {
         >
           <motion.h1
             whileHover={{ scale: 1.05, rotateY: 5 }}
-            className="text-6xl md:text-8xl font-bold text-white mb-8 leading-tight transform-gpu"
+            className="text-6xl  font-bold text-white mb-8 leading-tight transform-gpu"
           >
             Struggling with{' '}
             <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent inline-block">
