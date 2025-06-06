@@ -158,7 +158,7 @@ export default function Chat() {
     username: "", // This will store the full name
     email: "", // Added email
     darkMode: false, // Default to light mode (false)
-    ttsEnabled: true, // Changed to true to enable TTS by default
+    ttsEnabled: false, // Changed to false to disable TTS by default
     ttsVoice: null, // Added ttsVoice
     ttsSpeed: 1, // Added ttsSpeed (0.1 to 10, default 1)
   });
@@ -544,59 +544,11 @@ export default function Chat() {
     };
   }, [emojiPickerRef, setShowEmojiPicker]);
 
-  // Function to speak text using browser's SpeechSynthesis API
+  // Function to speak text using browser's SpeechSynthesis API - disabled
   const speakText = useCallback(
     (text) => {
-      if (!userPreferences.ttsEnabled || !speechSynthesisRef.current) {
-        setIsBotSpeaking(false); // Ensure state is reset if TTS is not enabled or not available
-        return;
-      }
-
-      console.log('Speaking text with TTS enabled:', userPreferences.ttsEnabled);
-      console.log('Current voice setting:', userPreferences.ttsVoice);
-      console.log('Available voices:', availableVoices.length);
-
-      speechSynthesisRef.current.cancel(); // Cancel any ongoing speech
-      const utterance = new SpeechSynthesisUtterance(text);
-
-      // Get fresh list of voices
-      const voices = speechSynthesisRef.current.getVoices();
-      console.log('Current voices from speech synthesis:', voices.length);
-      
-      // If no voice is selected but voices are available, use the first one
-      if (!userPreferences.ttsVoice && voices.length > 0) {
-        utterance.voice = voices[0];
-        console.log('Using first available voice:', voices[0].name);
-      } else if (userPreferences.ttsVoice) {
-        const selectedVoice = voices.find(
-          (voice) => voice.name === userPreferences.ttsVoice
-        );
-        if (selectedVoice) {
-          utterance.voice = selectedVoice;
-          console.log('Using selected voice:', selectedVoice.name);
-        } else if (voices.length > 0) {
-          utterance.voice = voices[0];
-          console.log('Selected voice not found, using first voice:', voices[0].name);
-        }
-      }
-      
-      utterance.rate = userPreferences.ttsSpeed || 1;
-      utterance.lang = navigator.language || 'en-US'; // Set language to browser default or English
-
-      utterance.onstart = () => {
-        setIsBotSpeaking(true);
-        console.log('Speech started');
-      };
-      utterance.onend = () => {
-        setIsBotSpeaking(false);
-        console.log('Speech ended');
-      };
-      utterance.onerror = (event) => {
-        setIsBotSpeaking(false);
-        console.error("Speech synthesis error", event);
-      };
-
-      speechSynthesisRef.current.speak(utterance);
+      // Speech functionality disabled
+      return;
     },
     [
       userPreferences.ttsEnabled,
