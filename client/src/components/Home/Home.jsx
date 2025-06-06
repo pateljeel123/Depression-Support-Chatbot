@@ -184,7 +184,7 @@ const HeroSection = () => {
         >
           <motion.h1
             whileHover={{ scale: 1.05, rotateY: 5 }}
-            className="text-6xl  font-bold text-white mb-8 leading-tight transform-gpu"
+            className="text-4xl md:text-6xl font-bold text-white mb-8 leading-tight transform-gpu"
           >
             Struggling with{' '}
             <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent inline-block">
@@ -202,7 +202,7 @@ const HeroSection = () => {
               transition={{ duration: 3, repeat: Infinity }}
               className="text-white"
             >
-              Let's Walk Together.
+              Let's Talk Together.
             </motion.span>
           </motion.h1>
         </motion.div>
@@ -351,7 +351,7 @@ const ProblemSection = () => {
           </motion.p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto overflow-auto" style={{ scrollBehavior: 'smooth' }}>
           {problems.map((problem, index) => (
             <motion.div
               key={index}
@@ -361,25 +361,33 @@ const ProblemSection = () => {
                 rotateY: -45,
                 scale: 0.5
               }}
-              animate={inView ? { 
-                opacity: 1, 
-                y: 0, 
+              whileInView={{
+                opacity: 1,
+                y: 0,
                 rotateY: 0,
                 scale: 1
-              } : {}}
+              }}
+              viewport={{ once: false, amount: 0.3 }}
               transition={{ 
                 duration: 0.8, 
                 delay: 0.2 * index,
                 type: "spring",
                 stiffness: 100
               }}
-              className={`relative overflow-hidden rounded-2xl shadow-xl bg-gradient-to-br ${problem.color} p-1`}
+              className={`relative overflow-hidden rounded-2xl shadow-xl bg-gradient-to-br ${problem.color} p-1 cursor-pointer`}
             >
               <div className="bg-gray-900 rounded-xl p-8 h-full">
                 <div className="flex items-start gap-6">
-                  <div className={`p-3 rounded-xl bg-gradient-to-br ${problem.color} shadow-lg`}>
+                  <motion.div 
+                    className={`p-3 rounded-xl bg-gradient-to-br ${problem.color} shadow-lg`}
+                    whileHover={{ 
+                      rotate: 360,
+                      scale: 1.2,
+                      transition: { duration: 0.8, ease: "easeInOut" }
+                    }}
+                  >
                     {React.createElement(problem.icon, { className: "w-8 h-8 text-white" })}
-                  </div>
+                  </motion.div>
                   <div>
                     <h3 className="text-2xl font-bold text-white mb-3">{problem.title}</h3>
                     <p className="text-gray-300 leading-relaxed">{problem.description}</p>

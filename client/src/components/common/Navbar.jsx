@@ -276,7 +276,7 @@ const Navbar = () => {
                       <div className="relative">
                         <FaUserCircle className="h-8 w-8 rounded-full text-purple-400" />
                         <motion.div 
-                          className="absolute -inset-1 rounded-full opacity-70 blur-sm bg-gradient-to-r from-purple-500 to-pink-500"
+                          className="absolute -inset-1 rounded-full opacity-70 blur-sm bg-gradient-to-tr from-purple-500 to-pink-500"
                           animate={{ 
                             opacity: [0.3, 0.5, 0.3],
                             scale: [1, 1.05, 1],
