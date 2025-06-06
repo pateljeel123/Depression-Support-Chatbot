@@ -24,7 +24,7 @@ import {
 } from "react-icons/fa";
 import { GiBrain, GiMeditation, GiHeartBeats } from "react-icons/gi";
 import { IoMdHappy, IoMdSad } from "react-icons/io";
-import { Brain, Cloud, Heart, Shield, Users, BookOpen, Sparkles, ArrowRight, Clock, TrendingUp, ArrowDown } from "lucide-react";
+import { Brain, Cloud, Heart, Shield, Users, BookOpen, Sparkles, ArrowRight, Clock, TrendingUp, ArrowDown, Star } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { cn } from "../../lib/utils";
 import { EnhancedMeteors } from "../magicui/enhanced-meteors";
@@ -633,52 +633,90 @@ const SolutionSection = () => {
 
 // Testimonials Section Component
 const TestimonialsSection = () => {
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ['start end', 'end start']
+  });
+
   const [inViewRef, inView] = useInView({
     triggerOnce: true,
-    threshold: 0.2
+    threshold: 0.3
   });
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const y = useTransform(scrollYProgress, [0, 1], ['0%', '-30%']);
+  const backgroundY = useTransform(scrollYProgress, [0, 1], ['0%', '20%']);
+  const rotateX = useTransform(scrollYProgress, [0, 1], [0, 360]);
 
   const testimonials = [
     {
-      quote: "This app has been a lifeline during my darkest moments. Having someone to talk to anytime, without judgment, has made all the difference.",
-      name: "Sarah K.",
-      title: "User since 2022",
-      gradient: "from-purple-400 to-pink-400"
+      name: "Sarah M.",
+      role: "Community Member",
+      quote: "Finding this community changed my life. For the first time in months, I felt like I wasn't alone in my struggle.",
+      rating: 5,
+      avatar: "🌸",
+      gradient: "from-pink-500 to-rose-500"
     },
     {
-      quote: "The mood tracking feature helped me identify patterns I never noticed before. Now I can take proactive steps when I see warning signs.",
-      name: "Michael T.",
-      title: "User since 2021",
-      gradient: "from-cyan-400 to-blue-400"
+      name: "Michael R.",
+      role: "Support Group Participant",
+      quote: "The counseling sessions gave me tools I never knew existed. I'm learning to manage my thoughts and emotions better each day.",
+      rating: 5,
+      avatar: "🌟",
+      gradient: "from-yellow-500 to-orange-500"
     },
     {
-      quote: "As someone who was hesitant about therapy, this app provided the perfect bridge to understanding my emotions better.",
-      name: "Jamie L.",
-      title: "User since 2023",
-      gradient: "from-emerald-400 to-teal-400"
+      name: "Jennifer L.",
+      role: "Recovery Journey",
+      quote: "Six months ago, I couldn't get out of bed. Today, I'm helping others find their way out of the darkness. Recovery is possible.",
+      rating: 5,
+      avatar: "🦋",
+      gradient: "from-blue-500 to-cyan-500"
+    },
+    {
+      name: "David K.",
+      role: "Therapy Graduate",
+      quote: "The self-help resources were a game-changer. Having 24/7 access to support tools made all the difference during tough times.",
+      rating: 5,
+      avatar: "🌱",
+      gradient: "from-green-500 to-emerald-500"
     }
   ];
 
+  const nextTestimonial = () => {
+    setCurrentIndex((prev) => (prev + 1) % testimonials.length);
+  };
+
+  const prevTestimonial = () => {
+    setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+  };
+
   return (
-    <section className="relative py-24 bg-gradient-to-b from-gray-950 to-gray-900 overflow-hidden">
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_70%_30%,rgba(236,72,153,0.2),transparent_70%)]" />
-        <div className="absolute bottom-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_70%,rgba(139,92,246,0.2),transparent_70%)]" />
-      </div>
-      
-      {/* Floating particles */}
-      <div className="absolute inset-0 pointer-events-none">
-        {[...Array(20)].map((_, i) => (
+    <section ref={ref} className="relative py-32 overflow-hidden bg-gradient-to-b from-gray-950 to-gray-900">
+      {/* 3D Animated background */}
+      <motion.div
+        style={{ y: backgroundY, rotateX }}
+        className="absolute inset-0 bg-gradient-to-br from-gray-950 via-indigo-950 to-purple-950"
+      />
+
+      {/* Floating 3D elements */}
+      <div className="absolute inset-0">
+        {[...Array(15)].map((_, i) => (
           <motion.div
             key={i}
             animate={{
-              x: [0, Math.random() * 100 - 50, 0],
-              y: [0, Math.random() * 100 - 50, 0],
+              y: [0, -40, 0],
+              x: [0, Math.random() * 60 - 30, 0],
+              rotateZ: [0, 360],
+              scale: [0.5, 1, 0.5]
             }}
             transition={{
-              duration: Math.random() * 10 + 20,
+              duration: 8 + i * 2,
               repeat: Infinity,
-              ease: "easeInOut"
+              ease: "easeInOut",
+              delay: i * 0.5
             }}
             className="absolute"
             style={{
@@ -690,47 +728,144 @@ const TestimonialsSection = () => {
           </motion.div>
         ))}
       </div>
-      
+
       <div className="container mx-auto px-6 relative z-10">
         <motion.div
           ref={inViewRef}
-          initial={{ opacity: 0, y: 30 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 1 }}
-          className="text-center mb-16"
+          style={{ y }}
+          className="text-center mb-20"
         >
-          <h2 className="text-5xl md:text-7xl font-bold text-white mb-8">
-            <span className="bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
-              Success Stories
+          <motion.h2
+            initial={{ opacity: 0, y: 50, rotateX: 45 }}
+            animate={inView ? { opacity: 1, y: 0, rotateX: 0 } : {}}
+            transition={{ duration: 1 }}
+            className="text-5xl md:text-7xl font-bold text-white mb-8 perspective-1000"
+          >
+            Success
+            <span className="block bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
+              Stories
             </span>
-          </h2>
-          <p className="text-2xl text-gray-300 max-w-4xl mx-auto">
-            Real people sharing their journey to better mental health
-          </p>
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 30 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 1, delay: 0.3 }}
+            className="text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed"
+          >
+            Real stories from real people who found hope and healing in our community
+          </motion.p>
         </motion.div>
-        
-        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
-          {testimonials.map((testimonial, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 50 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.8, delay: 0.2 * index }}
-              className="bg-gray-900/50 backdrop-blur-lg p-8 rounded-2xl border border-white/10 shadow-xl"
-            >
-              <FaQuoteLeft className="text-3xl text-purple-500 opacity-50 mb-6" />
-              <p className="text-lg text-gray-300 mb-8 leading-relaxed">"{testimonial.quote}"</p>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xl">
-                  {testimonial.name.charAt(0)}
-                </div>
-                <div>
-                  <h4 className="text-lg font-semibold text-white">{testimonial.name}</h4>
-                  <p className="text-gray-400">{testimonial.title}</p>
-                </div>
+
+        <div className="max-w-5xl mx-auto">
+          {/* Main testimonial card with 3D effects */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, rotateY: -45 }}
+            animate={inView ? { opacity: 1, scale: 1, rotateY: 0 } : {}}
+            transition={{ duration: 1, delay: 0.5 }}
+            className="relative perspective-1000"
+          >
+            <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-2xl border border-white/10 shadow-2xl transform-gpu rounded-2xl">
+              <div className="p-12 md:p-16">
+                <motion.div
+                  key={currentIndex}
+                  initial={{ opacity: 0, x: 100, rotateY: 90 }}
+                  animate={{ opacity: 1, x: 0, rotateY: 0 }}
+                  exit={{ opacity: 0, x: -100, rotateY: -90 }}
+                  transition={{ duration: 0.8, type: "spring", stiffness: 100 }}
+                  className="text-center"
+                >
+                  {/* 3D Avatar */}
+                  <motion.div
+                    whileHover={{ 
+                      scale: 1.2, 
+                      rotateY: 360,
+                      rotateX: 15
+                    }}
+                    transition={{ duration: 1 }}
+                    className={`inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br ${testimonials[currentIndex].gradient} mb-8 text-4xl shadow-2xl`}
+                  >
+                    {testimonials[currentIndex].avatar}
+                  </motion.div>
+                  
+                  <motion.blockquote 
+                    whileHover={{ scale: 1.02, rotateX: 2 }}
+                    className="text-2xl md:text-3xl text-white mb-8 font-light leading-relaxed italic"
+                    style={{
+                      textShadow: '0 0 20px rgba(255, 255, 255, 0.1)'
+                    }}
+                  >
+                    "{testimonials[currentIndex].quote}"
+                  </motion.blockquote>
+                  
+                  {/* 3D Stars */}
+                  <div className="flex justify-center mb-6 gap-2">
+                    {[...Array(testimonials[currentIndex].rating)].map((_, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ scale: 0, rotateZ: -180 }}
+                        animate={{ scale: 1, rotateZ: 0 }}
+                        transition={{ delay: 0.1 * i, duration: 0.5 }}
+                        whileHover={{ 
+                          scale: 1.3, 
+                          rotateZ: 360,
+                          y: -5
+                        }}
+                      >
+                        <Star className={`w-8 h-8 fill-yellow-400 text-yellow-400 drop-shadow-lg`} />
+                      </motion.div>
+                    ))}
+                  </div>
+                  
+                  <div>
+                    <motion.p 
+                      whileHover={{ scale: 1.05 }}
+                      className={`font-semibold text-2xl bg-gradient-to-r ${testimonials[currentIndex].gradient} bg-clip-text text-transparent mb-2`}
+                    >
+                      {testimonials[currentIndex].name}
+                    </motion.p>
+                    <p className="text-gray-400 text-lg">{testimonials[currentIndex].role}</p>
+                  </div>
+                </motion.div>
               </div>
-            </motion.div>
-          ))}
+            </div>
+          </motion.div>
+
+          {/* 3D Navigation */}
+          <div className="flex justify-center items-center space-x-8 mt-12">
+            <motion.button
+              onClick={prevTestimonial}
+              whileHover={{ scale: 1.2, rotateY: -15 }}
+              whileTap={{ scale: 0.9 }}
+              className="p-4 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-2xl shadow-purple-500/25 backdrop-blur-sm border border-white/10"
+            >
+              <FaChevronLeft size={28} />
+            </motion.button>
+
+            <div className="flex space-x-3">
+              {testimonials.map((_, index) => (
+                <motion.button
+                  key={index}
+                  onClick={() => setCurrentIndex(index)}
+                  whileHover={{ scale: 1.4, y: -3 }}
+                  whileTap={{ scale: 0.9 }}
+                  className={`w-4 h-4 rounded-full transition-all duration-300 ${
+                    index === currentIndex 
+                      ? `bg-gradient-to-r ${testimonials[index].gradient} shadow-lg` 
+                      : 'bg-white/30'
+                  }`}
+                />
+              ))}
+            </div>
+
+            <motion.button
+              onClick={nextTestimonial}
+              whileHover={{ scale: 1.2, rotateY: 15 }}
+              whileTap={{ scale: 0.9 }}
+              className="p-4 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-2xl shadow-cyan-500/25 backdrop-blur-sm border border-white/10"
+            >
+              <FaChevronRight size={28} />
+            </motion.button>
+          </div>
         </div>
       </div>
     </section>
