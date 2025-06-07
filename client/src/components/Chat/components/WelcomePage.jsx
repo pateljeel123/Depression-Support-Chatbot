@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { FiMessageSquare, FiHelpCircle, FiAlertCircle } from 'react-icons/fi';
 
-export const WelcomePage = ({ darkMode, setInput }) => {
+export const WelcomePage = ({ darkMode, setInput, handleSendMessage }) => {
   // Sample conversation starters
   const conversationStarters = [
     "How can I manage my anxiety today?",
@@ -12,6 +12,15 @@ export const WelcomePage = ({ darkMode, setInput }) => {
     "I need help with negative thoughts",
     "What are signs of depression I should watch for?"
   ];
+
+  // Function to automatically send a message when a starter is clicked
+  const handleStarterClick = (starter) => {
+    setInput(starter);
+    // Use setTimeout to ensure the input is set before sending
+    setTimeout(() => {
+      handleSendMessage(starter);
+    }, 100);
+  };
 
   return (
     <div className="flex flex-col items-center justify-center h-full p-4 text-center">
@@ -31,7 +40,7 @@ export const WelcomePage = ({ darkMode, setInput }) => {
           {conversationStarters.map((starter, index) => (
             <button
               key={index}
-              onClick={() => setInput(starter)}
+              onClick={() => handleStarterClick(starter)}
               className="p-3 text-left rounded-md border border-border bg-background hover:bg-accent transition-colors text-sm text-foreground"
             >
               {starter}

@@ -66,19 +66,54 @@ export const AudioControls = () => {
   }, []);
 
   const togglePlay = () => {
-    setIsPlaying(!isPlaying);
     if (audioRef.current) {
       if (!isPlaying) {
+        // If audio is not loaded yet, load it first
+        if (audioRef.current.readyState === 0) {
+          audioRef.current.load();
+        }
+        
+        // Ensure volume is set before playing
+        if (audioRef.current.volume === 0) {
+          audioRef.current.volume = volume;
+        }
+        
         const playPromise = audioRef.current.play();
         if (playPromise !== undefined) {
           playPromise
-            .then(() => console.log("Audio started playing successfully"))
-            .catch(error => console.log("Audio play error:", error));
+            .then(() => {
+              console.log("Audio started playing successfully");
+              setIsPlaying(true);
+            })
+            .catch(error => {
+              console.log("Audio play error:", error);
+              // Try again with a simulated user interaction
+              const simulateGesture = () => {
+                const event = new MouseEvent('click', {
+                  view: window,
+                  bubbles: true,
+                  cancelable: true
+                });
+                document.dispatchEvent(event);
+                
+                // Try playing again
+                audioRef.current.play()
+                  .then(() => setIsPlaying(true))
+                  .catch(e => console.log("Still couldn't play audio:", e));
+              };
+              
+              // Try the gesture simulation after a short delay
+              setTimeout(simulateGesture, 100);
+            });
         }
       } else {
         audioRef.current.pause();
         console.log("Audio paused");
+        setIsPlaying(false);
       }
+    } else {
+      // Toggle state even if audio ref is not available
+      setIsPlaying(!isPlaying);
     }
   };
 

@@ -45,10 +45,65 @@ const Home = () => {
     setMounted(true);
     document.body.style.scrollBehavior = "smooth";
     document.body.style.backgroundColor = "#0a0a0f";
+    
+    // Function to force play all audio elements
+    const forcePlayAudio = () => {
+      const audioElements = document.querySelectorAll('audio');
+      console.log("Attempting to play", audioElements.length, "audio elements");
+      
+      audioElements.forEach(audio => {
+        if (audio) {
+          // Set volume and load audio first
+          if (audio.volume === 0) audio.volume = 0.3;
+          if (audio.readyState === 0) audio.load();
+          
+          // Try to play
+          const playPromise = audio.play();
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => console.log("Audio started playing successfully"))
+              .catch(error => {
+                console.log("Audio autoplay was prevented:", error);
+                
+                // Try a different approach - create a fake user gesture
+                const simulateGesture = () => {
+                  const event = new MouseEvent('click', {
+                    view: window,
+                    bubbles: true,
+                    cancelable: true
+                  });
+                  document.dispatchEvent(event);
+                  
+                  // Try playing again
+                  audio.play().catch(e => console.log("Still couldn't play audio:", e));
+                };
+                
+                // Try the gesture simulation after a short delay
+                setTimeout(simulateGesture, 500);
+              });
+          }
+        }
+      });
+    };
+    
+    // Try multiple times with increasing delays to overcome browser restrictions
+    setTimeout(forcePlayAudio, 100);  // Try immediately
+    setTimeout(forcePlayAudio, 1000); // Try after 1 second
+    setTimeout(forcePlayAudio, 2000); // Try after 2 seconds
+    
+    // Also try to play when visibility changes (user returns to tab)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        setTimeout(forcePlayAudio, 300);
+      }
+    });
+    
     return () => {
       document.body.style.scrollBehavior = "auto";
+      document.removeEventListener('visibilitychange', () => {});
     };
   }, []);
+
 
   if (!mounted) {
     return (
@@ -60,6 +115,9 @@ const Home = () => {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-gray-950">
+      {/* Audio Player */}
+      <AudioPlayer />
+      
       {/* Enhanced progress indicator with glow effect */}
       <motion.div
         className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 z-50 shadow-lg shadow-purple-500/50"
