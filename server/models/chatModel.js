@@ -1,11 +1,9 @@
 const axios = require("axios");
 const config = require("../config/config");
 
-// Track repeated user messages
+// Track repeated user messages per session
 let userMessageTracker = {
-  messages: {},
-  lastMessage: "",
-  usedResponses: {}
+  sessions: {}
 };
 
 /**
@@ -18,23 +16,35 @@ let userMessageTracker = {
  * @param {String} message - The user message
  * @returns {Object} - Information about message repetition
  */
-const checkRepeatedMessage = async (message) => {
+const checkRepeatedMessage = async (message, userId = 'default') => {
   const normalizedMessage = message.trim().toLowerCase();
   
-  // Update last message
-  const isRepeated = normalizedMessage === userMessageTracker.lastMessage;
-  userMessageTracker.lastMessage = normalizedMessage;
-  
-  // Track message count
-  if (!userMessageTracker.messages[normalizedMessage]) {
-    userMessageTracker.messages[normalizedMessage] = 1;
-    // Initialize usedResponses for this message
-    userMessageTracker.usedResponses[normalizedMessage] = [];
-  } else {
-    userMessageTracker.messages[normalizedMessage]++;
+  // Initialize session data if it doesn't exist
+  if (!userMessageTracker.sessions[userId]) {
+    userMessageTracker.sessions[userId] = {
+      messages: {},
+      lastMessage: "",
+      usedResponses: {}
+    };
   }
   
-  const count = userMessageTracker.messages[normalizedMessage];
+  // Get session-specific tracker
+  const sessionTracker = userMessageTracker.sessions[userId];
+  
+  // Update last message
+  const isRepeated = normalizedMessage === sessionTracker.lastMessage;
+  sessionTracker.lastMessage = normalizedMessage;
+  
+  // Track message count
+  if (!sessionTracker.messages[normalizedMessage]) {
+    sessionTracker.messages[normalizedMessage] = 1;
+    // Initialize usedResponses for this message
+    sessionTracker.usedResponses[normalizedMessage] = [];
+  } else {
+    sessionTracker.messages[normalizedMessage]++;
+  }
+  
+  const count = sessionTracker.messages[normalizedMessage];
   
   // First check user's language style
   const messageStyle = analyzeUserMessageStyle(message);
@@ -109,6 +119,9 @@ Your response should feel like a friend gently nudging the conversation in a new
       // Extract the AI-generated response
       const aiResponse = response.data.choices[0].message.content;
       
+      // Track this response to avoid duplicates in future
+      sessionTracker.usedResponses[normalizedMessage].push(aiResponse);
+      
       return {
         isRepeated: true,
         count: count,
@@ -161,6 +174,9 @@ Keep it short (2-3 sentences), include 1-2 emojis, and be conversational and eng
         
         // Extract the AI-generated response
         const retryAiResponse = retryResponse.data.choices[0].message.content;
+        
+        // Track this response to avoid duplicates in future
+        sessionTracker.usedResponses[normalizedMessage].push(retryAiResponse);
         
         return {
           isRepeated: true,
@@ -1145,7 +1161,7 @@ const detectEmotion = (messages) => {
  * @param {Array} messages - The conversation's tapestry
  * @returns {Object} - The API's thoughtful response
  */
-exports.sendChatMessage = async (messages) => {
+exports.sendChatMessage = async (messages, userId) => {
   try {
     // Track emotional context across the conversation
     const emotionalContext = trackEmotionalContext(messages);
@@ -1156,7 +1172,7 @@ exports.sendChatMessage = async (messages) => {
     
     // Check for repeated messages
     if (lastUserMessage) {
-      const repeatedCheck = await checkRepeatedMessage(lastUserMessage.content);
+      const repeatedCheck = await checkRepeatedMessage(lastUserMessage.content, userId);
       
       // If message is repeated too many times, return custom response
       if (repeatedCheck.isRepeated && repeatedCheck.response) {

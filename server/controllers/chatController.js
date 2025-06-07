@@ -7,7 +7,7 @@ const chatModel = require('../models/chatModel');
  */
 exports.processChatMessage = async (req, res) => {
   try {
-    const { messages } = req.body;
+    const { messages, userId } = req.body;
     
     // Validate request
     if (!messages || !Array.isArray(messages)) {
@@ -18,7 +18,8 @@ exports.processChatMessage = async (req, res) => {
     }
     
     // Process message through the model
-    const result = await chatModel.sendChatMessage(messages);
+    // Pass userId as session_id if available
+    const result = await chatModel.sendChatMessage(messages, userId);
     
     if (result.success) {
       // Add metadata to the response if available
