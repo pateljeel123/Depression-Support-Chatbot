@@ -55,62 +55,57 @@ const Navbar = () => {
   }, [session]);
 
   // Effect to detect which section is currently in view
-  useEffect(() => {
-    if (location.pathname !== '/') return;
-    
-    const observerOptions = {
-      root: null,
-      rootMargin: '0px',
-      threshold: 0.6, // 60% of the element must be visible
-    };
+    useEffect(() => {
+      if (location.pathname !== '/') return;
+      
+      const observerOptions = {
+        root: null,
+        rootMargin: '-100px 0px',
+        threshold: 0.3, // 30% of the element must be visible
+      };
 
-    const sectionObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          setActiveSection(entry.target.id);
-        }
-      });
-    }, observerOptions);
+      const sectionObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      }, observerOptions);
 
-    // Observe sections
-    const sections = ['understanding', 'support', 'stories', 'benefits'];
-    sections.forEach(section => {
-      const element = document.getElementById(section);
-      if (element) sectionObserver.observe(element);
-    });
-
-    return () => {
+      // Observe sections
+      const sections = ['features', 'solutions', 'stories', 'benefits'];
       sections.forEach(section => {
         const element = document.getElementById(section);
-        if (element) sectionObserver.unobserve(element);
+        if (element) sectionObserver.observe(element);
       });
-    };
-  }, [location.pathname]);
+
+      return () => {
+        sections.forEach(section => {
+          const element = document.getElementById(section);
+          if (element) sectionObserver.unobserve(element);
+        });
+      };
+    }, [location.pathname]);
 
   const scrollToSection = (id) => {
-    // Map the navigation labels to actual section IDs
-    const sectionMap = {
-      'hero': 'hero-section',
-      'features': 'understanding-section',
-      'solutions': 'support-section',
-      'benefits': 'benefits-section'
-    };
-    
-    // Get the actual section ID from the map or use the provided ID if not in map
-    const actualSectionId = sectionMap[id] || id;
-    
-    const element = document.getElementById(actualSectionId);
-    if (element) {
-      const navbarHeight = 80; // Height of the navbar
-      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
-      const offsetPosition = elementPosition - navbarHeight;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-      setActiveSection(id); // Keep the original ID for active section highlighting
+    if (location.pathname !== '/') {
+      navigate('/');
     }
+    // Add a small delay to ensure navigation is complete
+    setTimeout(() => {
+      const element = document.getElementById(id);
+      if (element) {
+        const navbarHeight = 80; // Height of the navbar
+        const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+        const offsetPosition = elementPosition - navbarHeight;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+        setActiveSection(id);
+      }
+    }, location.pathname !== '/' ? 100 : 0);
     setIsMobileMenuOpen(false); // Close mobile menu after click
   };
 
@@ -144,20 +139,24 @@ const Navbar = () => {
     );
   };
 
-  const MobileNavLink = ({ to, label, onClick: externalOnClick, icon }) => {
+  const MobileNavLink = ({ to, label, onClick: externalOnClick, icon, sectionId }) => {
     const location = useLocation();
     return (
-      <Link
-        to={to}
+      <button
         onClick={() => {
-          setIsMobileMenuOpen(false);
+          if (sectionId) {
+            scrollToSection(sectionId);
+          } else {
+            navigate(to);
+            setIsMobileMenuOpen(false);
+          }
           if (externalOnClick) externalOnClick();
         }}
-        className={`flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-white hover:text-white hover:bg-accent hover:bg-opacity-75 transition-colors`}
+        className={`flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-white hover:text-white hover:bg-purple-900/30 hover:border hover:border-purple-500/20 transition-colors w-full text-left ${location.pathname === '/' && activeSection === sectionId ? 'bg-purple-900/50 border border-purple-500/30' : ''}`}
       >
         {icon && <span className="text-primary dark:text-primary-light">{icon}</span>}
         {label}
-      </Link>
+      </button>
     );
   };
 
@@ -383,30 +382,27 @@ const Navbar = () => {
               className="md:hidden bg-gradient-to-b from-gray-950 via-purple-950/90 to-gray-950/95 border-t border-purple-500/30 shadow-[inset_0_2px_10px_rgba(128,90,213,0.2)] backdrop-blur-xl"
             >
               <nav className="px-4 pt-3 pb-4 space-y-2">
-                <MobileNavLink to="/" label="Home" icon={<FaHome className="w-5 h-5 text-purple-400" />} />
+                <MobileNavLink to="/" label="Home" icon={<FaHome className="w-5 h-5 text-purple-400" />} sectionId="hero" />
                 {location.pathname === '/' ? (
                   <>
-                    <button 
-                      onClick={() => scrollToSection('features')} 
-                      className={`flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors ${activeSection === 'features' ? 'bg-purple-900/50 text-white border border-purple-500/30' : 'text-gray-300 hover:text-white hover:bg-purple-900/30 hover:border hover:border-purple-500/20'}`}
-                    >
-                      <GiBrain className="w-5 h-5 text-purple-400" />
-                      Features
-                    </button>
-                    <button 
-                      onClick={() => scrollToSection('stories')} 
-                      className={`flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors ${activeSection === 'stories' ? 'bg-purple-900/50 text-white border border-purple-500/30' : 'text-gray-300 hover:text-white hover:bg-purple-900/30 hover:border hover:border-purple-500/20'}`}
-                    >
-                      <MdOutlineWavingHand className="w-5 h-5 text-pink-400" />
-                      Community
-                    </button>
-                    <button 
-                      onClick={() => scrollToSection('resources')} 
-                      className={`flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors ${activeSection === 'resources' ? 'bg-purple-900/50 text-white border border-purple-500/30' : 'text-gray-300 hover:text-white hover:bg-purple-900/30 hover:border hover:border-purple-500/20'}`}
-                    >
-                      <GiMeditation className="w-5 h-5 text-cyan-400" />
-                      Resources
-                    </button>
+                    <MobileNavLink 
+                      to="/" 
+                      label="Understanding" 
+                      icon={<GiBrain className="w-5 h-5 text-purple-400" />}
+                      sectionId="features"
+                    />
+                    <MobileNavLink 
+                      to="/" 
+                      label="Support" 
+                      icon={<FaHeart className="w-5 h-5 text-pink-400" />}
+                      sectionId="solutions"
+                    />
+                    <MobileNavLink 
+                      to="/" 
+                      label="Benefits" 
+                      icon={<GiMeditation className="w-5 h-5 text-cyan-400" />}
+                      sectionId="benefits"
+                    />
                     {isLoggedIn && (
                       <motion.div
                         whileHover={{ scale: 1.02 }}

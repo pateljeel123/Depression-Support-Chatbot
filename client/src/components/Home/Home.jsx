@@ -313,7 +313,7 @@ const HeroSection = () => {
             transition={{ duration: 1.5, repeat: Infinity }}
             className="flex flex-col items-center gap-2 text-white/70 cursor-pointer"
             onClick={() => {
-              document.getElementById('problem-section').scrollIntoView({ behavior: 'smooth' });
+              document.getElementById('features').scrollIntoView({ behavior: 'smooth' });
             }}
           >
             <span className="text-sm">Learn More</span>
@@ -370,7 +370,7 @@ const ProblemSection = () => {
   ];
 
   return (
-    <section id="understanding-section" ref={ref} className="relative py-32 bg-gradient-to-b from-gray-950 to-gray-900 overflow-hidden">
+    <section id="features" ref={ref} className="relative py-32 bg-gradient-to-b from-gray-950 to-gray-900 overflow-hidden">
       {/* 3D Background elements */}
       <motion.div
         style={{ y, rotateY }}
@@ -596,7 +596,7 @@ const SolutionSection = () => {
   ];
 
   return (
-    <section id="support-section" ref={ref} className="relative py-32 bg-gradient-to-b from-gray-900 to-gray-950 overflow-hidden">
+    <section id="solutions" ref={ref} className="relative py-32 bg-gradient-to-b from-gray-900 to-gray-950 overflow-hidden">
       {/* 3D floating background elements */}
       <motion.div
         style={{ y, rotateY }}
@@ -1042,7 +1042,7 @@ const BenefitsSection = () => {
   ];
 
   return (
-    <section id="benefits-section" ref={ref} className="relative py-32 bg-gradient-to-b from-gray-950 to-gray-900 overflow-hidden">
+    <section id="benefits" ref={ref} className="relative py-32 bg-gradient-to-b from-gray-950 to-gray-900 overflow-hidden">
       {/* 3D Background layers */}
       <motion.div
         style={{ y, rotateY }}
