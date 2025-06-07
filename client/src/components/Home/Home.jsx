@@ -195,7 +195,7 @@ const HeroSection = () => {
   };
 
   return (
-    <section ref={ref} className="relative h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-950 via-purple-950 to-gray-900">
+    <section id="hero-section" ref={ref} className="relative h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-950 via-purple-950 to-gray-900">
       {/* 3D Background layers */}
       <motion.div
         style={{ y, rotateX }}
@@ -232,8 +232,7 @@ const HeroSection = () => {
 
       <motion.div
         style={{ scale, opacity }}
-        className="relative z-10 text-center px-6 max-w-5xl mx-auto"
-      >
+        className="relative z-10 text-center px-6 max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 100, rotateX: 90 }}
           animate={{ opacity: 1, y: 0, rotateX: 0 }}
@@ -371,7 +370,7 @@ const ProblemSection = () => {
   ];
 
   return (
-    <section id="problem-section" ref={ref} className="relative py-32 bg-gradient-to-b from-gray-950 to-gray-900 overflow-hidden">
+    <section id="understanding-section" ref={ref} className="relative py-32 bg-gradient-to-b from-gray-950 to-gray-900 overflow-hidden">
       {/* 3D Background elements */}
       <motion.div
         style={{ y, rotateY }}
@@ -514,7 +513,7 @@ const QuoteSection = () => {
   });
 
   return (
-    <section className="relative py-24 bg-gradient-to-b from-gray-900 to-gray-950 overflow-hidden">
+    <section id="quote-section" className="relative py-24 bg-gradient-to-b from-gray-900 to-gray-950 overflow-hidden">
       <div className="absolute inset-0 opacity-30">
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_20%,rgba(147,51,234,0.2),transparent_70%)]" />
         <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(circle_at_70%_80%,rgba(14,165,233,0.2),transparent_70%)]" />
@@ -597,7 +596,7 @@ const SolutionSection = () => {
   ];
 
   return (
-    <section ref={ref} className="relative py-32 bg-gradient-to-b from-gray-900 to-gray-950 overflow-hidden">
+    <section id="support-section" ref={ref} className="relative py-32 bg-gradient-to-b from-gray-900 to-gray-950 overflow-hidden">
       {/* 3D floating background elements */}
       <motion.div
         style={{ y, rotateY }}
@@ -789,7 +788,7 @@ const TestimonialsSection = () => {
   };
 
   return (
-    <section ref={ref} className="relative py-32 overflow-hidden bg-gradient-to-b from-gray-950 to-gray-900">
+    <section id="stories-section" ref={ref} className="relative py-32 overflow-hidden bg-gradient-to-b from-gray-950 to-gray-900">
       {/* 3D Animated background */}
       <motion.div
         style={{ y: backgroundY, rotateX }}
@@ -1043,7 +1042,7 @@ const BenefitsSection = () => {
   ];
 
   return (
-    <section ref={ref} className="relative py-32 bg-gradient-to-b from-gray-950 to-gray-900 overflow-hidden">
+    <section id="benefits-section" ref={ref} className="relative py-32 bg-gradient-to-b from-gray-950 to-gray-900 overflow-hidden">
       {/* 3D Background layers */}
       <motion.div
         style={{ y, rotateY }}

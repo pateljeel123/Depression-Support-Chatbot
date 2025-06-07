@@ -73,7 +73,7 @@ const Navbar = () => {
     }, observerOptions);
 
     // Observe sections
-    const sections = ['features', 'stories', 'resources'];
+    const sections = ['understanding', 'support', 'stories', 'benefits'];
     sections.forEach(section => {
       const element = document.getElementById(section);
       if (element) sectionObserver.observe(element);
@@ -88,11 +88,12 @@ const Navbar = () => {
   }, [location.pathname]);
 
   const scrollToSection = (id) => {
-    // Map the navigation labels to actual section IDs in Home.jsx
+    // Map the navigation labels to actual section IDs
     const sectionMap = {
-      'features': 'problem-section',
-      'stories': 'testimonials-section',
-      'resources': 'benefits-section'
+      'hero': 'hero-section',
+      'features': 'understanding-section',
+      'solutions': 'support-section',
+      'benefits': 'benefits-section'
     };
     
     // Get the actual section ID from the map or use the provided ID if not in map
@@ -100,7 +101,14 @@ const Navbar = () => {
     
     const element = document.getElementById(actualSectionId);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+      const navbarHeight = 80; // Height of the navbar
+      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+      const offsetPosition = elementPosition - navbarHeight;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
       setActiveSection(id); // Keep the original ID for active section highlighting
     }
     setIsMobileMenuOpen(false); // Close mobile menu after click
@@ -206,21 +214,21 @@ const Navbar = () => {
                     className={`px-3 py-2 rounded-md text-sm font-medium transition-colors font-heading flex items-center gap-2 ${activeSection === 'features' ? 'bg-purple-900/50 text-white shadow-md border border-purple-500/30' : 'text-gray-300 hover:text-white hover:bg-purple-900/30 hover:border hover:border-purple-500/20'}`}
                   >
                     <GiBrain className="w-4 h-4 text-purple-400" />
-                    Features
+                    Understanding
                   </button>
                   <button 
-                    onClick={() => scrollToSection('stories')} 
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors font-heading flex items-center gap-2 ${activeSection === 'stories' ? 'bg-purple-900/50 text-white shadow-md border border-purple-500/30' : 'text-gray-300 hover:text-white hover:bg-purple-900/30 hover:border hover:border-purple-500/20'}`}
+                    onClick={() => scrollToSection('solutions')} 
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors font-heading flex items-center gap-2 ${activeSection === 'solutions' ? 'bg-purple-900/50 text-white shadow-md border border-purple-500/30' : 'text-gray-300 hover:text-white hover:bg-purple-900/30 hover:border hover:border-purple-500/20'}`}
                   >
-                    <MdOutlineWavingHand className="w-4 h-4 text-pink-400" />
-                    Community
+                    <FaHeart className="w-4 h-4 text-pink-400" />
+                    Support
                   </button>
                   <button 
-                    onClick={() => scrollToSection('resources')} 
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors font-heading flex items-center gap-2 ${activeSection === 'resources' ? 'bg-purple-900/50 text-white shadow-md border border-purple-500/30' : 'text-gray-300 hover:text-white hover:bg-purple-900/30 hover:border hover:border-purple-500/20'}`}
+                    onClick={() => scrollToSection('benefits')} 
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors font-heading flex items-center gap-2 ${activeSection === 'benefits' ? 'bg-purple-900/50 text-white shadow-md border border-purple-500/30' : 'text-gray-300 hover:text-white hover:bg-purple-900/30 hover:border hover:border-purple-500/20'}`}
                   >
-                    <GiMeditation className="w-4 h-4 text-cyan-400" />
-                    Resources
+                    <GiMeditation className="w-4 h-4 text-emerald-400" />
+                    Benefits
                   </button>
                   {isLoggedIn && (
                     <motion.button
