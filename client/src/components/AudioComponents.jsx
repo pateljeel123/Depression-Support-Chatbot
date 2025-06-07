@@ -41,7 +41,7 @@ export const AudioControls = () => {
   };
 
   return (
-    <div className="fixed bottom-24 sm:bottom-6 right-6 z-50">
+    <div className="fixed bottom-16 sm:bottom-2 -right-2.5 z-50">
       {/* Main circular button */}
       <motion.div 
         className={`relative flex items-center justify-center cursor-pointer`}
@@ -51,7 +51,7 @@ export const AudioControls = () => {
       >
         {/* Main circular button */}
         <motion.div 
-          className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg flex items-center justify-center text-white z-10"
+          className={`w-16 h-16 rounded-full ${isExpanded ? 'rounded-l-3xl' : 'rounded-r-3xl'} bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg flex items-center justify-center text-white z-10`}
           animate={{
             rotate: isExpanded ? 180 : 0,
             boxShadow: isExpanded 
