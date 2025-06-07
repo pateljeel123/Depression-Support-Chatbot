@@ -41,7 +41,7 @@ export const AudioControls = () => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-24 sm:bottom-6 right-6 z-50">
       {/* Main circular button */}
       <motion.div 
         className={`relative flex items-center justify-center cursor-pointer`}
