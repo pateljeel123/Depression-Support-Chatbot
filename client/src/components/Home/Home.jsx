@@ -313,7 +313,7 @@ const HeroSection = () => {
             transition={{ duration: 1.5, repeat: Infinity }}
             className="flex flex-col items-center gap-2 text-white/70 cursor-pointer"
             onClick={() => {
-              document.getElementById('features').scrollIntoView({ behavior: 'smooth' });
+              document.getElementById('problem-section').scrollIntoView({ behavior: 'smooth' });
             }}
           >
             <span className="text-sm">Learn More</span>

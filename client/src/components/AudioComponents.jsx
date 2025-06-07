@@ -9,137 +9,28 @@ export const AudioControls = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { isMuted, toggleMute } = useHoverSound();
   const audioRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [volume, setVolume] = useState(0.3); // Default volume at 30%
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [volume, setVolume] = useState(0.3);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
-  
-  useEffect(() => {
-    // Initialize audio when component mounts
-    if (audioRef.current) {
-      audioRef.current.volume = volume;
-      audioRef.current.load(); // Explicitly load the audio
-      
-      // Try to play audio immediately when component mounts
-      const playPromise = audioRef.current.play();
-      
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            console.log("Audio started playing successfully");
-            setIsPlaying(true);
-          })
-          .catch(error => {
-            console.log("Audio autoplay was prevented:", error);
-            setIsPlaying(false);
-            // Try to play again after user interaction
-            const resumeAudio = () => {
-              if (audioRef.current && !isPlaying) {
-                audioRef.current.play()
-                  .then(() => {
-                    console.log("Audio started playing after user interaction");
-                    setIsPlaying(true);
-                    // Remove event listeners after successful play
-                    document.removeEventListener('click', resumeAudio);
-                    document.removeEventListener('touchstart', resumeAudio);
-                  })
-                  .catch(err => console.log("Still couldn't play audio:", err));
-              }
-            };
-            
-            // Add event listeners for user interaction
-            document.addEventListener('click', resumeAudio, { once: true });
-            document.addEventListener('touchstart', resumeAudio, { once: true });
-          });
-      }
-    }
-
-    // Cleanup function
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
-      // Remove any remaining event listeners
-      document.removeEventListener('click', () => {});
-      document.removeEventListener('touchstart', () => {});
-    };
-  }, []);
 
   const togglePlay = () => {
     if (audioRef.current) {
       if (!isPlaying) {
-        // If audio is not loaded yet, load it first
-        if (audioRef.current.readyState === 0) {
-          audioRef.current.load();
-        }
-        
-        // Ensure volume is set before playing
-        if (audioRef.current.volume === 0) {
-          audioRef.current.volume = volume;
-        }
-        
-        const playPromise = audioRef.current.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              console.log("Audio started playing successfully");
-              setIsPlaying(true);
-            })
-            .catch(error => {
-              console.log("Audio play error:", error);
-              // Try again with a simulated user interaction
-              const simulateGesture = () => {
-                const event = new MouseEvent('click', {
-                  view: window,
-                  bubbles: true,
-                  cancelable: true
-                });
-                document.dispatchEvent(event);
-                
-                // Try playing again
-                audioRef.current.play()
-                  .then(() => setIsPlaying(true))
-                  .catch(e => console.log("Still couldn't play audio:", e));
-              };
-              
-              // Try the gesture simulation after a short delay
-              setTimeout(simulateGesture, 100);
-            });
-        }
+        audioRef.current.play();
+        setIsPlaying(true);
       } else {
         audioRef.current.pause();
-        console.log("Audio paused");
         setIsPlaying(false);
       }
+    }
+  };
+
+  const handleMainButtonClick = () => {
+    if (!isExpanded) {
+      setIsExpanded(true);
     } else {
-      // Toggle state even if audio ref is not available
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const handleVolumeChange = (e) => {
-    const newVolume = parseFloat(e.target.value);
-    console.log(`Volume changed to: ${Math.round(newVolume * 100)}%`);
-    setVolume(newVolume);
-    
-    // If volume is set to 0, mute the sound
-    if (newVolume === 0 && !isMuted) {
-      toggleMute();
-    } 
-    // If volume is increased from 0 and sound is muted, unmute it
-    else if (newVolume > 0 && isMuted) {
-      toggleMute();
-    }
-    
-    if (audioRef.current) {
-      audioRef.current.volume = newVolume;
-    }
-  };
-
-  const toggleExpand = () => {
-    setIsExpanded(!isExpanded);
-    // Reset volume slider visibility when collapsing
-    if (isExpanded) {
+      setIsExpanded(false);
+      togglePlay();
       setShowVolumeSlider(false);
     }
   };
@@ -153,10 +44,10 @@ export const AudioControls = () => {
     <div className="fixed bottom-6 right-6 z-50">
       {/* Main circular button */}
       <motion.div 
-        className={`relative flex items-center justify-center ${isExpanded ? '' : 'cursor-pointer'}`}
-        onClick={isExpanded ? undefined : toggleExpand}
-        whileHover={isExpanded ? {} : { scale: 1.05 }}
-        whileTap={isExpanded ? {} : { scale: 0.95 }}
+        className={`relative flex items-center justify-center cursor-pointer`}
+        onClick={handleMainButtonClick}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
       >
         {/* Main circular button */}
         <motion.div 
@@ -168,7 +59,6 @@ export const AudioControls = () => {
               : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
           }}
           transition={{ duration: 0.3 }}
-          onClick={isExpanded ? toggleExpand : undefined}
         >
           <FaMusic className="text-2xl" />
         </motion.div>
