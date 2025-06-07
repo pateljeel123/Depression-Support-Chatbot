@@ -55,7 +55,7 @@ export default function Chat() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [darkMode, setDarkMode] = useState(false); // Default to light mode (false)
+  const [darkMode, setDarkMode] = useState(true); // Default to dark mode (true)
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [editingChatId, setEditingChatId] = useState(null);
   const [editTitle, setEditTitle] = useState("");
@@ -157,7 +157,7 @@ export default function Chat() {
     syntaxHighlighting: true, // Added syntaxHighlighting
     username: "", // This will store the full name
     email: "", // Added email
-    darkMode: false, // Default to light mode (false)
+    darkMode: true, // Default to dark mode (true)
     ttsEnabled: false, // Changed to false to disable TTS by default
     ttsVoice: null, // Added ttsVoice
     ttsSpeed: 1, // Added ttsSpeed (0.1 to 10, default 1)
@@ -1178,6 +1178,7 @@ export default function Chat() {
       chatId: activeChat,
       role: "assistant",
       content: "Thinking...", // Placeholder content
+      isLoading: true, // Add isLoading flag to identify skeleton loader
       timestamp: new Date().toISOString(),
     };
 
@@ -1206,21 +1207,35 @@ export default function Chat() {
         content: msg.content,
       }));
 
+      // Check for duplicate messages in history
+      const uniqueMessages = [];
+      const seenMessages = new Set();
+      
+      for (const msg of historyForPayload) {
+        // Create a unique key for each message based on role and content
+        const msgKey = `${msg.role}:${msg.content}`;
+        
+        // Only add the message if we haven't seen it before
+        if (!seenMessages.has(msgKey)) {
+          uniqueMessages.push(msg);
+          seenMessages.add(msgKey);
+        }
+      }
+      
       // Add the current user message (with potentially DB ID) to the history if not already there due to async state updates
       const finalUserMessageForPayload = {
         role: "user",
         content: userMessageContent,
       };
-      if (
-        !historyForPayload.find(
-          (m) => m.role === "user" && m.content === userMessageContent
-        )
-      ) {
-        historyForPayload.push(finalUserMessageForPayload);
+      
+      const finalUserMsgKey = `user:${userMessageContent}`;
+      if (!seenMessages.has(finalUserMsgKey)) {
+        uniqueMessages.push(finalUserMessageForPayload);
+        seenMessages.add(finalUserMsgKey);
       }
 
       const payload = {
-        messages: historyForPayload,
+        messages: uniqueMessages, // Use uniqueMessages instead of historyForPayload
         user_preferences: userPreferences,
       };
 
@@ -2278,14 +2293,14 @@ export default function Chat() {
                     }
                   }}
                 />
-                <div className="absolute right-2 bottom-2 flex space-x-1 sm:space-x-2">
+                <div className="absolute right-2 bottom-4 flex space-x-1 sm:space-x-2">
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowEmojiPicker(!showEmojiPicker);
                     }}
-                    className={`p-1 rounded-full ${darkMode
+                    className={`p-1.5 rounded-full ${darkMode
                         ? "text-gray-400 hover:text-gray-300"
                         : "text-gray-500 hover:text-gray-700"
                       }`}
@@ -2297,7 +2312,7 @@ export default function Chat() {
                     <button
                       type="button"
                       onClick={toggleMic}
-                      className={`p-1 rounded-full ${listening
+                      className={`p-1.5 rounded-full ${listening
                           ? darkMode
                             ? "text-red-400 hover:text-red-300"
                             : "text-red-600 hover:text-red-700"

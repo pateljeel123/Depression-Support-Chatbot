@@ -28,10 +28,10 @@ export const WelcomePage = ({ darkMode, setInput, handleSendMessage }) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="max-w-2xl w-full bg-card border border-border rounded-lg p-6 shadow-sm"
+        className={`max-w-2xl w-full ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg p-6 shadow-sm`}
       >
-        <h1 className="text-2xl font-bold mb-4 text-foreground">Welcome to MindCare</h1>
-        <p className="text-muted-foreground mb-6">
+        <h1 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Welcome to MindCare</h1>
+        <p className={`mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
           I'm here to provide support, guidance, and resources for your mental well-being. 
           Feel free to share what's on your mind or try one of the conversation starters below.
         </p>
@@ -41,7 +41,7 @@ export const WelcomePage = ({ darkMode, setInput, handleSendMessage }) => {
             <button
               key={index}
               onClick={() => handleStarterClick(starter)}
-              className="p-3 text-left rounded-md border border-border bg-background hover:bg-accent transition-colors text-sm text-foreground"
+              className={`p-3 text-left rounded-md border transition-colors text-sm ${darkMode ? 'border-gray-700 bg-gray-700 hover:bg-gray-600 text-white' : 'border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-800'}`}
             >
               {starter}
             </button>
@@ -49,16 +49,16 @@ export const WelcomePage = ({ darkMode, setInput, handleSendMessage }) => {
         </div>
         
         <div className="flex flex-col md:flex-row justify-center gap-4 mt-4">
-          <div className="flex items-center text-sm text-muted-foreground">
-            <FiMessageSquare className="mr-2 text-primary" />
+          <div className={`flex items-center text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            <FiMessageSquare className={`mr-2 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
             <span>Chat confidentially</span>
           </div>
-          <div className="flex items-center text-sm text-muted-foreground">
-            <FiHelpCircle className="mr-2 text-primary" />
+          <div className={`flex items-center text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            <FiHelpCircle className={`mr-2 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
             <span>Get personalized support</span>
           </div>
-          <div className="flex items-center text-sm text-muted-foreground">
-            <FiAlertCircle className="mr-2 text-primary" />
+          <div className={`flex items-center text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            <FiAlertCircle className={`mr-2 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
             <span>Access crisis resources</span>
           </div>
         </div>
