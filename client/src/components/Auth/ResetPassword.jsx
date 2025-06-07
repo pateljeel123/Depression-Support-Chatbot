@@ -174,10 +174,9 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 relative overflow-hidden">
-      {/* Therapeutic floating elements */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-purple-950 to-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       <motion.div 
-        className="absolute top-1/4 right-1/4 w-72 h-72 rounded-full bg-purple-200 opacity-20 blur-3xl"
+        className="absolute top-1/4 right-1/4 w-72 h-72 rounded-full bg-indigo-200 opacity-20 blur-3xl"
         initial={{ x: 100, y: -100, scale: 0.8 }}
         animate={{ 
           x: [100, 120, 100], 
@@ -193,7 +192,7 @@ const ResetPassword = () => {
       />
       
       <motion.div 
-        className="absolute bottom-1/3 left-1/4 w-96 h-96 rounded-full bg-blue-200 opacity-20 blur-3xl"
+        className="absolute bottom-1/3 left-1/4 w-96 h-96 rounded-full bg-purple-200 opacity-20 blur-3xl"
         initial={{ x: -100, y: 100, scale: 0.7 }}
         animate={{ 
           x: [-100, -80, -100], 
@@ -210,7 +209,7 @@ const ResetPassword = () => {
       
       <div className="relative z-10 w-full max-w-md px-4 py-8">
         <motion.div 
-          className="bg-white/40 backdrop-blur-lg rounded-3xl shadow-2xl overflow-hidden border border-white/30"
+          className="bg-gray-900/50 backdrop-blur-xl rounded-xl shadow-[0_4px_20px_rgba(128,90,213,0.25)] border border-purple-500/30"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, type: 'spring' }}
@@ -355,7 +354,7 @@ const ResetPassword = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`w-full py-3 px-4 bg-gradient-to-br ${moodData[currentMood].color} text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center disabled:opacity-50`}
+                  className={`w-full py-3 px-4 ${loading ? 'bg-purple-600/50 cursor-not-allowed' : 'bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 hover:from-purple-600 hover:via-pink-600 hover:to-cyan-600'} text-white font-medium rounded-lg shadow-lg shadow-purple-500/25 hover:shadow-purple-500/50 transition-all duration-300 flex items-center justify-center disabled:opacity-50 transform hover:scale-[1.02] active:scale-[0.98]`}
                 >
                   {loading ? (
                     <>

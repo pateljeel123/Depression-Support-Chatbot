@@ -31,17 +31,18 @@ export const ChatItem = ({
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.2 }}
       onClick={() => handleSelectChat(chat.id)}
-      className={`flex items-start justify-between p-2 rounded-md cursor-pointer transition-colors duration-150 group relative
+      className={`flex items-start justify-between p-3 rounded-md cursor-pointer transition-all duration-200 group relative
         ${
           isActive
             ? darkMode
-              ? "bg-gray-700"
-              : "bg-gray-200" // Subtle active state for new UI
+              ? "bg-gray-700 shadow-md"
+              : "bg-gray-200 shadow-sm" // Enhanced active state for new UI
             : darkMode
-            ? "hover:bg-gray-750"
-            : "hover:bg-gray-100"
+            ? "hover:bg-gray-750 hover:shadow-md"
+            : "hover:bg-gray-100 hover:shadow-sm"
         }
         ${isNewUI ? "flex-col" : "items-center"}
+        mb-2
       `}
     >
       {isNewUI && (
@@ -73,9 +74,9 @@ export const ChatItem = ({
               className={`mr-2 ${darkMode ? "text-gray-400" : "text-gray-500"}`}
             />
             <span
-              className={`text-xs font-medium truncate flex-grow ${
+              className={`text-sm font-medium truncate flex-grow ${
                 darkMode ? "text-gray-200" : "text-gray-700"
-              }`}
+              } hover:text-indigo-500 transition-colors duration-200`}
             >
               {chat.title}
             </span>

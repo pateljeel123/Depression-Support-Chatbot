@@ -73,20 +73,12 @@ const AppContent = () => {
 };
 
 const App = () => {
-  // Apply the font to the entire app by adding to the root element or body
-  // For this example, we'll assume a main wrapper div in App.jsx
-  // If your structure is different, you might apply this to document.body directly
-  // or to a more specific top-level component wrapper.
-
   return (
-    // Apply the design system fonts and colors to the entire app
-    <div className="font-sans bg-background text-text-dark dark:bg-background-dark dark:text-text-white min-h-screen">
     <AuthProvider>
       <BrowserRouter>
         <AppContent />
       </BrowserRouter>
     </AuthProvider>
-    </div>
   )
 }
 

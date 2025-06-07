@@ -10,7 +10,7 @@ const app = express();
 // Middleware
 app.use(
   cors({
-    origin: "https://mindcare.deepnex.in",
+    origin: "http://localhost:5173",
     credentials: true,
   })
 );

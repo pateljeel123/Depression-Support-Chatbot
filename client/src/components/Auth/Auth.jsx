@@ -503,15 +503,15 @@ const Auth = ({ initialMode }) => {
   // Mood selector component
   const MoodSelector = () => (
     <div className="mb-4">
-      <label className="block text-xs font-medium text-gray-700 mb-1">How are you feeling today?</label>
-      <div className="flex space-x-2">
+      <label className="block text-xs sm:text-sm font-medium text-white/80 mb-2">How are you feeling today?</label>
+      <div className="flex flex-wrap gap-2">
         {Object.entries(moodData).map(([mood, { emoji }]) => (
           <motion.button
             key={mood}
             type="button"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className={`text-2xl p-2 rounded-full ${currentMood === mood ? `bg-gradient-to-br ${moodData[mood].color} text-white shadow-md` : 'bg-gray-100'}`}
+            className={`text-base sm:text-xl md:text-2xl p-1.5 sm:p-2 rounded-full ${currentMood === mood ? `bg-gradient-to-br ${moodData[mood].color} text-white shadow-md` : 'bg-gray-800/50 backdrop-blur-sm border border-purple-500/20'}`}
             onClick={() => setCurrentMood(mood)}
             title={mood.charAt(0).toUpperCase() + mood.slice(1)}
           >
@@ -523,10 +523,10 @@ const Auth = ({ initialMode }) => {
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 relative overflow-hidden">
-      {/* Therapeutic floating elements */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-purple-950 to-gray-900 flex items-center justify-center relative overflow-hidden p-4 sm:p-6 md:p-8 lg:p-12">
+      {/* Animated background elements */}
       <motion.div 
-        className="absolute top-1/4 right-1/4 w-72 h-72 rounded-full bg-purple-200 opacity-20 blur-3xl"
+        className="absolute top-1/4 right-1/4 w-48 h-48 md:w-72 md:h-72 lg:w-96 lg:h-96 rounded-full bg-indigo-200/20 opacity-20 blur-[100px] md:blur-[120px] lg:blur-[150px]"
         initial={{ x: 100, y: -100, scale: 0.8 }}
         animate={{ 
           x: [100, 120, 100], 
@@ -542,7 +542,7 @@ const Auth = ({ initialMode }) => {
       />
       
       <motion.div 
-        className="absolute bottom-1/3 left-1/4 w-96 h-96 rounded-full bg-blue-200 opacity-20 blur-3xl"
+        className="absolute bottom-1/3 left-1/4 w-64 h-64 md:w-96 md:h-96 lg:w-[32rem] lg:h-[32rem] rounded-full bg-purple-200/20 opacity-20 blur-[120px] md:blur-[150px] lg:blur-[180px]"
         initial={{ x: -100, y: 100, scale: 0.7 }}
         animate={{ 
           x: [-100, -80, -100], 
@@ -557,67 +557,40 @@ const Auth = ({ initialMode }) => {
         }}
       />
       
-      {/* Floating hearts */}
-      <motion.div
-        className="absolute top-1/3 left-1/4 text-4xl text-pink-300 opacity-60"
-        initial={{ y: 0, x: 0 }}
-        animate={{ y: [0, -20, 0], x: [0, 10, 0] }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          repeatType: "reverse"
-        }}
-      >
-        ❤️
-      </motion.div>
-      
-      <motion.div
-        className="absolute bottom-1/4 right-1/4 text-5xl text-blue-300 opacity-60"
-        initial={{ y: 0, x: 0 }}
-        animate={{ y: [0, -30, 0], x: [0, -15, 0] }}
-        transition={{
-          duration: 10,
-          repeat: Infinity,
-          repeatType: "reverse",
-          delay: 2
-        }}
-      >
-        ☁️
-      </motion.div>
-      
-      <div className="relative z-10 w-full max-w-md px-4 py-8">
+      {/* Main content container */}
+      <div className="relative z-10 w-full max-w-md">
         <motion.div 
-          className="bg-white/40 backdrop-blur-lg rounded-3xl shadow-2xl overflow-hidden border border-white/30"
+          className="bg-gray-900/50 backdrop-blur-xl rounded-3xl shadow-[0_8px_32px_rgba(128,90,213,0.3)] border border-purple-500/30 overflow-hidden transform hover:shadow-[0_12px_40px_rgba(128,90,213,0.4)] transition-shadow duration-300"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, type: 'spring' }}
         >
-          <div className="p-8">
-            <div className="text-center mb-8">
+          <div className="p-6 sm:p-8 md:p-10 lg:p-12">
+            <div className="text-center mb-8 md:mb-10">
               <motion.div 
-                className="flex justify-center mb-4"
+                className="flex justify-center mb-6 md:mb-8"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${moodData[currentMood].color} flex items-center justify-center shadow-lg`}>
+                <div className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-full bg-gradient-to-br ${moodData[currentMood].color} flex items-center justify-center shadow-lg ring-4 ring-purple-500/30 ring-offset-4 ring-offset-gray-900 transform hover:rotate-12 transition-all duration-300`}>
                   <motion.div
-                    animate={{ scale: [1, 1.1, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
+                    animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
+                    transition={{ duration: 3, repeat: Infinity }}
                   >
-                    <FaHandHoldingHeart className="text-white text-3xl" />
+                    <FaHandHoldingHeart className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl" />
                   </motion.div>
                 </div>
               </motion.div>
               
               <motion.h2 
-                className="text-3xl font-bold text-gray-800"
+                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent font-heading tracking-tight mb-3 md:mb-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.1 }}
               >
-                {isSignUp ? 'Find Your Safe Space' : 'Welcome Back to Support'}
+                {isSignUp ? 'Find Your Safe Space' : 'Welcome Back'}
               </motion.h2>
-              <p className="mt-2 text-gray-600">
+              <p className="text-sm sm:text-base md:text-lg text-gray-100/90 font-medium tracking-wide">
                 {isSignUp ? 'Join our compassionate community' : 'Continue your healing journey'}
               </p>
             </div>
@@ -671,327 +644,212 @@ const Auth = ({ initialMode }) => {
               )}
             </AnimatePresence>
 
-            <form className="space-y-4" onSubmit={handleAuth}>
-              <motion.div 
-                className="space-y-4"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2 }}
-              >
+            <form onSubmit={handleAuth} className="space-y-6 md:space-y-8">
+              <AnimatePresence>
+                {error && (
+                  <motion.div 
+                    className="bg-red-500/10 backdrop-blur-sm border border-red-500/20 text-red-200 px-4 py-3 rounded-xl flex items-start transform hover:scale-[1.02] transition-transform duration-200"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                  >
+                    <FaQuestionCircle className="text-red-400 mt-0.5 mr-3 flex-shrink-0" />
+                    <span className="text-sm sm:text-base">{error}</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <AnimatePresence>
+                {successMessage && (
+                  <motion.div 
+                    className="bg-green-500/10 backdrop-blur-sm border border-green-500/20 text-green-200 px-4 py-3 rounded-xl flex items-start transform hover:scale-[1.02] transition-transform duration-200"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                  >
+                    <FaShieldAlt className="text-green-400 mt-0.5 mr-3 flex-shrink-0" />
+                    <span className="text-sm sm:text-base">{successMessage}</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Name input - only for signup */}
+              <AnimatePresence>
                 {isSignUp && (
-                  <>
-                    <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-2"
+                  >
+                    <div className="relative group">
+                      <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full h-12 sm:h-14 bg-gray-800/50 backdrop-blur-sm text-white rounded-xl px-4 border border-purple-500/20 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 focus:outline-none transition-all duration-200 placeholder-gray-400 group-hover:border-purple-500/30 text-sm sm:text-base"
+                        placeholder="Enter your name . . ."
+                      />
+                      {formErrors.name && (
+                        <motion.p 
+                          className="mt-1 text-xs sm:text-sm text-red-400"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                        >
+                          {formErrors.name}
+                        </motion.p>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Email input */}
+              <div className="relative group">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full h-12 sm:h-14 bg-gray-800/50 backdrop-blur-sm text-white rounded-xl px-4 border border-purple-500/20 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 focus:outline-none transition-all duration-200 placeholder-gray-400 group-hover:border-purple-500/30 text-sm sm:text-base"
+                  placeholder="Enter your email . . . "
+                />
+                {formErrors.email && (
+                  <motion.p 
+                    className="mt-1 text-xs sm:text-sm text-red-400"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  >
+                    {formErrors.email}
+                  </motion.p>
+                )}
+              </div>
+
+              {/* Password input */}
+              <div className="relative group">
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full h-12 sm:h-14 bg-gray-800/50 backdrop-blur-sm text-white rounded-xl px-4 pr-12 border border-purple-500/20 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 focus:outline-none transition-all duration-200 placeholder-gray-400 group-hover:border-purple-500/30 text-sm sm:text-base"
+                    placeholder="Enter your password . . ."
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-200 p-2"
+                  >
+                    {showPassword ? <FaEyeSlash className="text-lg sm:text-xl" /> : <FaEye className="text-lg sm:text-xl" />}
+                  </button>
+                </div>
+                {formErrors.password && (
+                  <motion.p 
+                    className="mt-1 text-xs sm:text-sm text-red-400"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  >
+                    {formErrors.password}
+                  </motion.p>
+                )}
+                {isSignUp && renderPasswordStrength()}
+              </div>
+
+              {/* Confirm Password - only for signup */}
+              <AnimatePresence>
+                {isSignUp && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-2"
+                  >
+                    <div className="relative group">
                       <div className="relative">
                         <input
-                          id="name"
-                          name="name"
-                          type="text"
-                          autoComplete="name"
-                          className={`w-full px-4 py-3 rounded-lg border ${formErrors.name ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200`}
-                          placeholder="How should we call you?"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          className="w-full h-12 sm:h-14 bg-gray-800/50 backdrop-blur-sm text-white rounded-xl px-4 pr-12 border border-purple-500/20 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 focus:outline-none transition-all duration-200 placeholder-gray-400 group-hover:border-purple-500/30 text-sm sm:text-base"
+                          placeholder="Enter your confirm password . . ."
                         />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-200 p-2"
+                        >
+                          {showConfirmPassword ? <FaEyeSlash className="text-lg sm:text-xl" /> : <FaEye className="text-lg sm:text-xl" />}
+                        </button>
                       </div>
-                      {formErrors.name && <p className="text-red-500 text-xs mt-1">{formErrors.name}</p>}
+                      {formErrors.confirmPassword && (
+                        <motion.p 
+                          className="mt-1 text-xs sm:text-sm text-red-400"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                        >
+                          {formErrors.confirmPassword}
+                        </motion.p>
+                      )}
                     </div>
-                    
-                    <MoodSelector />
-                    
-                    <div className="mt-2">
-                      <button 
-                        type="button" 
-                        onClick={() => setShowPreferences(!showPreferences)}
-                        className="flex items-center text-sm text-purple-600 hover:text-purple-500 mb-2 transition-colors duration-200"
-                      >
-                        {showPreferences ? 'Hide Personalization Options' : 'Personalize Your Experience'}
-                        <FaQuestionCircle className="ml-1" title="These options help us support you better" />
-                      </button>
-                      
-                      <AnimatePresence>
-                        {showPreferences && (
-                          <motion.div 
-                            className="space-y-3 p-4 bg-purple-50 rounded-lg border border-purple-100"
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.3 }}
-                          >
-                            <p className="text-xs text-gray-600 mb-2">These preferences help us personalize your support (all optional)</p>
-                            
-                            <div className="grid grid-cols-2 gap-3">
-                              <div>
-                                <label htmlFor="age" className="block text-xs font-medium text-gray-700 mb-1">Age</label>
-                                <input
-                                  id="age"
-                                  name="age"
-                                  type="number"
-                                  className={`w-full px-3 py-2 rounded-lg border ${formErrors.age ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-transparent text-sm`}
-                                  placeholder="Your age"
-                                  value={age}
-                                  onChange={(e) => setAge(e.target.value)}
-                                />
-                                {formErrors.age && <p className="text-red-500 text-xs mt-1">{formErrors.age}</p>}
-                              </div>
-                              
-                              <div>
-                                <label htmlFor="gender" className="block text-xs font-medium text-gray-700 mb-1">Gender</label>
-                                <select
-                                  id="gender"
-                                  name="gender"
-                                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-transparent text-sm"
-                                  value={gender}
-                                  onChange={(e) => setGender(e.target.value)}
-                                >
-                                  <option value="">Prefer not to say</option>
-                                  <option value="male">Male</option>
-                                  <option value="female">Female</option>
-                                  <option value="non-binary">Non-binary</option>
-                                  <option value="other">Other</option>
-                                </select>
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <label className="block text-xs font-medium text-gray-700 mb-1">Preferred Communication Style</label>
-                              <div className="grid grid-cols-2 gap-2">
-                                {communicationStyles.map(style => (
-                                  <motion.div 
-                                    key={style.id}
-                                    whileHover={{ scale: 1.02 }}
-                                    className={`p-2 rounded-lg border ${communicationStyle === style.id ? 'border-purple-500 bg-purple-50' : 'border-gray-200'} cursor-pointer`}
-                                    onClick={() => setCommunicationStyle(style.id)}
-                                  >
-                                    <div className="flex items-center">
-                                      <span className="text-lg mr-2">{style.emoji}</span>
-                                      <div>
-                                        <div className="text-xs font-medium">{style.name}</div>
-                                        <div className="text-xs text-gray-500">{style.desc}</div>
-                                      </div>
-                                    </div>
-                                  </motion.div>
-                                ))}
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <label className="block text-xs font-medium text-gray-700 mb-1">Topics You'd Like Support With</label>
-                              <div className="grid grid-cols-2 gap-2">
-                                {availableTopics.map(topic => (
-                                  <motion.div 
-                                    key={topic.id} 
-                                    whileHover={{ scale: 1.02 }}
-                                    className="flex items-center"
-                                  >
-                                    <input
-                                      id={`topic-${topic.id}`}
-                                      type="checkbox"
-                                      className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-                                      checked={preferredTopics.includes(topic.id)}
-                                      onChange={() => {
-                                        if (preferredTopics.includes(topic.id)) {
-                                          setPreferredTopics(preferredTopics.filter(t => t !== topic.id));
-                                        } else {
-                                          setPreferredTopics([...preferredTopics, topic.id]);
-                                        }
-                                      }}
-                                    />
-                                    <label htmlFor={`topic-${topic.id}`} className="ml-2 block text-xs text-gray-700">
-                                      <span className="mr-1">{topic.icon}</span>
-                                      {topic.name}
-                                    </label>
-                                  </motion.div>
-                                ))}
-                              </div>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Mood Selector */}
+              <MoodSelector />
+
+              {/* Submit button */}
+              <motion.button
+                type="submit"
+                className="w-full h-12 sm:h-14 bg-gradient-to-r from-purple-600 via-pink-500 to-cyan-500 text-white rounded-xl font-semibold shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 transform hover:-translate-y-0.5 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group text-sm sm:text-base"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <motion.div
+                      className="w-5 h-5 sm:w-6 sm:h-6 border-3 border-white/30 border-t-white rounded-full"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    />
+                    <span className="ml-2">{isSignUp ? 'Creating account...' : 'Signing in...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="group-hover:tracking-wider transition-all duration-150">
+                      {isSignUp ? 'Create Account' : 'Sign In'}
+                    </span>
+                    <FaMagic className="text-lg sm:text-xl opacity-70 group-hover:opacity-100 group-hover:rotate-12 transition-all duration-150" />
                   </>
                 )}
-                
-                <div>
-                  <label htmlFor="email-address" className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
-                  <input
-                    id="email-address"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    className={`w-full px-4 py-3 rounded-lg border ${formErrors.email ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200`}
-                    placeholder="Your email address"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                  {formErrors.email && <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>}
-                </div>
-                
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                  <div className="relative">
-                    <input
-                      id="password"
-                      name="password"
-                      type={showPassword ? "text" : "password"}
-                      autoComplete={isSignUp ? 'new-password' : 'current-password'}
-                      className={`w-full px-4 py-3 rounded-lg border ${formErrors.password ? 'border-red-500' : passwordStrength >= 3 && password ? 'border-green-500' : 'border-gray-300'} focus:outline-none focus:ring-2 ${passwordStrength >= 3 && password ? 'focus:ring-green-500' : 'focus:ring-purple-500'} focus:border-transparent transition-all duration-200 pr-10`}
-                      placeholder="Create a secure password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                    <button
-                      type="button"
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <FaEyeSlash className="text-gray-400 hover:text-gray-600" />
-                      ) : (
-                        <FaEye className="text-gray-400 hover:text-gray-600" />
-                      )}
-                    </button>
-                  </div>
-                  {formErrors.password && <p className="text-red-500 text-xs mt-1">{formErrors.password}</p>}
-                  {isSignUp && renderPasswordStrength()}
-                </div>
-                
-                {isSignUp && (
-                  <div>
-                    <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
-                    <div className="relative">
-                      <input
-                        id="confirm-password"
-                        name="confirm-password"
-                        type={showConfirmPassword ? "text" : "password"}
-                        autoComplete="new-password"
-                        className={`w-full px-4 py-3 rounded-lg border ${formErrors.confirmPassword ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 pr-10`}
-                        placeholder="Confirm your password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                      />
-                      <button
-                        type="button"
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      >
-                        {showConfirmPassword ? (
-                          <FaEyeSlash className="text-gray-400 hover:text-gray-600" />
-                        ) : (
-                          <FaEye className="text-gray-400 hover:text-gray-600" />
-                        )}
-                      </button>
-                    </div>
-                    {formErrors.confirmPassword && <p className="text-red-500 text-xs mt-1">{formErrors.confirmPassword}</p>}
-                   
-                  </div>
-                )}
-              </motion.div>
+              </motion.button>
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <input
-                    id="remember-me"
-                    name="remember-me"
-                    type="checkbox"
-                    className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                    Remember me
-                  </label>
-                </div>
-
-                {!isSignUp && (
-                  <div className="text-sm">
-                    <button 
-                      type="button"
-                      onClick={handlePasswordReset}
-                      className="font-medium text-purple-600 hover:text-purple-500 transition-colors duration-200"
-                    >
-                      Forgot password?
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <motion.div
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
+              {/* Google Sign In */}
+              <motion.button
+                type="button"
+                onClick={handleGoogleSignIn}
+                className="w-full h-12 sm:h-14 bg-white/10 backdrop-blur-sm text-white rounded-xl font-semibold border border-white/20 shadow-lg shadow-black/20 hover:shadow-black/30 hover:bg-white/15 transform hover:-translate-y-0.5 transition-all duration-150 flex items-center justify-center gap-3 group mt-4 text-sm sm:text-base"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                disabled={loading}
               >
-                <button
-                  type="submit"
-                  disabled={loading || (loginAttempts >= 3 && new Date() - lastAttempt < 300000)}
-                  className={`w-full py-3 px-4 bg-gradient-to-br ${moodData[currentMood].color} text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center disabled:opacity-50`}
-                >
-                  {loading ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      {isSignUp ? 'Creating Your Safe Space...' : 'Entering Your Space...'}
-                    </>
-                  ) : (
-                    <>
-                      <span className="mr-2">
-                        {isSignUp ? (
-                          <FaUserShield className="inline" />
-                        ) : (
-                          <FaShieldAlt className="inline" />
-                        )}
-                      </span>
-                      {isSignUp ? 'Join Our Support Community' : 'Access Your Support'}
-                    </>
-                  )}
-                </button>
-              </motion.div>
-              
-              <div className="relative my-4 flex items-center justify-center">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300"></div>
-                </div>
-                <div className="relative px-4 text-sm text-gray-500 bg-white/40 backdrop-blur-sm rounded-md">
-                  Or continue with
-                </div>
-              </div>
-              
-              <motion.div
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-              >
+                <FaGoogle className="text-lg sm:text-xl text-red-500 group-hover:text-red-400 transition-colors duration-150" />
+                <span className="group-hover:tracking-wider transition-all duration-150">Continue with Google</span>
+              </motion.button>
+
+              {/* Toggle between sign up and sign in */}
+              <div className="mt-6 text-center">
                 <button
                   type="button"
-                  onClick={handleGoogleSignIn}
-                  disabled={loading}
-                  className="w-full py-3 px-4 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-center disabled:opacity-50"
-                >
-                  {loading ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Connecting...
-                    </>
-                  ) : (
-                    <>
-                      <FaGoogle className="mr-2 text-red-500" />
-                      Sign {isSignUp ? 'up' : 'in'} with Google
-                    </>
-                  )}
-                </button>
-              </motion.div>
-
-              <div className="text-center pt-4 border-t border-gray-100">
-                <button 
-                  type="button" 
                   onClick={() => {
                     setIsSignUp(!isSignUp);
                     navigate(isSignUp ? '/login' : '/signup');
-                  }} 
-                  className="font-medium text-purple-600 hover:text-purple-500 transition-colors duration-200"
+                  }}
+                  className="text-sm sm:text-base text-gray-300 hover:text-white transition-colors duration-150 hover:underline"
                 >
-                  {isSignUp ? 'Already have an account? Sign In' : 'Need support? Create an Account'}
+                  {isSignUp ? 'Already have an account? Sign in' : 'Don\'t have an account? Sign up'}
                 </button>
               </div>
             </form>
@@ -1000,13 +858,13 @@ const Auth = ({ initialMode }) => {
         
         {/* Affirmation message */}
         <motion.div 
-          className="mt-6 text-center text-sm text-gray-500"
+          className="mt-6 text-center text-xs sm:text-sm text-gray-400/80"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
           <motion.p
-            animate={{ scale: [1, 1.02, 1] }}
+            animate={{ scale: [1, 1.01, 1] }}
             transition={{ duration: 5, repeat: Infinity }}
           >
             {currentMood === 'happy' && "You're doing great! Keep shining 🌟"}

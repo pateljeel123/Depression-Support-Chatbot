@@ -55,6 +55,7 @@ export default function Chat() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(false);
   const [darkMode, setDarkMode] = useState(true); // Default to dark mode (true)
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [editingChatId, setEditingChatId] = useState(null);
@@ -88,9 +89,11 @@ export default function Chat() {
   useEffect(() => {
     const style = document.createElement('style');
     style.innerHTML = `
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+      
       body, html {
         overflow: hidden !important;
-        font-family: 'Poppins', sans-serif !important;
+        font-family: 'Inter', 'Poppins', system-ui, sans-serif !important;
       }
       ::-webkit-scrollbar {
         display: none !important; /* For Webkit browsers */
@@ -100,20 +103,68 @@ export default function Chat() {
         -ms-overflow-style: none; /* For IE and Edge */
       }
       .chat-container, .chat-message, .chat-input, .message-content, .sidebar-content {
-        font-family: 'Poppins', sans-serif !important;
+        font-family: 'Inter', 'Poppins', system-ui, sans-serif !important;
       }
       .message-content, .prose p, .prose li, .prose code, .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
-        font-family: 'Poppins', sans-serif !important;
+        font-family: 'Inter', 'Poppins', system-ui, sans-serif !important;
         font-size: 1.1rem !important;
         line-height: 1.6 !important;
       }
       .chat-input {
         font-size: 1.05rem !important;
       }
+      .typing-animation {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 16px;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+      }
+      .typing-animation span {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        animation: bounce 1.2s infinite ease-in-out;
+        box-shadow: 0 0 10px 2px rgba(99, 102, 241, 0.6);
+      }
+      .typing-animation span:nth-child(1) {
+        animation-delay: 0s;
+      }
+      .typing-animation span:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .typing-animation span:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+      @keyframes bounce {
+        0%, 80%, 100% {
+          transform: translateY(0);
+          opacity: 0.6;
+        }
+        40% {
+          transform: translateY(-10px);
+          opacity: 1;
+          box-shadow: 0 0 15px 3px rgba(99, 102, 241, 0.8);
+        }
+      }
+      
+      /* Glassmorphism/Neumorphism effects */
+      .glass-effect {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+      }
+      
+      .neomorphism-effect {
+        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.2),
+                    -5px -5px 15px rgba(255, 255, 255, 0.05);
       }
     `;
     document.head.appendChild(style);
-
+    
     // Cleanup function to remove the style when the component unmounts
     return () => {
       document.head.removeChild(style);
@@ -138,11 +189,36 @@ export default function Chat() {
     return () => window.removeEventListener('resize', handleResize);
   }, []); // Empty dependency array ensures this runs only once on mount
 
-  const handleClearCurrentChat = () => {
+  const handleClearCurrentChat = async () => {
     if (activeChat) {
-      setMessages([]); // Basic clear
-      // TODO: Add more robust clearing logic (e.g., from DB or localStorage)
+      setMessages([]); // Clear messages from UI immediately
+      
+      // If user is logged in, delete messages from Supabase
+      if (userID) {
+        try {
+          // Delete all messages associated with the current chat session from Supabase
+          const { error: messagesError } = await supabase
+            .from('messages')
+            .delete()
+            .eq('session_id', activeChat);
+          
+          if (messagesError) {
+            console.error('Error deleting messages from Supabase:', messagesError);
+          }
+        } catch (error) {
+          console.error('Error clearing chat from Supabase:', error);
+        }
+      }
+      
+      // Update the chat in state to have empty messages
+      setChats(prevChats => 
+        prevChats.map(chat => 
+          chat.id === activeChat ? { ...chat, messages: [] } : chat
+        )
+      );
+      
       console.log(`Chat cleared for session: ${activeChat}`);
+      playSound("delete"); // Play delete sound effect
     }
   };
 
@@ -276,6 +352,7 @@ export default function Chat() {
         return;
       }
       setIsLoading(true);
+      setInitialLoading(true); // Set initialLoading to true for skeleton UI
       try {
         const { data: chatMessages, error: messagesError } = await supabase
           .from("messages")
@@ -310,6 +387,7 @@ export default function Chat() {
         setMessages([]);
       } finally {
         setIsLoading(false);
+        setInitialLoading(false); // Reset initialLoading after fetching
       }
     },
     [userID]
@@ -342,7 +420,7 @@ export default function Chat() {
         return existingEmptyChat;
       }
       
-      setIsLoading(true);
+      setIsLoading(true); // Only set isLoading, not initialLoading for new chat creation
       let newChatData;
       const localNewChat = createNewChat(); // Create basic structure locally first
       localNewChat.isTemporary = true; // Mark as temporary/empty
@@ -408,7 +486,8 @@ export default function Chat() {
   const fetchChatsFromSupabase = useCallback(
     async (currentUserID) => {
       console.log("fetchChatsFromSupabase called for user:", currentUserID);
-      setIsLoading(true);
+      setIsLoading(true); // Only set isLoading, not initialLoading for new chat creation
+      setInitialLoading(true); // Set initialLoading to true for skeleton UI
       try {
         const { data: sessions, error: sessionsError } = await supabase
           .from("sessions")
@@ -445,6 +524,7 @@ export default function Chat() {
         loadDataFromLocalStorage(); // Fallback to localStorage if Supabase fails
       } finally {
         setIsLoading(false);
+        setInitialLoading(false); // Reset initialLoading after fetching
         setInitialLoadComplete(true);
       }
     },
@@ -1177,7 +1257,7 @@ export default function Chat() {
       id: tempBotMessageId,
       chatId: activeChat,
       role: "assistant",
-      content: "Thinking...", // Placeholder content
+      content: "", // Empty content as we'll show animation instead
       isLoading: true, // Add isLoading flag to identify skeleton loader
       timestamp: new Date().toISOString(),
     };
@@ -1294,6 +1374,7 @@ export default function Chat() {
               id: dbBotMessageId,
               content: assistantReply,
               timestamp: botResponseTimestamp,
+              isLoading: false, // Remove loading state when response is received
             }
             : msg
         )
@@ -1310,6 +1391,7 @@ export default function Chat() {
                     id: dbBotMessageId,
                     content: assistantReply,
                     timestamp: botResponseTimestamp,
+                    isLoading: false, // Remove loading state when response is received
                   }
                   : msg
               ),
@@ -1330,7 +1412,7 @@ export default function Chat() {
       // Update placeholder with error message
       setMessages((prevMessages) =>
         prevMessages.map((msg) =>
-          msg.id === tempBotMessageId ? { ...msg, content: errorContent } : msg
+          msg.id === tempBotMessageId ? { ...msg, content: errorContent, isLoading: false } : msg
         )
       );
       setChats((prevChats) =>
@@ -1340,7 +1422,7 @@ export default function Chat() {
               ...chat,
               messages: (chat.messages || []).map((msg) =>
                 msg.id === tempBotMessageId
-                  ? { ...msg, content: errorContent }
+                  ? { ...msg, content: errorContent, isLoading: false }
                   : msg
               ),
               updatedAt: new Date().toISOString(),
@@ -1561,7 +1643,7 @@ export default function Chat() {
                 </div>
                
                 {/* Scrollable Chat History Section */}
-                <div className="px-4 flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
+                <div className="px-4 flex-grow overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600" style={{ scrollbarWidth: 'auto', scrollbarGutter: 'stable' }}>
                   <div className="flex items-center justify-between px-1 mb-2">
                     <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                       Chat History
@@ -1678,7 +1760,11 @@ export default function Chat() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={handleClearCurrentChat}
+                onClick={() => {
+                  if (window.confirm("Are you sure you want to clear the entire chat history?")) {
+                    handleClearCurrentChat();
+                  }
+                }}
                 className={`px-3 py-1.5 rounded-md text-xs font-medium border shadow-sm transition-all duration-200 ${darkMode
                   ? "border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-gray-200 hover:border-gray-500"
                   : "border-gray-300 text-gray-600 hover:bg-gray-100 hover:text-gray-800 hover:border-gray-400"
@@ -1686,7 +1772,7 @@ export default function Chat() {
               >
                 <span className="flex items-center">
                   <FiTrash2 className="mr-1" size={14} />
-                  Clear
+                  Clear Chat History
                 </span>
               </motion.button>
             </div>
@@ -1699,6 +1785,25 @@ export default function Chat() {
           >
             {messages.length === 0 ? (
               <WelcomePage darkMode={darkMode} setInput={setInput} />
+            ) : initialLoading ? (
+              // Skeleton loading for chat history
+              <div className="space-y-4 px-4">
+                {[...Array(5)].map((_, index) => (
+                  <div key={index} className={`flex ${index % 2 === 0 ? "justify-end" : "justify-start"} mb-4`}>
+                    <div 
+                      className={`animate-pulse rounded-xl p-2 sm:p-3 shadow-md ${index % 2 === 0 
+                        ? "bg-indigo-600/30 backdrop-blur-sm" 
+                        : "bg-gray-800/30 backdrop-blur-sm border border-gray-700/30"}`}
+                      style={{width: `${Math.floor(Math.random() * 30) + 50}%`}}
+                    >
+                      <div className="h-4 bg-gray-400/30 rounded-full w-3/4 mb-2.5"></div>
+                      <div className="h-3 bg-gray-400/30 rounded-full mb-2.5"></div>
+                      <div className="h-3 bg-gray-400/30 rounded-full w-5/6 mb-2.5"></div>
+                      <div className="h-3 bg-gray-400/30 rounded-full w-1/2"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : (
               <>
                 {Object.entries(groupedMessages).map(([date, dateMessages]) => (
@@ -1721,18 +1826,19 @@ export default function Chat() {
                           } mb-4`}
                       >
                         <div
-                          className={`max-w-full sm:max-w-3xl rounded-lg p-4 sm:p-5 relative group ${message.role === "user"
+                          className={`max-w-full sm:max-w-3xl rounded-xl p-2 sm:p-3 text-sm relative group glass-effect ${message.role === "user"
                               ? darkMode
-                                ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md"
-                                : "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md"
+                                ? "bg-indigo-600 text-white shadow-md hover:bg-indigo-700 transition-colors duration-200"
+                                : "bg-blue-600 text-white shadow-md hover:bg-blue-700 transition-colors duration-200"
                               : darkMode
-                                ? "bg-gray-800 border border-gray-700 shadow-md"
-                                : "bg-white border border-gray-200 shadow-sm"
+                                ? "bg-gray-800/80 border border-gray-700/50 shadow-md hover:bg-gray-700/90 transition-colors duration-200"
+                                : "bg-white/90 border border-gray-200/50 shadow-md hover:bg-white/100 transition-colors duration-200"
                             }`}
                         >
+                          <div className={`absolute top-0 left-0 transform -translate-y-full -mb-1 px-2 py-0.5 text-xs font-medium rounded-t-md ${message.role === "user" ? "bg-indigo-700/80 text-white" : darkMode ? "bg-gray-700/80 text-indigo-300" : "bg-gray-200/80 text-indigo-700"}`}>
+                            {message.role === "user" ? "You" : "MindCare"}
+                          </div>
                           <div className="absolute top-1 right-1 flex opacity-0 group-hover:opacity-100 transition-opacity items-center z-10">
-                            {" "}
-                            {/* Added z-10 */}
                             {/* MessageMenu is now primary, copy is within it if needed or handled by it */}
                             <MessageMenu
                               message={message}
@@ -1830,6 +1936,18 @@ export default function Chat() {
                                 </button>
                               </div>
                             </div>
+                          ) : message.isLoading ? (
+                            <div className="typing-animation glass-effect" 
+                              style={{ 
+                                background: darkMode ? 'rgba(31, 41, 55, 0.4)' : 'rgba(255, 255, 255, 0.4)',
+                                backdropFilter: 'blur(8px)',
+                                border: darkMode ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid rgba(0, 0, 0, 0.05)',
+                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+                              }}>
+                              <span style={{ backgroundColor: '#6366f1' }}></span>
+                              <span style={{ backgroundColor: '#818cf8' }}></span>
+                              <span style={{ backgroundColor: '#a5b4fc' }}></span>
+                            </div>
                           ) : (
                             <div className="prose prose-sm max-w-none break-words text-sm sm:text-base font-light">
                               {" "}
@@ -1850,8 +1968,8 @@ export default function Chat() {
                                     return !inline && match ? (
                                       <div className="relative group overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 my-4">
                                         <div
-                                          className={`absolute top-0 left-0 right-0 px-4 py-2 text-xs font-medium flex justify-between items-center ${darkMode
-                                              ? "bg-gray-800 text-gray-300 border-b border-gray-700"
+                                            className={`absolute top-0 left-0 right-0 px-4 py-2 text-xs font-medium flex justify-between items-center ${darkMode
+                                              ? "bg-gray-800 text-gray-200 border-b border-gray-700"
                                               : "bg-gray-100 text-gray-700 border-b border-gray-200"
                                             }`}
                                         >
@@ -1911,7 +2029,7 @@ export default function Chat() {
                                     ) : (
                                       <code
                                         className={`${className} ${darkMode
-                                            ? "bg-gray-700 text-gray-200"
+                                            ? "bg-gray-700 text-gray-100"
                                             : "bg-gray-100 text-gray-800"
                                           } px-1.5 py-0.5 rounded font-mono text-sm`}
                                         {...props}
@@ -1922,56 +2040,56 @@ export default function Chat() {
                                   },
                                   p({ children }) {
                                     return (
-                                      <p className="mb-4 leading-relaxed font-poppins" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.1rem' }}>
+                                      <p className={`mb-4 leading-relaxed font-poppins ${darkMode ? 'text-gray-200' : 'text-gray-800'}`} style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.1rem' }}>
                                         {children}
                                       </p>
                                     );
                                   },
                                   h1({ children }) {
                                     return (
-                                      <h1 className="text-xl sm:text-2xl font-bold mb-4 pb-2 border-b border-gray-200 dark:border-gray-700 font-poppins" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                                      <h1 className={`text-xl sm:text-2xl font-bold mb-4 pb-2 border-b border-gray-200 dark:border-gray-700 font-poppins ${darkMode ? 'text-white' : 'text-gray-900'}`} style={{ fontFamily: 'Poppins, sans-serif' }}>
                                         {children}
                                       </h1>
                                     );
                                   },
                                   h2({ children }) {
                                     return (
-                                      <h2 className="text-lg sm:text-xl font-semibold mb-3 mt-6 font-poppins" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                                      <h2 className={`text-lg sm:text-xl font-semibold mb-3 mt-6 font-poppins ${darkMode ? 'text-white' : 'text-gray-900'}`} style={{ fontFamily: 'Poppins, sans-serif' }}>
                                         {children}
                                       </h2>
                                     );
                                   },
                                   h3({ children }) {
                                     return (
-                                      <h3 className="text-md sm:text-lg font-medium mb-3 mt-5 font-poppins" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                                      <h3 className={`text-md sm:text-lg font-medium mb-3 mt-5 font-poppins ${darkMode ? 'text-white' : 'text-gray-900'}`} style={{ fontFamily: 'Poppins, sans-serif' }}>
                                         {children}
                                       </h3>
                                     );
                                   },
                                   ul({ children }) {
                                     return (
-                                      <ul className="list-disc pl-5 mb-4 space-y-2 font-poppins" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                                      <ul className={`list-disc pl-5 mb-4 space-y-2 font-poppins ${darkMode ? 'text-gray-200' : 'text-gray-800'}`} style={{ fontFamily: 'Poppins, sans-serif' }}>
                                         {children}
                                       </ul>
                                     );
                                   },
                                   ol({ children }) {
                                     return (
-                                      <ol className="list-decimal pl-5 mb-4 space-y-2 font-poppins" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                                      <ol className={`list-decimal pl-5 mb-4 space-y-2 font-poppins ${darkMode ? 'text-gray-200' : 'text-gray-800'}`} style={{ fontFamily: 'Poppins, sans-serif' }}>
                                         {children}
                                       </ol>
                                     );
                                   },
                                   li({ children }) {
                                     return (
-                                      <li className="mb-1 font-poppins" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.1rem' }}>
+                                      <li className={`mb-1 font-poppins ${darkMode ? 'text-gray-200' : 'text-gray-800'}`} style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.1rem' }}>
                                         {children}
                                       </li>
                                     );
                                   },
                                   blockquote({ children }) {
                                     return (
-                                      <blockquote className={`border-l-4 ${darkMode ? 'border-indigo-400 bg-gray-800' : 'border-indigo-500 bg-gray-50'} pl-4 py-2 mb-4 italic rounded-r font-poppins`} style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.1rem' }}>
+                                      <blockquote className={`border-l-4 ${darkMode ? 'border-indigo-400 bg-gray-800 text-gray-200' : 'border-indigo-500 bg-gray-50 text-gray-800'} pl-4 py-2 mb-4 italic rounded-r font-poppins`} style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.1rem' }}>
                                         {children}
                                       </blockquote>
                                     );
@@ -1982,7 +2100,7 @@ export default function Chat() {
                                         href={href}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className={`${darkMode ? 'text-indigo-400' : 'text-indigo-600'} hover:underline font-poppins`}
+                                        className={`${darkMode ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-700'} hover:underline font-poppins`}
                                         style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.1rem' }}
                                       >
                                         {children}
@@ -2021,7 +2139,7 @@ export default function Chat() {
                                   },
                                   th({ children }) {
                                     return (
-                                      <th className="px-4 py-2 text-left text-sm font-medium font-poppins" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                                      <th className={`px-4 py-2 text-left text-sm font-medium font-poppins ${darkMode ? 'text-gray-200' : 'text-gray-800'}`} style={{ fontFamily: 'Poppins, sans-serif' }}>
                                         {children}
                                       </th>
                                     );
@@ -2101,25 +2219,14 @@ export default function Chat() {
                                 : "text-gray-500"
                             }`}
                         >
-                          {message.role === "assistant" && (
-                            <span className="flex items-center">
-                              <AiOutlineRobot className="mr-1" />
-                              <span className="font-serif"></span>
-                            </span>
-                          )}
+                          {/* Robot icon removed as requested */}
                         </div>
                       </motion.div>
                     ))}
                   </div>
                 ))}
 
-                {isLoading && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex justify-start mb-4"
-                  ></motion.div>
-                )}
+                {/* Removed duplicate loading animation */}
                 <div ref={messagesEndRef} />
                 {/* Reaction Picker */}
                 {reactingToMessageId && (
@@ -2280,12 +2387,12 @@ export default function Chat() {
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Type a message..."
                   rows="1"
-                  className={`w-full py-3 px-4 pr-12 rounded-xl border ${darkMode
-                      ? "bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500 shadow-md"
-                      : "bg-white border-gray-200 text-gray-900 placeholder-gray-500 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
-                    } resize-none focus:outline-none focus:ring-1 transition-all duration-150 ease-in-out hover:shadow-lg text-sm sm:text-base leading-relaxed scrollbar-thin ${darkMode ? 'scrollbar-thumb-gray-500 scrollbar-track-gray-700' : 'scrollbar-thumb-gray-300 scrollbar-track-gray-100'}`}
+                  className={`w-full py-3.5 px-4 pr-12 rounded-xl border-2 ${darkMode
+                      ? "bg-gray-800 border-indigo-600 text-gray-100 placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500 shadow-lg"
+                      : "bg-white border-indigo-400 text-gray-900 placeholder-gray-500 focus:ring-indigo-500 focus:border-indigo-500 shadow-md"
+                    } resize-none focus:outline-none focus:ring-2 transition-all duration-200 ease-in-out hover:shadow-xl text-sm sm:text-base leading-relaxed scrollbar-thin ${darkMode ? 'scrollbar-thumb-gray-500 scrollbar-track-gray-700' : 'scrollbar-thumb-gray-300 scrollbar-track-gray-100'}`}
                   disabled={isLoading || isBotSpeaking}
-                  style={{ minHeight: '48px', maxHeight: '140px' }}
+                  style={{ minHeight: '52px', maxHeight: '140px' }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
@@ -3040,232 +3147,4 @@ const SettingsPanel = ({
 
 // Removed FileUpload Component
 
-// Enhanced EmojiPicker Component
-const EmojiPicker = ({ onSelect, darkMode }) => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [skinTone, setSkinTone] = useState("neutral");
-  const [emojiCategories, setEmojiCategories] = useState([]);
-
-  // In a real app, you would use an emoji library like emoji-picker-react
-  const sampleEmojis = [
-    { emoji: "😀", name: "grinning face" },
-    { emoji: "😃", name: "grinning face with big eyes" },
-    { emoji: "😄", name: "grinning face with smiling eyes" },
-    { emoji: "😁", name: "beaming face with smiling eyes" },
-    { emoji: "😆", name: "grinning squinting face" },
-    { emoji: "😅", name: "grinning face with sweat" },
-    { emoji: "🤣", name: "rolling on the floor laughing" },
-    { emoji: "😂", name: "face with tears of joy" },
-    { emoji: "🙂", name: "slightly smiling face" },
-    { emoji: "🙃", name: "upside-down face" },
-    { emoji: "😉", name: "winking face" },
-    { emoji: "😊", name: "smiling face with smiling eyes" },
-    { emoji: "😇", name: "smiling face with halo" },
-    { emoji: "🥰", name: "smiling face with hearts" },
-    { emoji: "😍", name: "smiling face with heart-eyes" },
-    { emoji: "🤩", name: "star-struck" },
-    { emoji: "😘", name: "face blowing a kiss" },
-    { emoji: "😗", name: "kissing face" },
-    { emoji: "😚", name: "kissing face with closed eyes" },
-    { emoji: "😙", name: "kissing face with smiling eyes" },
-    { emoji: "🥲", name: "smiling face with tear" },
-    { emoji: "😋", name: "face savoring food" },
-    { emoji: "😛", name: "face with tongue" },
-    { emoji: "😜", name: "winking face with tongue" },
-    { emoji: "🤪", name: "zany face" },
-    { emoji: "😝", name: "squinting face with tongue" },
-    { emoji: "🤑", name: "money-mouth face" },
-    { emoji: "🤗", name: "hugging face" },
-    { emoji: "🤭", name: "face with hand over mouth" },
-    { emoji: "🤫", name: "shushing face" },
-    { emoji: "🤔", name: "thinking face" },
-    { emoji: "🤐", name: "zipper-mouth face" },
-    { emoji: "🤨", name: "face with raised eyebrow" },
-    { emoji: "😐", name: "neutral face" },
-    { emoji: "😑", name: "expressionless face" },
-    { emoji: "😶", name: "face without mouth" },
-    { emoji: "😏", name: "smirking face" },
-    { emoji: "😒", name: "unamused face" },
-    { emoji: "🙄", name: "face with rolling eyes" },
-    { emoji: "😬", name: "grimacing face" },
-    { emoji: "🤥", name: "lying face" },
-    { emoji: "😌", name: "relieved face" },
-    { emoji: "😔", name: "pensive face" },
-    { emoji: "😪", name: "sleepy face" },
-    { emoji: "🤤", name: "drooling face" },
-    { emoji: "😴", name: "sleeping face" },
-    { emoji: "😷", name: "face with medical mask" },
-    { emoji: "🤒", name: "face with thermometer" },
-    { emoji: "🤕", name: "face with head-bandage" },
-    { emoji: "🤢", name: "nauseated face" },
-    { emoji: "🤮", name: "face vomiting" },
-    { emoji: "🤧", name: "sneezing face" },
-    { emoji: "🥵", name: "hot face" },
-    { emoji: "🥶", name: "cold face" },
-    { emoji: "🥴", name: "woozy face" },
-    { emoji: "😵", name: "dizzy face" },
-    { emoji: "🤯", name: "exploding head" },
-    { emoji: "🤠", name: "cowboy hat face" },
-    { emoji: "🥳", name: "partying face" },
-    { emoji: "😎", name: "smiling face with sunglasses" },
-    { emoji: "🤓", name: "nerd face" },
-    { emoji: "🧐", name: "face with monocle" },
-    { emoji: "😕", name: "confused face" },
-    { emoji: "😟", name: "worried face" },
-    { emoji: "🙁", name: "slightly frowning face" },
-    { emoji: "😮", name: "face with open mouth" },
-    { emoji: "😯", name: "hushed face" },
-    { emoji: "😲", name: "astonished face" },
-    { emoji: "😳", name: "flushed face" },
-    { emoji: "🥺", name: "pleading face" },
-    { emoji: "😦", name: "frowning face with open mouth" },
-    { emoji: "😧", name: "anguished face" },
-    { emoji: "😨", name: "fearful face" },
-    { emoji: "😰", name: "anxious face with sweat" },
-    { emoji: "😥", name: "sad but relieved face" },
-    { emoji: "😢", name: "crying face" },
-    { emoji: "😭", name: "loudly crying face" },
-    { emoji: "😱", name: "face screaming in fear" },
-    { emoji: "😖", name: "confounded face" },
-    { emoji: "😣", name: "persevering face" },
-    { emoji: "😞", name: "disappointed face" },
-    { emoji: "😓", name: "downcast face with sweat" },
-    { emoji: "😩", name: "weary face" },
-    { emoji: "😫", name: "tired face" },
-    { emoji: "🥱", name: "yawning face" },
-    { emoji: "😤", name: "face with steam from nose" },
-    { emoji: "😡", name: "pouting face" },
-    { emoji: "😠", name: "angry face" },
-    { emoji: "🤬", name: "face with symbols on mouth" },
-    { emoji: "😈", name: "smiling face with horns" },
-    { emoji: "👿", name: "angry face with horns" },
-    { emoji: "💀", name: "skull" },
-    { emoji: "☠️", name: "skull and crossbones" },
-    { emoji: "💩", name: "pile of poo" },
-    { emoji: "🤡", name: "clown face" },
-    { emoji: "👹", name: "ogre" },
-    { emoji: "👺", name: "goblin" },
-    { emoji: "👻", name: "ghost" },
-    { emoji: "👽", name: "alien" },
-    { emoji: "👾", name: "alien monster" },
-    { emoji: "🤖", name: "robot" },
-    { emoji: "😺", name: "grinning cat" },
-    { emoji: "😸", name: "grinning cat with smiling eyes" },
-    { emoji: "😹", name: "cat with tears of joy" },
-    { emoji: "😻", name: "smiling cat with heart-eyes" },
-    { emoji: "😼", name: "cat with wry smile" },
-    { emoji: "😽", name: "kissing cat" },
-    { emoji: "🙀", name: "weary cat" },
-    { emoji: "😿", name: "crying cat" },
-    { emoji: "😾", name: "pouting cat" },
-    { emoji: "🙈", name: "see-no-evil monkey" },
-    { emoji: "🙉", name: "hear-no-evil monkey" },
-    { emoji: "🙊", name: "speak-no-evil monkey" },
-    { emoji: "💋", name: "kiss mark" },
-    { emoji: "💌", name: "love letter" },
-    { emoji: "💘", name: "heart with arrow" },
-    { emoji: "💝", name: "heart with ribbon" },
-    { emoji: "💖", name: "sparkling heart" },
-    { emoji: "💗", name: "growing heart" },
-    { emoji: "💓", name: "beating heart" },
-    { emoji: "💞", name: "revolving hearts" },
-    { emoji: "💕", name: "two hearts" },
-    { emoji: "💟", name: "heart decoration" },
-    { emoji: "❣️", name: "heart exclamation" },
-    { emoji: "💔", name: "broken heart" },
-    { emoji: "❤️", name: "red heart" },
-    { emoji: "🧡", name: "orange heart" },
-    { emoji: "💛", name: "yellow heart" },
-    { emoji: "💚", name: "green heart" },
-    { emoji: "💙", name: "blue heart" },
-    { emoji: "💜", name: "purple heart" },
-    { emoji: "🤎", name: "brown heart" },
-    { emoji: "🖤", name: "black heart" },
-    { emoji: "🤍", name: "white heart" },
-    { emoji: "💯", name: "hundred points" },
-    { emoji: "💢", name: "anger symbol" },
-    { emoji: "💥", name: "collision" },
-    { emoji: "💫", name: "dizzy" },
-    { emoji: "💦", name: "sweat droplets" },
-    { emoji: "💨", name: "dashing away" },
-    { emoji: "🕳️", name: "hole" },
-    { emoji: "💣", name: "bomb" },
-    { emoji: "💬", name: "speech balloon" },
-    { emoji: "👁️‍🗨️", name: "eye in speech bubble" },
-    { emoji: "🗨️", name: "left speech bubble" },
-    { emoji: "🗯️", name: "right anger bubble" },
-    { emoji: "💭", name: "thought balloon" },
-    { emoji: "💤", name: "zzz" },
-    { emoji: "👋", name: "waving hand" },
-    { emoji: "🤚", name: "raised back of hand" },
-    { emoji: "🖐️", name: "hand with fingers splayed" },
-    { emoji: "✋", name: "raised hand" },
-    { emoji: "🖖", name: "vulcan salute" },
-    { emoji: "👌", name: "OK hand" },
-    { emoji: "🤏", name: "pinching hand" },
-    { emoji: "✌️", name: "victory hand" },
-    { emoji: "🤞", name: "crossed fingers" },
-    { emoji: "🤟", name: "love-you gesture" },
-    { emoji: "🤘", name: "sign of the horns" },
-    { emoji: "🤙", name: "call me hand" },
-    { emoji: "👈", name: "backhand index pointing left" },
-    { emoji: "👉", name: "backhand index pointing right" },
-    { emoji: "👆", name: "backhand index pointing up" },
-    { emoji: "🖕", name: "middle finger" },
-    { emoji: "👇", name: "backhand index pointing down" },
-    { emoji: "☝️", name: "index pointing up" },
-    { emoji: "👍", name: "thumbs up" },
-    { emoji: "👎", name: "thumbs down" },
-    { emoji: "✊", name: "raised fist" },
-  ];
-
-  // Filter emojis based on search term
-  const filteredEmojis = searchTerm
-    ? sampleEmojis.filter((emoji) => emoji.name.includes(searchTerm))
-    : sampleEmojis;
-
-  // Group emojis by category
-  const categories = filteredEmojis.reduce((acc, emoji) => {
-    const category = emoji.name.split(" ")[0];
-    if (!acc[category]) {
-      acc[category] = [];
-    }
-    acc[category].push(emoji);
-    return acc;
-  }, {});
-
-  // Set emoji categories
-  useEffect(() => {
-    setEmojiCategories(Object.keys(categories));
-  }, [categories]);
-
-  // Render emoji picker
-  return (
-    <div className="emoji-picker">
-      <input
-        type="text"
-        placeholder="Search emojis..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
-      <div className="emoji-categories">
-        {emojiCategories.map((category) => (
-          <div key={category} className="emoji-category">
-            <h3>{category}</h3>
-            <div className="emoji-list">
-              {categories[category].map((emoji) => (
-                <span
-                  key={emoji.name}
-                  className={`emoji ${darkMode ? "dark" : "light"}`}
-                  onClick={() => onSelect(emoji.emoji)} // Corrected to use onSelect
-                >
-                  {emoji.emoji}
-                </span>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
+// Removed EmojiPicker Component - now imported from ./components/EmojiPicker
