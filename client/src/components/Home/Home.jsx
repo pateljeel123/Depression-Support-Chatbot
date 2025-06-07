@@ -409,28 +409,27 @@ const ProblemSection = () => {
           </motion.p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto overflow-auto overflow-hidden" style={{ scrollBehavior: 'smooth' }}>
+        <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto overflow-hidden" style={{ scrollBehavior: 'smooth' }}>
           {problems.map((problem, index) => (
             <motion.div
               key={index}
               initial={{ 
                 opacity: 0, 
-                y: 100, 
-                rotateY: -45,
-                scale: 0.5
+                y: 50,
+                scale: 0.95
               }}
               whileInView={{
                 opacity: 1,
                 y: 0,
-                rotateY: 0,
                 scale: 1
               }}
-              viewport={{ once: false, amount: 0.3 }}
+              viewport={{ once: false, amount: 0.2, margin: "-100px" }}
               transition={{ 
-                duration: 0.8, 
+                duration: 1.2, 
                 delay: 0.2 * index,
                 type: "spring",
-                stiffness: 100
+                stiffness: 50,
+                damping: 15
               }}
               className={`relative overflow-hidden rounded-2xl shadow-xl bg-gradient-to-br ${problem.color} p-1 cursor-pointer`}
             >
@@ -454,9 +453,16 @@ const ProblemSection = () => {
                 
                 <motion.div 
                   className="mt-6 pt-6 border-t border-gray-800"
-                  initial={{ opacity: 0 }}
-                  animate={inView ? { opacity: 1 } : {}}
-                  transition={{ delay: 0.5 + 0.2 * index }}
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  viewport={{ once: false, amount: 0.2, margin: "-50px" }}
+                  transition={{ 
+                    duration: 1, 
+                    delay: 0.3 + 0.2 * index,
+                    type: "spring",
+                    stiffness: 50,
+                    damping: 15
+                  }}
                 >
                   <h4 className="text-lg font-semibold text-white mb-3">How it feels:</h4>
                   <ul className="space-y-2">
@@ -466,10 +472,28 @@ const ProblemSection = () => {
                       "Changes in sleep and appetite",
                       "Difficulty concentrating"
                     ].map((item, i) => (
-                      <li key={i} className="flex items-center gap-2 text-gray-300">
-                        <span className="w-1.5 h-1.5 rounded-full bg-gradient-to-br from-purple-400 to-pink-400"></span>
+                      <motion.li 
+                        key={i} 
+                        className="flex items-center gap-2 text-gray-300"
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: false, amount: 0.2 }}
+                        transition={{ 
+                          duration: 0.8,
+                          delay: 0.4 + index * 0.2 + i * 0.1,
+                          type: "spring",
+                          stiffness: 50,
+                          damping: 15
+                        }}
+                      >
+                        <motion.span 
+                          className="w-1.5 h-1.5 rounded-full bg-gradient-to-br from-purple-400 to-pink-400"
+                          initial={{ scale: 0 }}
+                          whileInView={{ scale: 1 }}
+                          transition={{ delay: 0.5 + index * 0.2 + i * 0.1, duration: 0.4 }}
+                        />
                         {item}
-                      </li>
+                      </motion.li>
                     ))}
                   </ul>
                 </motion.div>
@@ -646,12 +670,17 @@ const SolutionSection = () => {
               <div className="text-center pb-6 relative z-10">
                 <motion.div
                   whileHover={{ 
-                    scale: 1.2, 
-                    rotateZ: 360,
-                    rotateY: 180
+                    scale: 1.1
                   }}
-                  transition={{ duration: 0.8 }}
-                  className={`inline-flex p-6 rounded-3xl bg-gradient-to-br ${solution.color} mb-6 shadow-2xl mx-auto`}
+                  transition={{ 
+                    duration: 0.3,
+                    ease: "easeInOut",
+                    rotate: {
+                      duration: 0.5,
+                      ease: "linear"
+                    }
+                  }}
+                  className={`inline-flex p-6 rounded-3xl bg-gradient-to-br ${solution.color} mb-6 shadow-2xl mx-auto transform-gpu`}
                 >
                   {React.createElement(solution.icon, { size: 40, className: "text-white" })}
                 </motion.div>
@@ -843,12 +872,18 @@ const TestimonialsSection = () => {
                   {/* 3D Avatar */}
                   <motion.div
                     whileHover={{ 
-                      scale: 1.2, 
-                      rotateY: 360,
-                      rotateX: 15
+                      scale: 1.1,
+                      rotate: [0, 360]
                     }}
-                    transition={{ duration: 1 }}
-                    className={`inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br ${testimonials[currentIndex].gradient} mb-8 text-4xl shadow-2xl`}
+                    transition={{ 
+                      duration: 0.3,
+                      ease: "easeInOut",
+                      rotate: {
+                        duration: 0.5,
+                        ease: "linear"
+                      }
+                    }}
+                    className={`inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br ${testimonials[currentIndex].gradient} mb-8 text-4xl shadow-2xl transform-gpu`}
                   >
                     {testimonials[currentIndex].avatar}
                   </motion.div>
@@ -872,10 +907,18 @@ const TestimonialsSection = () => {
                         animate={{ scale: 1, rotateZ: 0 }}
                         transition={{ delay: 0.1 * i, duration: 0.5 }}
                         whileHover={{ 
-                          scale: 1.3, 
-                          rotateZ: 360,
-                          y: -5
+                          scale: 1.2,
+                          rotate: [0, 360],
+                          y: -2
                         }}
+                        transition={{
+                           duration: 0.3,
+                           ease: "easeInOut",
+                           rotate: {
+                             duration: 0.5,
+                             ease: "linear"
+                           }
+                         }}
                       >
                         <Star className={`w-8 h-8 fill-yellow-400 text-yellow-400 drop-shadow-lg`} />
                       </motion.div>
@@ -1059,9 +1102,23 @@ const BenefitsSection = () => {
               className="bg-gray-900/50 backdrop-blur-sm p-8 rounded-2xl border border-white/10 hover:border-white/20 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/10 group"
             >
               <div className="flex items-start gap-5">
-                <div className={`p-4 rounded-xl bg-gradient-to-br ${benefit.color} shadow-lg text-2xl flex items-center justify-center`}>
+                <motion.div 
+                  className={`p-4 rounded-xl bg-gradient-to-br ${benefit.color} shadow-lg text-2xl flex items-center justify-center transform-gpu`}
+                  whileHover={{ 
+                    scale: 1.1,
+                    rotate: [0, 360]
+                  }}
+                  transition={{ 
+                    duration: 0.3,
+                    ease: "easeInOut",
+                    rotate: {
+                      duration: 0.5,
+                      ease: "linear"
+                    }
+                  }}
+                >
                   <span>{benefit.emoji}</span>
-                </div>
+                </motion.div>
                 
                 <div>
                   <h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-400 transition-colors duration-300">
