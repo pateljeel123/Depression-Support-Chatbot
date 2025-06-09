@@ -583,7 +583,7 @@ const Auth = ({ initialMode }) => {
               </motion.div>
               
               <motion.h2 
-                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent font-heading tracking-tight mb-3 md:mb-4"
+                className="text-2xl md:text-2xl lg:text-3xl font-extrabold bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent font-heading tracking-tight mb-3 md:mb-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.1 }}
