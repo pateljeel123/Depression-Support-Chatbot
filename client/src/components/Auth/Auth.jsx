@@ -572,25 +572,25 @@ const Auth = ({ initialMode }) => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <div className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-full bg-gradient-to-br ${moodData[currentMood].color} flex items-center justify-center shadow-lg ring-4 ring-purple-500/30 ring-offset-4 ring-offset-gray-900 transform hover:rotate-12 transition-all duration-300`}>
+                <div className={`w-15 h-15 sm:w-18 sm:h-18 md:w-23 md:h-23 lg:w-28 lg:h-28 rounded-full bg-gradient-to-br ${moodData[currentMood].color} flex items-center justify-center shadow-lg ring-4 ring-purple-500/30 ring-offset-4 ring-offset-gray-900 transform hover:rotate-12 transition-all duration-300`}>
                   <motion.div
                     animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
                     transition={{ duration: 3, repeat: Infinity }}
                   >
-                    <FaHandHoldingHeart className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl" />
+                    <FaHandHoldingHeart className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl" />
                   </motion.div>
                 </div>
               </motion.div>
               
               <motion.h2 
-                className="text-2xl md:text-2xl lg:text-3xl font-extrabold bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent font-heading tracking-tight mb-3 md:mb-4"
+                className="text-2xl md:text-2xl lg:text-3xl font-extrabold bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent font-heading tracking-tight mb-1 md:mb-2"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.1 }}
               >
                 {isSignUp ? 'Find Your Safe Space' : 'Welcome Back'}
               </motion.h2>
-              <p className="text-sm sm:text-base md:text-lg text-gray-100/90 font-medium tracking-wide">
+              <p className="text-sm text-gray-100/90 font-medium tracking-wide">
                 {isSignUp ? 'Join our compassionate community' : 'Continue your healing journey'}
               </p>
             </div>
@@ -711,7 +711,7 @@ const Auth = ({ initialMode }) => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-12 sm:h-14 bg-gray-800/50 backdrop-blur-sm text-white rounded-xl px-4 border border-purple-500/20 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 focus:outline-none transition-all duration-200 placeholder-gray-400 group-hover:border-purple-500/30 text-sm sm:text-base"
+                  className="w-full h-10 sm:h-12 bg-gray-800/50 backdrop-blur-sm text-white rounded-xl px-4 border border-purple-500/20 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 focus:outline-none transition-all duration-200 placeholder-gray-400 group-hover:border-purple-500/30 text-sm sm:text-base"
                   placeholder="Enter your email . . . "
                 />
                 {formErrors.email && (
@@ -732,7 +732,7 @@ const Auth = ({ initialMode }) => {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full h-12 sm:h-14 bg-gray-800/50 backdrop-blur-sm text-white rounded-xl px-4 pr-12 border border-purple-500/20 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 focus:outline-none transition-all duration-200 placeholder-gray-400 group-hover:border-purple-500/30 text-sm sm:text-base"
+                    className="w-full h-10 sm:h-12 bg-gray-800/50 backdrop-blur-sm text-white rounded-xl px-4 pr-12 border border-purple-500/20 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 focus:outline-none transition-all duration-200 placeholder-gray-400 group-hover:border-purple-500/30 text-sm sm:text-base"
                     placeholder="Enter your password . . ."
                   />
                   <button
