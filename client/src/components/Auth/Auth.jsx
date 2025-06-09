@@ -483,17 +483,25 @@ const Auth = ({ initialMode }) => {
         </div>
         <div className="text-xs text-gray-500 mt-1">
           {passwordStrength < 3 ? (
-            <div className="bg-red-50 border border-red-100 rounded-md p-2 mt-1">
-              <p className="font-medium text-red-700">Password requirements:</p>
-              <ul className="list-disc list-inside text-red-600 text-xs mt-1">
-                <li className={password.length >= 8 ? 'text-green-600' : ''}>At least 8 characters {password.length >= 8 && '✓'}</li>
-                <li className={/[A-Z]/.test(password) ? 'text-green-600' : ''}>At least one uppercase letter {/[A-Z]/.test(password) && '✓'}</li>
-                <li className={/[0-9]/.test(password) ? 'text-green-600' : ''}>At least one number {/[0-9]/.test(password) && '✓'}</li>
-                <li className={/[^A-Za-z0-9]/.test(password) ? 'text-green-600' : ''}>At least one special character {/[^A-Za-z0-9]/.test(password) && '✓'}</li>
+            <div className="bg-gray-900/50 backdrop-blur-xl border border-purple-500/30 rounded-md p-4 mt-2 shadow-[0_4px_16px_rgba(128,90,213,0.2)]">
+              <p className="font-medium text-white/80 mb-2">Password requirements:</p>
+              <ul className="space-y-2 text-sm">
+                <li className={`flex items-center ${password.length >= 8 ? 'text-green-400' : 'text-white/60'}`}>
+                  {password.length >= 8 ? '✓' : '•'} <span className="ml-2">At least 8 characters</span>
+                </li>
+                <li className={`flex items-center ${/[A-Z]/.test(password) ? 'text-green-400' : 'text-white/60'}`}>
+                  {/[A-Z]/.test(password) ? '✓' : '•'} <span className="ml-2">At least one uppercase letter</span>
+                </li>
+                <li className={`flex items-center ${/[0-9]/.test(password) ? 'text-green-400' : 'text-white/60'}`}>
+                  {/[0-9]/.test(password) ? '✓' : '•'} <span className="ml-2">At least one number</span>
+                </li>
+                <li className={`flex items-center ${/[^A-Za-z0-9]/.test(password) ? 'text-green-400' : 'text-white/60'}`}>
+                  {/[^A-Za-z0-9]/.test(password) ? '✓' : '•'} <span className="ml-2">At least one special character</span>
+                </li>
               </ul>
             </div>
           ) : (
-            <p className="text-green-600 font-medium">Your password meets the strength requirements ✓</p>
+            <p className="text-green-400 font-medium mt-2 flex items-center"><span className="mr-2">✓</span>Your password meets all requirements</p>
           )}
         </div>
       </div>

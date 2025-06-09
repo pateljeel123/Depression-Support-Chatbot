@@ -1582,11 +1582,11 @@ export default function Chat() {
   };
 
   return (
-    <div>
+    <div className="animated-bg">
       <div
         className={`flex h-screen ${darkMode
-            ? "dark bg-gray-900 text-gray-100"
-            : "bg-gray-50 text-gray-900"
+            ? "dark text-gray-100"
+            : "text-gray-900"
           }`}
       >
         {/* Mobile sidebar toggle */}
@@ -1606,8 +1606,7 @@ export default function Chat() {
               animate={{ x: 0 }}
               exit={{ x: -300 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className={`w-full max-w-[85vw] sm:max-w-[320px] md:w-72 flex-shrink-0 h-full overflow-y-auto ${darkMode ? "bg-gray-800" : "bg-white"
-                } border-r ${darkMode ? "border-gray-700" : "border-gray-200"
+              className={`w-full max-w-[85vw] sm:max-w-[320px] md:w-72 flex-shrink-0 h-full overflow-y-auto ${darkMode ? "glass-morphism-dark bg-black md:bg-transparent" : "glass-morphism bg-white md:bg-transparent"
                 } fixed md:relative z-40 shadow-xl md:shadow-none`}
             >
               {/* Restructured sidebar with fixed header and footer, scrollable chat history */}
@@ -1616,18 +1615,17 @@ export default function Chat() {
                 <div className="p-4">
                   <button
                     onClick={handleNewChat}
-                    className={`w-full flex items-center justify-center space-x-2 py-2.5 px-4 rounded-md mb-4 text-sm font-semibold ${
-                      darkMode
-                        ? "bg-indigo-600 hover:bg-indigo-700 text-white"
-                        : "bg-slate-900 hover:bg-slate-800 text-white"
-                      } transition-colors shadow-sm`}
+                    className={`w-full flex items-center justify-center space-x-2 py-2.5 px-4 rounded-md mb-4 text-sm font-semibold glow border border-gray-500 ${darkMode
+                        ? "glass-morphism-dark text-white"
+                        : "glass-morphism text-black"
+                      } transition-all duration-300 hover:scale-105`}
                   >
                     <FiPlus size={18} />
                     <span>New Chat</span>
                   </button>
 
                   {/* Search input */}
-                  <div className="relative mb-4">
+                  <div className="relative mb-4 border border-gray-500">
                     <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" size={16} />
                     <input
                       type="text"
@@ -1635,9 +1633,9 @@ export default function Chat() {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className={`w-full pl-10 pr-4 py-2 rounded-md text-sm ${darkMode
-                          ? "bg-gray-700 text-gray-200 placeholder-gray-400 border border-gray-600 focus:ring-indigo-500 focus:border-indigo-500"
-                          : "bg-gray-100 text-gray-800 placeholder-gray-500 border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
-                        } outline-none`}
+                          ? "glass-morphism-dark text-gray-200 placeholder-gray-400"
+                          : "glass-morphism text-gray-800 placeholder-gray-500"
+                        } outline-none transition-all duration-300 focus:scale-[1.02]`}
                     />
                   </div>
                 </div>
@@ -1711,11 +1709,7 @@ export default function Chat() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className={`p-3.5 flex items-center justify-between border-b ${
-              darkMode
-                ? "border-gray-700 bg-gradient-to-r from-gray-800 via-gray-750 to-gray-800"
-                : "border-gray-200 bg-gradient-to-r from-white via-gray-50 to-white"
-              } shadow-md`}
+            className={`p-3.5 flex items-center justify-between ${darkMode ? "glass-morphism-dark" : "glass-morphism"} shadow-lg z-10`}
           >
             <div className="flex items-center">
               <motion.button 
@@ -1751,7 +1745,7 @@ export default function Chat() {
             <div className="flex items-center space-x-3">
               <motion.span 
                 whileHover={{ scale: 1.05 }}
-                className={`text-sm font-medium px-3 py-1 rounded-full ${darkMode 
+                className={`text-sm font-medium px-3 py-1 rounded-full hidden md:inline ${darkMode 
                   ? "bg-gray-700 text-gray-200" 
                   : "bg-gray-100 text-gray-700"}`}
               >
@@ -1772,7 +1766,7 @@ export default function Chat() {
               >
                 <span className="flex items-center">
                   <FiTrash2 className="mr-1" size={14} />
-                  Clear Chat History
+                  <span className="hidden md:inline">Clear Chat History</span>
                 </span>
               </motion.button>
             </div>
@@ -1780,8 +1774,7 @@ export default function Chat() {
 
           {/* Messages */}
           <div
-            className={`flex-1 overflow-y-auto ${darkMode ? "bg-gray-900" : "bg-gray-50"
-              } px-2 sm:px-4`}
+            className={`flex-1 overflow-y-auto px-2 sm:px-4 ${darkMode ? "bg-gray-900/30" : "bg-gray-50/30"} backdrop-blur-sm`}
           >
             {messages.length === 0 ? (
               <WelcomePage darkMode={darkMode} setInput={setInput} />
@@ -1826,13 +1819,13 @@ export default function Chat() {
                           } mb-4`}
                       >
                         <div
-                          className={`max-w-full sm:max-w-3xl rounded-xl p-2 sm:p-3 text-sm relative group glass-effect ${message.role === "user"
+                          className={`max-w-full sm:max-w-3xl rounded-xl p-2 sm:p-3 text-sm relative group ${message.role === "user"
                               ? darkMode
-                                ? "bg-indigo-600 text-white shadow-md hover:bg-indigo-700 transition-colors duration-200"
-                                : "bg-blue-600 text-white shadow-md hover:bg-blue-700 transition-colors duration-200"
+                                ? "bg-gray-800 text-white glow hover:scale-[1.02] transition-all duration-300"
+                                : "bg-gray-800 text-white glow hover:scale-[1.02] transition-all duration-300"
                               : darkMode
-                                ? "bg-gray-800/80 border border-gray-700/50 shadow-md hover:bg-gray-700/90 transition-colors duration-200"
-                                : "bg-white/90 border border-gray-200/50 shadow-md hover:bg-white/100 transition-colors duration-200"
+                                ? "glass-morphism-dark text-gray-200 neomorphic hover:scale-[1.02] transition-all duration-300"
+                                : "glass-morphism text-gray-800 neomorphic hover:scale-[1.02] transition-all duration-300"
                             }`}
                         >
                           <div className={`absolute top-0 left-0 transform -translate-y-full -mb-1 px-2 py-0.5 text-xs font-medium rounded-t-md ${message.role === "user" ? "bg-indigo-700/80 text-white" : darkMode ? "bg-gray-700/80 text-indigo-300" : "bg-gray-200/80 text-indigo-700"}`}>
@@ -2286,9 +2279,9 @@ export default function Chat() {
           {/* Input area */}
           <div
             className={`p-2 sm:p-4 ${darkMode
-                ? "bg-gray-800 border-gray-700"
-                : "bg-white border-gray-200"
-              } border-t`}
+                ? "glass-morphism-dark"
+                : "glass-morphism"
+              } border-t border-opacity-20 backdrop-blur-lg shadow-lg`}
           >
             {/* Removed attachments display section */}
 
@@ -2387,10 +2380,10 @@ export default function Chat() {
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Type a message..."
                   rows="1"
-                  className={`w-full py-3.5 px-4 pr-12 rounded-xl border-2 ${darkMode
-                      ? "bg-gray-800 border-indigo-600 text-gray-100 placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500 shadow-lg"
-                      : "bg-white border-indigo-400 text-gray-900 placeholder-gray-500 focus:ring-indigo-500 focus:border-indigo-500 shadow-md"
-                    } resize-none focus:outline-none focus:ring-2 transition-all duration-200 ease-in-out hover:shadow-xl text-sm sm:text-base leading-relaxed scrollbar-thin ${darkMode ? 'scrollbar-thumb-gray-500 scrollbar-track-gray-700' : 'scrollbar-thumb-gray-300 scrollbar-track-gray-100'}`}
+                  className={`w-full py-3.5 px-4 pr-12 rounded-xl border  ${darkMode
+                      ? "glass-morphism-dark text-gray-100 placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500"
+                      : "glass-morphism text-gray-900 placeholder-gray-500 focus:ring-indigo-500 focus:border-indigo-500"
+                    } resize-none focus:outline-none transition-all duration-300 hover:scale-[1.02] text-sm sm:text-base leading-relaxed scrollbar-thin ${darkMode ? 'scrollbar-thumb-gray-500 scrollbar-track-transparent' : 'scrollbar-thumb-gray-300 scrollbar-track-transparent'}`}
                   disabled={isLoading || isBotSpeaking}
                   style={{ minHeight: '52px', maxHeight: '140px' }}
                   onKeyDown={(e) => {
@@ -2407,9 +2400,9 @@ export default function Chat() {
                       e.stopPropagation();
                       setShowEmojiPicker(!showEmojiPicker);
                     }}
-                    className={`p-1.5 rounded-full ${darkMode
-                        ? "text-gray-400 hover:text-gray-300"
-                        : "text-gray-500 hover:text-gray-700"
+                    className={`p-1.5 rounded-full transition-all duration-300 hover:scale-110 ${darkMode
+                        ? "text-gray-300 hover:text-indigo-400"
+                        : "text-gray-600 hover:text-indigo-600"
                       }`}
                   >
                     <BsEmojiSmile size={20} />

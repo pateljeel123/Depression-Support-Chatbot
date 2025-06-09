@@ -1,5 +1,33 @@
 /* Chat.css - Custom styles for Chat component */
 
+/* Glassmorphism effects */
+.glass-morphism {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+}
+
+.glass-morphism-dark {
+  background: rgba(17, 25, 40, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.125);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* Animated background gradients */
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animated-bg {
+  background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+}
+
 /* Fade-in animation for messages */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
@@ -47,12 +75,15 @@
 
 /* Message bubble hover effects */
 .message-bubble {
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
 }
 
 .message-bubble:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /* Typing indicator animation */
@@ -85,9 +116,27 @@
 
 /* Gradient text for welcome message */
 .gradient-text {
-  background: linear-gradient(90deg, var(--primary), var(--primary-foreground));
+  background: linear-gradient(90deg, #7c3aed, #c084fc);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   font-weight: bold;
+}
+
+/* Neumorphic effects */
+.neomorphic {
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.2),
+              -5px -5px 15px rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+}
+
+/* Glow effects */
+.glow {
+  box-shadow: 0 0 15px rgba(124, 58, 237, 0.5);
+  transition: box-shadow 0.3s ease;
+}
+
+.glow:hover {
+  box-shadow: 0 0 30px rgba(124, 58, 237, 0.7);
 }
