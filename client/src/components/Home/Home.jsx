@@ -34,7 +34,19 @@ const Home = () => {
   const { user } = useAuth();
   const { playSound } = useHoverSound();
   const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const { scrollYProgress } = useScroll();
+
+  // Check if device is mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Hover sound handler
   const handleMouseEnter = () => {
@@ -43,7 +55,11 @@ const Home = () => {
 
   useEffect(() => {
     setMounted(true);
-    document.body.style.scrollBehavior = "smooth";
+    document.body.style.scrollBehavior = isMobile ? "auto" : "smooth";
+    if (isMobile) {
+      document.body.style.overscrollBehavior = 'none';
+      document.documentElement.style.touchAction = 'manipulation';
+    }
     document.body.style.backgroundColor = "#0a0a0f";
     
     // Function to force play all audio elements
@@ -108,25 +124,25 @@ const Home = () => {
   if (!mounted) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-500"></div>
+        <div className="animate-spin rounded-full h-20 w-20 sm:h-32 sm:w-32 border-b-2 border-purple-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-gray-950">
+    <div className="min-h-screen overflow-x-hidden bg-gray-950 transition-all duration-300 ease-in-out">
       {/* Audio Player */}
       <AudioPlayer />
       
       {/* Enhanced progress indicator with glow effect */}
       <motion.div
-        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 z-50 shadow-lg shadow-purple-500/50"
+        className="fixed top-0 left-0 right-0 h-0.5 sm:h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 z-50 shadow-lg shadow-purple-500/50"
         style={{ scaleX: scrollYProgress, transformOrigin: "0%" }}
       />
       
       {/* Floating particles background */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        {[...Array(50)].map((_, i) => (
+        {[...Array(isMobile ? 25 : 50)].map((_, i) => (
           <motion.div
             key={i}
             animate={{
@@ -136,7 +152,7 @@ const Home = () => {
               scale: [0, 1, 0]
             }}
             transition={{
-              duration: Math.random() * 10 + 10,
+              duration: Math.random() * (isMobile ? 15 : 10) + (isMobile ? 5 : 10),
               repeat: Infinity,
               delay: Math.random() * 10,
               ease: "easeInOut"
@@ -241,7 +257,7 @@ const HeroSection = () => {
         >
           <motion.h1
             whileHover={{ scale: 1.05, rotateY: 5 }}
-            className="text-4xl md:text-6xl font-bold text-white mb-8 leading-tight transform-gpu"
+            className="text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-4 sm:mb-8 leading-tight transform-gpu px-4 sm:px-0"
           >
             Struggling with{' '}
             <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent inline-block">
@@ -268,7 +284,7 @@ const HeroSection = () => {
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.8 }}
-          className="text-2xl md:text-3xl text-gray-300 mb-12 font-light"
+          className="text-xl sm:text-2xl md:text-3xl text-gray-300 mb-8 sm:mb-12 font-light px-4 sm:px-0"
         >
           Discover hope, support & strength in your journey
         </motion.p>
@@ -277,14 +293,14 @@ const HeroSection = () => {
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 1.2 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center"
+          className="flex flex-col sm:flex-row gap-4 justify-center px-4 sm:px-0"
         >
           <motion.button
             onClick={() => navigate("/chat")}
             onMouseEnter={handleMouseEnter}
             whileHover={{ scale: 1.05, backgroundColor: "#8B5CF6" }}
             whileTap={{ scale: 0.95 }}
-            className="px-8 py-4 bg-purple-600 text-white rounded-full font-medium text-lg shadow-lg shadow-purple-500/30 flex items-center justify-center gap-2"
+            className="px-6 sm:px-8 py-3 sm:py-4 bg-purple-600 text-white rounded-full font-medium text-base sm:text-lg shadow-lg shadow-purple-500/30 flex items-center justify-center gap-2"
           >
             <Sparkles className="w-5 h-5" />
             Start Talking Now
@@ -295,7 +311,7 @@ const HeroSection = () => {
             onMouseEnter={handleMouseEnter}
             whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.15)" }}
             whileTap={{ scale: 0.95 }}
-            className="px-8 py-4 bg-transparent border border-white/30 text-white rounded-full font-medium text-lg backdrop-blur-sm flex items-center justify-center gap-2"
+            className="px-6 sm:px-8 py-3 sm:py-4 bg-transparent border border-white/30 text-white rounded-full font-medium text-base sm:text-lg backdrop-blur-sm flex items-center justify-center gap-2"
           >
             Explore Resources
             <ArrowRight className="w-5 h-5" />
@@ -390,7 +406,7 @@ const ProblemSection = () => {
             initial={{ opacity: 0, y: 50, rotateX: 45 }}
             animate={inView ? { opacity: 1, y: 0, rotateX: 0 } : {}}
             transition={{ duration: 1 }}
-            className="text-5xl md:text-7xl font-bold text-white mb-8 perspective-1000"
+            className="text-4xl sm:text-5xl md:text-7xl font-bold text-white mb-6 sm:mb-8 perspective-1000 px-4 sm:px-0"
           >
             Understanding
             <span className="block bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
@@ -401,14 +417,14 @@ const ProblemSection = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 1, delay: 0.3 }}
-            className="text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed"
+            className="text-lg sm:text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed px-4 sm:px-0"
           >
             Depression affects millions, but you don't have to face it alone. 
             Recognizing these feelings is the first step toward healing.
           </motion.p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto overflow-hidden" style={{ scrollBehavior: 'smooth' }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-6xl mx-auto overflow-hidden px-4 sm:px-6" style={{ scrollBehavior: 'smooth' }}>
           {problems.map((problem, index) => (
             <motion.div
               key={index}
@@ -533,7 +549,7 @@ const QuoteSection = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 1, delay: 0.3 }}
-            className="text-3xl md:text-4xl font-light italic text-white leading-relaxed"
+            className="text-2xl sm:text-3xl md:text-4xl font-light italic text-white leading-relaxed px-4 sm:px-0"
           >
             Depression is not a sign of weakness. It is a sign that you have been trying to be strong for too long.
           </motion.blockquote>
@@ -617,7 +633,7 @@ const SolutionSection = () => {
             initial={{ opacity: 0, y: 50, rotateX: 45 }}
             animate={inView ? { opacity: 1, y: 0, rotateX: 0 } : {}}
             transition={{ duration: 1 }}
-            className="text-5xl md:text-7xl font-bold text-white mb-8 perspective-1000"
+            className="text-4xl sm:text-5xl md:text-7xl font-bold text-white mb-6 sm:mb-8 perspective-1000 px-4 sm:px-0"
           >
             How We
             <span className="block bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
@@ -628,7 +644,7 @@ const SolutionSection = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 1, delay: 0.3 }}
-            className="text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed"
+            className="text-lg sm:text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed px-4 sm:px-0"
           >
             Our comprehensive approach combines professional expertise with peer support and self-empowerment tools
           </motion.p>
@@ -728,6 +744,7 @@ const SolutionSection = () => {
 // Testimonials Section Component
 const TestimonialsSection = () => {
   const ref = useRef(null);
+  const [isMobile, setIsMobile] = useState(false);
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ['start end', 'end start']
@@ -737,6 +754,17 @@ const TestimonialsSection = () => {
     triggerOnce: true,
     threshold: 0.3
   });
+
+  // Check if device is mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -788,29 +816,29 @@ const TestimonialsSection = () => {
   };
 
   return (
-    <section id="stories-section" ref={ref} className="relative py-32 overflow-hidden bg-gradient-to-b from-gray-950 to-gray-900">
-      {/* 3D Animated background */}
+    <section id="stories-section" ref={ref} className="relative py-16 sm:py-32 overflow-hidden bg-gradient-to-b from-gray-950 to-gray-900">
+      {/* 3D Animated background - Reduced complexity for mobile */}
       <motion.div
         style={{ y: backgroundY, rotateX }}
         className="absolute inset-0 bg-gradient-to-br from-gray-950 via-indigo-950 to-purple-950"
       />
 
-      {/* Floating 3D elements */}
+      {/* Floating 3D elements - Reduced for mobile */}
       <div className="absolute inset-0">
-        {[...Array(15)].map((_, i) => (
+        {[...Array(isMobile ? 8 : 15)].map((_, i) => (
           <motion.div
             key={i}
             animate={{
-              y: [0, -40, 0],
-              x: [0, Math.random() * 60 - 30, 0],
+              y: [0, isMobile ? -20 : -40, 0],
+              x: [0, Math.random() * (isMobile ? 30 : 60) - (isMobile ? 15 : 30), 0],
               rotateZ: [0, 360],
               scale: [0.5, 1, 0.5]
             }}
             transition={{
-              duration: 8 + i * 2,
+              duration: (isMobile ? 6 : 8) + i * (isMobile ? 1 : 2),
               repeat: Infinity,
               ease: "easeInOut",
-              delay: i * 0.5
+              delay: i * (isMobile ? 0.3 : 0.5)
             }}
             className="absolute"
             style={{
@@ -818,7 +846,7 @@ const TestimonialsSection = () => {
               top: `${Math.random() * 100}%`
             }}
           >
-            <div className={`w-4 h-4 rounded-full bg-gradient-to-r ${testimonials[i % testimonials.length].gradient} opacity-40 shadow-lg`} />
+            <div className={`w-3 sm:w-4 h-3 sm:h-4 rounded-full bg-gradient-to-r ${testimonials[i % testimonials.length].gradient} opacity-40 shadow-lg`} />
           </motion.div>
         ))}
       </div>
@@ -833,7 +861,7 @@ const TestimonialsSection = () => {
             initial={{ opacity: 0, y: 50, rotateX: 45 }}
             animate={inView ? { opacity: 1, y: 0, rotateX: 0 } : {}}
             transition={{ duration: 1 }}
-            className="text-5xl md:text-7xl font-bold text-white mb-8 perspective-1000"
+            className="text-3xl sm:text-5xl md:text-7xl font-bold text-white mb-4 sm:mb-8 perspective-1000 px-4 sm:px-0 leading-tight"
           >
             Success
             <span className="block bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
@@ -844,7 +872,7 @@ const TestimonialsSection = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 1, delay: 0.3 }}
-            className="text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed"
+            className="text-lg sm:text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed px-4 sm:px-0"
           >
             Real stories from real people who found hope and healing in our community
           </motion.p>
@@ -859,13 +887,13 @@ const TestimonialsSection = () => {
             className="relative perspective-1000"
           >
             <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-2xl border border-white/10 shadow-2xl transform-gpu rounded-2xl">
-              <div className="p-12 md:p-16">
+              <div className="p-6 sm:p-12 md:p-16">
                 <motion.div
                   key={currentIndex}
-                  initial={{ opacity: 0, x: 100, rotateY: 90 }}
+                  initial={{ opacity: 0, x: 50, rotateY: 45 }}
                   animate={{ opacity: 1, x: 0, rotateY: 0 }}
-                  exit={{ opacity: 0, x: -100, rotateY: -90 }}
-                  transition={{ duration: 0.8, type: "spring", stiffness: 100 }}
+                  exit={{ opacity: 0, x: -50, rotateY: -45 }}
+                  transition={{ duration: 0.6, type: "spring", stiffness: 100 }}
                   className="text-center"
                 >
                   {/* 3D Avatar */}
@@ -889,7 +917,7 @@ const TestimonialsSection = () => {
                   
                   <motion.blockquote 
                     whileHover={{ scale: 1.02, rotateX: 2 }}
-                    className="text-2xl md:text-3xl text-white mb-8 font-light leading-relaxed italic"
+                    className="text-lg sm:text-2xl md:text-3xl text-white mb-6 sm:mb-8 font-light leading-relaxed italic"
                     style={{
                       textShadow: '0 0 20px rgba(255, 255, 255, 0.1)'
                     }}
@@ -938,25 +966,25 @@ const TestimonialsSection = () => {
             </div>
           </motion.div>
 
-          {/* 3D Navigation */}
-          <div className="flex justify-center items-center space-x-8 mt-12">
+          {/* 3D Navigation - Optimized for mobile */}
+          <div className="flex justify-center items-center space-x-4 sm:space-x-8 mt-8 sm:mt-12">
             <motion.button
               onClick={prevTestimonial}
-              whileHover={{ scale: 1.2, rotateY: -15 }}
+              whileHover={{ scale: 1.1, rotateY: -15 }}
               whileTap={{ scale: 0.9 }}
-              className="p-4 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-2xl shadow-purple-500/25 backdrop-blur-sm border border-white/10"
+              className="p-3 sm:p-4 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-xl shadow-purple-500/25 backdrop-blur-sm border border-white/10"
             >
-              <FaChevronLeft size={28} />
+              <FaChevronLeft size={isMobile ? 20 : 28} />
             </motion.button>
 
-            <div className="flex space-x-3">
+            <div className="flex space-x-2 sm:space-x-3">
               {testimonials.map((_, index) => (
                 <motion.button
                   key={index}
                   onClick={() => setCurrentIndex(index)}
-                  whileHover={{ scale: 1.4, y: -3 }}
+                  whileHover={{ scale: 1.2, y: -2 }}
                   whileTap={{ scale: 0.9 }}
-                  className={`w-4 h-4 rounded-full transition-all duration-300 ${
+                  className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full transition-all duration-300 ${
                     index === currentIndex 
                       ? `bg-gradient-to-r ${testimonials[index].gradient} shadow-lg` 
                       : 'bg-white/30'
@@ -967,11 +995,11 @@ const TestimonialsSection = () => {
 
             <motion.button
               onClick={nextTestimonial}
-              whileHover={{ scale: 1.2, rotateY: 15 }}
+              whileHover={{ scale: 1.1, rotateY: 15 }}
               whileTap={{ scale: 0.9 }}
-              className="p-4 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-2xl shadow-cyan-500/25 backdrop-blur-sm border border-white/10"
+              className="p-3 sm:p-4 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-xl shadow-cyan-500/25 backdrop-blur-sm border border-white/10"
             >
-              <FaChevronRight size={28} />
+              <FaChevronRight size={isMobile ? 20 : 28} />
             </motion.button>
           </div>
         </div>
@@ -1063,7 +1091,7 @@ const BenefitsSection = () => {
             initial={{ opacity: 0, y: 50, rotateX: 45 }}
             animate={inView ? { opacity: 1, y: 0, rotateX: 0 } : {}}
             transition={{ duration: 1 }}
-            className="text-5xl md:text-7xl font-bold text-white mb-8 perspective-1000"
+            className="text-4xl sm:text-5xl md:text-7xl font-bold text-white mb-6 sm:mb-8 perspective-1000 px-4 sm:px-0"
           >
             Why Choose
             <span className="block bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
@@ -1074,7 +1102,7 @@ const BenefitsSection = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 1, delay: 0.3 }}
-            className="text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed"
+            className="text-lg sm:text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed px-4 sm:px-0"
           >
             We're committed to providing accessible, effective mental health support
           </motion.p>
