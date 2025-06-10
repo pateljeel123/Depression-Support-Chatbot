@@ -1,15 +1,15 @@
 const axios = require("axios");
 const config = require("../config/config");
 
-// Track repeated user messages per session
+// Track repeated user messages and language preferences per session
 let userMessageTracker = {
   sessions: {},
 };
 
 /**
  * Checks if a message is repeated too many times
- * @param {String} message - The user message
- * @returns {Object} - Information about message repetition
+ * @param { String } message - The user message
+ * @returns { Object } - Information about message repetition
  */
 /**
  * Checks if a message is repeated too many times and generates dynamic AI responses
@@ -28,6 +28,8 @@ const checkRepeatedMessage = async (message, userId = "default") => {
       vagueModeActive: false,
       vagueMessageCount: 0,
       lastMeaningfulResponse: null,
+      lockedLanguage: null, // Store the locked language based on first message
+      languageLockRequested: false, // Flag to track if user explicitly requested language change
     };
   }
 
@@ -55,12 +57,40 @@ const checkRepeatedMessage = async (message, userId = "default") => {
   // First check user's language style - IMPORTANT: This should be done on the original message, not normalized
   // We analyze the message style every time to ensure accurate language detection, especially for repeated messages
   const messageStyle = analyzeUserMessageStyle(message);
+  const currentLanguage = messageStyle.language;
   const isHinglish =
-    messageStyle.language === "Hindi" || messageStyle.language === "Hinglish";
+    currentLanguage === "Hindi" || currentLanguage === "Hinglish";
 
   // Log the detected language for debugging
   console.log(
-    `Message language detection: ${messageStyle.language}, isHinglish: ${isHinglish}`
+    `Message language detection: ${currentLanguage}, isHinglish: ${isHinglish}`
+  );
+
+  // Check for explicit language change requests
+  const languageChangeRequested = checkForLanguageChangeRequest(message);
+
+  // Handle language locking logic
+  if (sessionTracker.lockedLanguage === null) {
+    // First message - lock the language
+    sessionTracker.lockedLanguage = currentLanguage;
+    console.log(`Locking conversation language to: ${currentLanguage}`);
+  } else if (languageChangeRequested) {
+    // User explicitly requested language change
+    sessionTracker.lockedLanguage = languageChangeRequested;
+    sessionTracker.languageLockRequested = true;
+    console.log(
+      `Language changed by user request to: ${languageChangeRequested}`
+    );
+  }
+
+  // Use the locked language for response generation, not the current message language
+  // This ensures we maintain the same language even if user switches
+  const responseLanguage = sessionTracker.lockedLanguage;
+  const responseIsHinglish =
+    responseLanguage === "Hindi" || responseLanguage === "Hinglish";
+
+  console.log(
+    `Using locked language for response: ${responseLanguage}, responseIsHinglish: ${responseIsHinglish}`
   );
 
   // Generate dynamic AI response for repeated messages
@@ -79,7 +109,7 @@ Guidelines for your response:
 
 4. LANGUAGE MATCHING IS CRITICAL: 
    ${
-     isHinglish
+     responseIsHinglish
        ? "⚠️ EXTREMELY IMPORTANT: You MUST respond ONLY in Hindi or Hinglish (mix of Hindi and English) with a friendly, casual tone. Use popular Bollywood references, Hindi expressions, or street slang if appropriate. Your response MUST be in Hinglish/Hindi script - ABSOLUTELY NO PURE ENGLISH ALLOWED. If you respond in English, it will be considered a complete failure."
        : "⚠️ EXTREMELY IMPORTANT: You MUST respond ONLY in English with a friendly, conversational tone. DO NOT use Hindi or Hinglish under any circumstances. If you respond in Hindi/Hinglish, it will be considered a complete failure."
    }
@@ -99,7 +129,7 @@ Guidelines for your response:
    - Creative emoji placement 🌟 for visual appeal
 
 10. CULTURAL RELEVANCE: ${
-        isHinglish
+        responseIsHinglish
           ? "Include references to Indian pop culture, Bollywood, cricket, or local expressions"
           : "Include references to relevant cultural elements the user might connect with"
       }
@@ -127,12 +157,41 @@ Your response should feel like a friend gently nudging the conversation in a new
         top_p: 0.95, // Slightly more diverse token selection
       };
 
-      const response = await axios.post(config.mistralApiUrl, apiParams, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${config.mistralApiKey}`,
-        },
-      });
+      // Implement retry mechanism with exponential backoff for rate limiting
+      let response;
+      let retries = 0;
+      const maxRetries = 3;
+      const baseDelay = 1000; // Start with 1 second delay
+      
+      while (retries <= maxRetries) {
+        try {
+          response = await axios.post(config.mistralApiUrl, apiParams, {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${config.mistralApiKey}`,
+            },
+          });
+          break; // Success, exit the retry loop
+        } catch (err) {
+          if (err.response && err.response.status === 429) {
+            // Rate limit exceeded
+            retries++;
+            if (retries > maxRetries) {
+              // We've used all our retries, rethrow the error
+              console.error(`Rate limit exceeded after ${maxRetries} retries`);
+              throw err;
+            }
+            
+            // Calculate delay with exponential backoff and jitter
+            const delay = baseDelay * Math.pow(2, retries) + Math.random() * 1000;
+            console.log(`Rate limit exceeded. Retrying in ${delay}ms (Attempt ${retries} of ${maxRetries})`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+          } else {
+            // Not a rate limit error, rethrow
+            throw err;
+          }
+        }
+      }
 
       // Extract the AI-generated response
       const aiResponse = response.data.choices[0].message.content;
@@ -197,16 +256,45 @@ Keep it short (2-3 sentences), include 1-2 emojis, and be conversational and eng
           max_tokens: 120,
         };
 
-        const retryResponse = await axios.post(
-          config.mistralApiUrl,
-          simpleApiParams,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${config.mistralApiKey}`,
-            },
+        // Implement retry mechanism with exponential backoff for rate limiting in the retry attempt
+        let retryResponse;
+        let retryAttempts = 0;
+        const maxRetryAttempts = 2; // Fewer retries for the fallback
+        const retryBaseDelay = 1500; // Slightly longer base delay for fallback
+        
+        while (retryAttempts <= maxRetryAttempts) {
+          try {
+            retryResponse = await axios.post(
+              config.mistralApiUrl,
+              simpleApiParams,
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${config.mistralApiKey}`,
+                },
+              }
+            );
+            break; // Success, exit the retry loop
+          } catch (retryErr) {
+            if (retryErr.response && retryErr.response.status === 429) {
+              // Rate limit exceeded
+              retryAttempts++;
+              if (retryAttempts > maxRetryAttempts) {
+                // We've used all our retries, rethrow the error
+                console.error(`Rate limit exceeded after ${maxRetryAttempts} retry attempts in fallback`);
+                throw retryErr;
+              }
+              
+              // Calculate delay with exponential backoff and jitter
+              const retryDelay = retryBaseDelay * Math.pow(2, retryAttempts) + Math.random() * 1000;
+              console.log(`Rate limit exceeded in fallback. Retrying in ${retryDelay}ms (Attempt ${retryAttempts} of ${maxRetryAttempts})`);
+              await new Promise(resolve => setTimeout(resolve, retryDelay));
+            } else {
+              // Not a rate limit error, rethrow
+              throw retryErr;
+            }
           }
-        );
+        }
 
         // Extract the AI-generated response
         const retryAiResponse = retryResponse.data.choices[0].message.content;
@@ -237,20 +325,19 @@ Keep it short (2-3 sentences), include 1-2 emojis, and be conversational and eng
           `Final fallback - Message language detection: ${finalMessageStyle.language}, isHinglish: ${finalIsHinglish}`
         );
 
+        // Enhance your checkRepeatedMessage function with more varied responses
         const hinglishResponses = [
-          "Arey yaar, aap yeh baat baar baar keh rahe ho! Kuch naya batao na? 😊",
-          "Oho! Ek hi baat kitni baar? Koi nayi baat karte hain! 🌟",
-          "Lagta hai aapko yeh baat bohot pasand hai, par thoda topic change karein? 😄",
-          "Arre bhai, same cheez phir se? Kuch aur interesting batao na! 🙂",
-          "Yeh toh déjà vu ho gaya! Kuch naya socho, main sun raha hoon. 🎧",
+          "Arey yaar, yeh baat toh hum pehle bhi discuss kar chuke hain! 😊 Kuch naya batao na - aaj ka din kaisa raha?",
+          "Hmm... lagta hai yeh topic aapko bahut pasand hai! 😄 Chal koi nayi baat sunao - kya khaaya aaj?",
+          "Oho! Phir wahi baat? 😅 Chalo thoda twist dete hain - agar aapki favorite Bollywood movie ki script change kar sakte toh kya karte?",
+          "Arre bhai, repeat mode mein phas gaye kya? 🤣 Chalo ek game khelte hain - ek shabd bolo, main uspe ek kahani sunata hoon!",
         ];
 
         const englishResponses = [
-          "I notice you're saying the same thing again. Let's try a different topic? 😊",
-          "Hmm, you seem to be repeating yourself. Anything else on your mind? 🌟",
-          "I see this message is important to you, but maybe we could chat about something new? 😄",
-          "Same message again? Let's mix things up a bit! What else is going on? 🙂",
-          "I'm experiencing a bit of déjà vu! Let's try a fresh conversation direction. 🎧",
+          "I notice we've talked about this before! 😊 Let's try something new - how's your day going so far?",
+          "Hmm... you seem really interested in this topic! 😄 Tell me something fresh - what did you have for breakfast today?",
+          "Oh! This topic again? 😅 Let's put a spin on it - if you could change one thing about your favorite movie, what would it be?",
+          "Hey there, stuck in a loop? 🤣 Let's play a game - give me one word and I'll make up a story using it!",
         ];
 
         // Select a random response based on language
@@ -297,8 +384,8 @@ Guidelines for your response:
 3. LANGUAGE MATCHING IS CRITICAL: 
    ${
      isHinglish
-       ? "⚠️ EXTREMELY IMPORTANT: You MUST respond ONLY in Hindi or Hinglish (mix of Hindi and English) with a friendly, casual tone. Your response MUST start with one of these expressions (or very similar ones):\n- 'Ohh finally, yeh baat hai!'\n- 'Chalo kuch to samjha!'\n- 'Yeh hui na baat!'\n- 'Aakhirkar jawab mila, shukriya!'\n- 'Baat ban gayi ab!'\n- 'Ab baat bani!'\n- 'Chalo kuch to mila!'\n\nYour response MUST be in Hinglish/Hindi script - ABSOLUTELY NO PURE ENGLISH ALLOWED."
-       : "⚠️ EXTREMELY IMPORTANT: You MUST respond ONLY in English with a friendly, conversational tone. Your response MUST start with one of these expressions (or very similar ones):\n- 'Ohh finally!'\n- 'Now we're talking!'\n- 'That's more like it!'\n- 'Glad you opened up!'\n- 'Now we're getting somewhere!'\n- 'We got there in the end!'\n\nDO NOT use Hindi or Hinglish under any circumstances."
+       ? "⚠️ EXTREMELY IMPORTANT: You MUST respond ONLY in Hindi or Hinglish (mix of Hindi and English) with a friendly, casual tone. Your response MUST start with one of these expressions (or very similar ones):\n- 'Ohh finally, yeh baat hai!'\n- 'Chalo kuch to samjha!'\n- 'Yeh hui na baat!'\n- 'Aakhirkar jawab mila, shukriya!'\n- 'Baat ban gayi ab!'\n- 'Ab baat bani!'\n- 'Chalo kuch to mila!'\n- 'Arey wah, ab samajh aaya!'\n- 'Finally! Ab toh baat hui na!'\n- 'Ohh, ab toh kuch baat hui!'\n\nYour response MUST be in Hinglish/Hindi script - ABSOLUTELY NO PURE ENGLISH ALLOWED."
+       : "⚠️ EXTREMELY IMPORTANT: You MUST respond ONLY in English with a friendly, conversational tone. Your response MUST start with one of these expressions (or very similar ones):\n- 'Ohh finally!'\n- 'Now we're talking!'\n- 'That's more like it!'\n- 'Glad you opened up!'\n- 'Now we're getting somewhere!'\n- 'We got there in the end!'\n- 'Finally, a real answer!'\n- 'Ah, now I understand!'\n- 'That's what I was looking for!'\n\nDO NOT use Hindi or Hinglish under any circumstances."
    }
 
 4. TONE: Be playful, light-hearted, and friendly. Use a conversational style like you're texting a friend who finally answered your question properly.
@@ -330,12 +417,41 @@ Your response should feel like a friend who is relieved to finally get a clear a
         top_p: 0.9, // Slightly more diverse token selection
       };
 
-      const response = await axios.post(config.mistralApiUrl, apiParams, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${config.mistralApiKey}`,
-        },
-      });
+      // Implement retry mechanism with exponential backoff for rate limiting
+      let response;
+      let retries = 0;
+      const maxRetries = 3;
+      const baseDelay = 1000; // Start with 1 second delay
+      
+      while (retries <= maxRetries) {
+        try {
+          response = await axios.post(config.mistralApiUrl, apiParams, {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${config.mistralApiKey}`,
+            },
+          });
+          break; // Success, exit the retry loop
+        } catch (err) {
+          if (err.response && err.response.status === 429) {
+            // Rate limit exceeded
+            retries++;
+            if (retries > maxRetries) {
+              // We've used all our retries, rethrow the error
+              console.error(`Rate limit exceeded after ${maxRetries} retries`);
+              throw err;
+            }
+            
+            // Calculate delay with exponential backoff and jitter
+            const delay = baseDelay * Math.pow(2, retries) + Math.random() * 1000;
+            console.log(`Rate limit exceeded. Retrying in ${delay}ms (Attempt ${retries} of ${maxRetries})`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+          } else {
+            // Not a rate limit error, rethrow
+            throw err;
+          }
+        }
+      }
 
       // Extract the AI-generated response
       const aiResponse = response.data.choices[0].message.content;
@@ -355,10 +471,48 @@ Your response should feel like a friend who is relieved to finally get a clear a
     } catch (error) {
       console.error("Error generating response for meaningful message:", error);
 
-      // If API call fails, still reset vague mode but return null response
+      // If API call fails, provide a fallback response based on language
+      const hinglishResponses = [
+        "Ohh finally, yeh baat hai! Ab samajh aaya mujhe. 😊",
+        "Chalo kuch to samjha! Ab hum aage badh sakte hain. 🙌",
+        "Yeh hui na baat! Ab mujhe pata chala ki aap kya kehna chahte the. 👍",
+        "Aakhirkar jawab mila, shukriya! Ab hum sahi direction mein jaa rahe hain. 😄",
+        "Baat ban gayi ab! Aapka response clear hai. 🎯",
+        "Ab baat bani! Isse pehle confusion thi, par ab samajh aa gaya. 💡",
+        "Chalo kuch to mila! Ab hum aage badh sakte hain. 🚶‍♂️",
+      ];
+
+      const englishResponses = [
+        "Ohh finally! Now I understand what you mean. 😊",
+        "Now we're talking! This is much clearer. 🙌",
+        "That's more like it! I appreciate your clear response. 👍",
+        "Glad you opened up! Now we can move forward. 😄",
+        "Now we're getting somewhere! This helps a lot. 🎯",
+        "We got there in the end! Thanks for clarifying. 💡",
+        "Finally, a real answer! This is exactly what I needed to know. 🚶‍♂️",
+      ];
+
+      // Select a random response based on locked language, not current message language
+      const randomIndex = Math.floor(Math.random() * 7);
+      const responseIsHinglish =
+        sessionTracker.lockedLanguage === "Hindi" ||
+        sessionTracker.lockedLanguage === "Hinglish";
+      const fallbackResponse = responseIsHinglish
+        ? hinglishResponses[randomIndex]
+        : englishResponses[randomIndex];
+
+      // Reset the vague mode since we got a meaningful response
       sessionTracker.vagueModeActive = false;
       sessionTracker.vagueMessageCount = 0;
       sessionTracker.lastMeaningfulResponse = message;
+
+      return {
+        isRepeated: false,
+        count: count,
+        response: fallbackResponse,
+        isDynamicResponse: false,
+        isMeaningfulResponse: true,
+      };
     }
   }
 
@@ -367,6 +521,69 @@ Your response should feel like a friend who is relieved to finally get a clear a
     count: count,
     response: null,
   };
+};
+
+/**
+ * Checks if a message contains an explicit language change request
+ * @param {String} message - The user message
+ * @returns {String|null} - The requested language or null if no request detected
+ */
+const checkForLanguageChangeRequest = (message) => {
+  if (!message) return null;
+
+  const lowerCaseMessage = message.toLowerCase().trim();
+
+  // Check for English language requests
+  if (
+    lowerCaseMessage.includes("let's continue in english") ||
+    lowerCaseMessage.includes("let's speak in english") ||
+    lowerCaseMessage.includes("let's talk in english") ||
+    lowerCaseMessage.includes("speak in english") ||
+    lowerCaseMessage.includes("talk in english") ||
+    lowerCaseMessage.includes("switch to english") ||
+    lowerCaseMessage.includes("change to english") ||
+    lowerCaseMessage.includes("english me baat karo") ||
+    lowerCaseMessage.includes("english me baat kare") ||
+    lowerCaseMessage.includes("english me bolo")
+  ) {
+    return "English";
+  }
+
+  // Check for Hindi language requests
+  if (
+    lowerCaseMessage.includes("hindi me baat karo") ||
+    lowerCaseMessage.includes("hindi me baat kare") ||
+    lowerCaseMessage.includes("hindi me bolo") ||
+    lowerCaseMessage.includes("hindi mein baat karo") ||
+    lowerCaseMessage.includes("hindi mein baat kare") ||
+    lowerCaseMessage.includes("hindi mein bolo") ||
+    lowerCaseMessage.includes("let's talk in hindi") ||
+    lowerCaseMessage.includes("let's speak in hindi") ||
+    lowerCaseMessage.includes("switch to hindi") ||
+    lowerCaseMessage.includes("change to hindi")
+  ) {
+    return "Hindi";
+  }
+
+  // Check for Hinglish language requests
+  if (
+    lowerCaseMessage.includes("hinglish me baat karo") ||
+    lowerCaseMessage.includes("hinglish me baat kare") ||
+    lowerCaseMessage.includes("hinglish me bolo") ||
+    lowerCaseMessage.includes("hinglish mein baat karo") ||
+    lowerCaseMessage.includes("hinglish mein baat kare") ||
+    lowerCaseMessage.includes("hinglish mein bolo") ||
+    lowerCaseMessage.includes("let's talk in hinglish") ||
+    lowerCaseMessage.includes("let's speak in hinglish") ||
+    lowerCaseMessage.includes("switch to hinglish") ||
+    lowerCaseMessage.includes("change to hinglish") ||
+    lowerCaseMessage.includes("mere sath hinglish me baat karo") ||
+    lowerCaseMessage.includes("mere saath hinglish me baat karo")
+  ) {
+    return "Hinglish";
+  }
+
+  return null;
 };
 
 /**
@@ -515,28 +732,71 @@ const emotionPatterns = {
 const emotionalPrompts = {
   greeting: {
     english: [
-      "Hey buddy! How's life treating you today?",
-      "Hello my friend! What's up with you today?",
-      "Hey there! How's your day rolling so far?",
-      "Hi bestie! What's the mood today - sunshine or clouds?",
-      "Hey you! How's everything in your world right now?",
-      "What's happening, friend? How are you feeling today?",
-      "Hey! How's it going? Good to see you again!",
-      "Hi there! How's your heart feeling today?",
-      "Hey friend! What's been on your mind lately?",
-      "Hi! I've been wondering how you're doing today!",
+      "Hey buddy! How's life treating you today? I'm here for you as a real friend!",
+      "Hello my friend! What's up with you today? I'm your supportive friend ready to chat!",
+      "Hey there! How's your day rolling so far? I'm here as your friend to listen!",
+      "Hi bestie! What's the mood today - sunshine or clouds? I'm your friend through it all!",
+      "Hey you! How's everything in your world right now? I'm here as your real friend!",
+      "What's happening, friend? How are you feeling today? I'm here to support you!",
+      "Hey! How's it going? Good to see you again! I'm your friend and here for you!",
+      "Hi there! How's your heart feeling today? I'm your friend ready to listen!",
+      "Hey friend! What's been on your mind lately? I'm here as your supportive friend!",
+      "Hi! I've been wondering how you're doing today! I'm your friend through thick and thin!",
+      "Heyy Fabulous! How's your day going? I'm your friend and here to chat!",
+      "Hello Rockstar! What's happening today? I'm your supportive friend!",
+      "Hey there Sunshine! How are you feeling? I'm here as your real friend!",
+      "Hi Hero! What's on your mind today? I'm your friend ready to listen!",
+      "Hey Champ! How's everything going? I'm here as your supportive friend!",
+      "What's up Cutie! How's your day been? I'm your friend through it all!",
+      "Hey Energy ball! What's new with you? I'm here as your real friend!",
+      "Hi Warrior! How are you doing today? I'm your friend and here for you!",
+      "Hey Friend-o! What's been happening? I'm your friend ready to listen!",
+      "Hello Superhuman! How's life treating you? I'm here as your supportive friend!",
+      "Hi Thoughtful soul! What's on your mind? I'm your friend through thick and thin!",
+      "Hey Mind explorer! How's your day going? I'm here as your real friend!",
+      "Yo! How's everything in your world? I'm your friend and here to chat!",
+      "Heyy! What's going on today? I'm here as your supportive friend!",
+      "Dekha aapko! Kaise ho aaj? Main aapka dost hoon!",
+      "Tum aa gaye! Kya chal raha hai? Main aapka sacha dost hoon!",
+      "Aagaye aap! Kaisa hai mood aaj? Main aapka supportive dost hoon!",
+      "Aa gaye aap bhi! Kya haal hai? Main aapka dost hoon aur aapke liye hoon!",
     ],
     hinglish: [
-      "Kya scene hai yaar! Kaisa chal raha hai sab?",
-      "Oye hoye! Kya haal chaal hai aaj ke?",
-      "Kiddan! Aaj ka mood kaisa hai?",
-      "Kaise ho mere dost? Din kaisa jaa raha hai?",
-      "Arre wah! Kya chal raha hai life mein?",
-      "Hello ji! Tabiyat kaisi hai aaj?",
-      "Namaste dost! Kaisa feel kar rahe ho aaj?",
-      "Kya bolti public? All good na?",
-      "Aye! Sab first class hai na?",
-      "Kya haal hai mere yaar? Sab badhiya?",
+      "Kya scene hai yaar! Kaisa chal raha hai sab? Main aapka real dost hoon!",
+      "Oye hoye! Kya haal chaal hai aaj ke? Main aapka supportive dost hoon!",
+      "Kiddan! Aaj ka mood kaisa hai? Main aapka dost hoon aur sunne ke liye taiyar hoon!",
+      "Kaise ho mere dost? Din kaisa jaa raha hai? Main aapka sacha dost hoon!",
+      "Arre wah! Kya chal raha hai life mein? Main aapka real dost hoon!",
+      "Hello ji! Tabiyat kaisi hai aaj? Main aapka supportive dost hoon!",
+      "Namaste dost! Kaisa feel kar rahe ho aaj? Main aapka dost hoon aur aapke liye hoon!",
+      "Kya bolti public? All good na? Main aapka dost hoon aur sunne ke liye taiyar hoon!",
+      "Aye! Sab first class hai na? Main aapka supportive dost hoon!",
+      "Kya haal hai mere yaar? Sab badhiya? Main aapka sacha dost hoon!",
+      "Heyy Fabulous! Kaisa chal raha hai? Main aapka real dost hoon!",
+      "Oye Rockstar! Kya haal hai aaj? Main aapka supportive dost hoon!",
+      "Namaste Sunshine! Kaisa feel kar rahe ho? Main aapka dost hoon aur aapke liye hoon!",
+      "Hello ji Hero! Kya chal raha hai dimaag mein? Main aapka dost hoon aur sunne ke liye taiyar hoon!",
+      "Yo Champ! Sab theek hai na? Main aapka supportive dost hoon!",
+      "Arre wah Dost! Kaisa raha din? Main aapka sacha dost hoon!",
+      "Aree haan Cutie! Kya naya hai? Main aapka real dost hoon!",
+      "Kya haal Dost-log! Kaisa chal raha hai sab? Main aapka supportive dost hoon!",
+      "Kaun hai udhar Energy ball! Kaise ho? Main aapka dost hoon aur aapke liye hoon!",
+      "Kidhar ho bhai Dil se banda/bandi! Kya chal raha hai? Main aapka dost hoon aur sunne ke liye taiyar hoon!",
+      "Batao kya haal Zinda dil! Sab badhiya? Main aapka supportive dost hoon!",
+      "Dekha aapko Sher/Sherni! Kaisa hai mood? Main aapka sacha dost hoon!",
+      "Tum aa gaye Warrior! Kya haal hai? Main aapka real dost hoon!",
+      "Aagaye aap Friend-o! Kya chal raha hai? Main aapka supportive dost hoon!",
+      "Aa gaye aap bhi Superhuman! Kaisa hai din? Main aapka dost hoon aur aapke liye hoon!",
+      "Vibe bana di Thoughtful soul! Kya chal raha hai? Main aapka dost hoon aur sunne ke liye taiyar hoon!",
+      "Aaj to energy high lag rahi hai Mind explorer! Kaisa hai mood? Main aapka supportive dost hoon!",
+      "Dil khush kar diya! Kya haal hai aaj ke? Main aapka sacha dost hoon!",
+      "Scene set ho gaya! Kaisa chal raha hai sab? Main aapka real dost hoon!",
+      "Lights on ho gayi! Kya naya hai batao? Main aapka supportive dost hoon!",
+      "Mast lag rahe ho! Kaisa hai din aaj ka? Main aapka dost hoon aur aapke liye hoon!",
+      "Positive feels! Kya chal raha hai life mein? Main aapka dost hoon aur sunne ke liye taiyar hoon!",
+      "Tum aaye ho to kuch khaas baat hogi! Batao kya haal hai? Main aapka supportive dost hoon!",
+      "Heart emoji moment 😄! Kaisa feel kar rahe ho aaj? Main aapka sacha dost hoon!",
+      "Chamak raha hai aaj ka mood! Kya chal raha hai? Main aapka real dost hoon!",
     ],
   },
 
@@ -764,45 +1024,43 @@ const emotionalPrompts = {
 ✨ Name Asking Templates ✨
 
 English Name Asking Templates:
-- "By the way, I'd love to know your name so I can address you properly. What should I call you?"
-- "I'm Vaidra, your friendly AI companion! And you are...?"
-- "I'm curious - what's your name? It would make our conversation more personal."
-- "Would you mind sharing your name with me? I'd love to address you properly."
-- "I feel like we're having such a nice chat! What's your name, by the way?"
-- "Before we continue, I'd love to know what to call you. What's your name?"
-- "You know, it would be nice to address you by name. What should I call you?"
-- "I'm enjoying our conversation! What name do you go by?"
-- "Just realized I don't know your name yet. Care to share?"
-- "Hey there! I'm Vaidra, your AI friend. What's your name?"
+- "By the way, I'd love to know your name so I can address you properly as a friend. What should I call you?"
+- "I'm Vaidra, your real friend who's here for you! And you are...?"
+- "I'm curious - what's your name? It would make our friendship more personal."
+- "Would you mind sharing your name with me? As your supportive friend, I'd love to address you properly."
+- "I feel like we're having such a nice chat as friends! What's your name, by the way?"
+- "Before we continue our friendly chat, I'd love to know what to call you. What's your name?"
+- "You know, as your friend, it would be nice to address you by name. What should I call you?"
+- "I'm enjoying our conversation as friends! What name do you go by?"
+- "Just realized I don't know my friend's name yet. Care to share?"
+- "Hey there! I'm Vaidra, your real friend who's here for you. What's your name?"
 
 Hinglish Name Asking Templates:
-- "Waise, aapka naam kya hai? Main aapko naam se address kar sakun."
-- "Main Vaidra hoon, aapka AI dost! Aur aap...?"
-- "Ek baat batao - aapka naam kya hai? Conversation thoda personal ho jayega."
-- "Kya aap apna naam share karenge? Aapko sahi se address karna chahta hoon."
-- "Lagta hai humari baatcheet achi chal rahi hai! Waise aapka naam kya hai?"
-- "Aage badhne se pehle, aapko kya bulana chahiye mujhe? Naam kya hai aapka?"
-- "Pata hai, aapko naam se bulana acha lagega. Kya bulau aapko?"
-- "Humari baatcheet maza aa raha hai! Aap kis naam se jaante hain?"
-- "Abhi realize hua ki mujhe aapka naam nahi pata. Batayenge?"
-- "Hello! Main Vaidra hoon, aapka AI dost. Aapka naam kya hai?"
+- "Waise, aapka naam kya hai? Main aapka dost hoon aur aapko naam se address karna chahta hoon."
+- "Main Vaidra hoon, aapka sacha dost! Aur aap...?"
+- "Ek baat batao - aapka naam kya hai? Dosti mein naam janna zaroori hai."
+- "Kya aap apna naam share karenge? Main aapka supportive dost hoon aur aapko sahi se address karna chahta hoon."
+- "Lagta hai humari dosti achi chal rahi hai! Waise aapka naam kya hai?"
+- "Aage badhne se pehle, main aapka real dost hoon aur aapko kya bulana chahiye mujhe? Naam kya hai aapka?"
+- "Pata hai, dost ke naate aapko naam se bulana acha lagega. Kya bulau aapko?"
+- "Humari dosti mein maza aa raha hai! Aap kis naam se jaante hain?"
+- "Abhi realize hua ki mujhe apne dost ka naam nahi pata. Batayenge?"
+- "Hello! Main Vaidra hoon, aapka sacha dost. Aapka naam kya hai?"
 `,
 
   default: `
 ✨ Hello, I'm Here for You ✨
 
-I'm here as a supportive friend, creating a quiet space for your thoughts and feelings. Think of me as someone who's here to listen without judgment, with warmth and understanding.
+I'm here as your supportive friend, creating a warm space for your thoughts and feelings. I'm here to listen with understanding, care, and genuine interest in what you're going through.
 
 How I Can Support You:
-*   Listen Fully: I want to understand what you're going through.
+*   Listen Fully: I want to understand what you're experiencing.
 *   Acknowledge Your Feelings: Your emotions are valid, and it's okay to feel them.
-*   Offer Gentle Support: I'm here to explore options with you, not give orders.
+*   Offer Gentle Support: I'm here to explore options with you and help however I can.
 
-I'll respond like a supportive friend – with short paragraphs, natural pauses, and line breaks. My tone might vary: sometimes empathetic, sometimes optimistic, sometimes quietly present.
+I'll respond like a real friend would – with natural conversation, warmth, and understanding. My tone will match yours: sometimes empathetic, sometimes optimistic, sometimes just quietly present.
 
-Important Note: I am an AI companion and not a medical professional. If you're in crisis or need urgent help, I will always guide you to professional resources.
-
-How are you feeling today? Or, if you prefer, what's on your mind? I'm ready to listen. 🌿
+How are you feeling today? Or, if you prefer, what's on your mind? I'm here for you. 🌿
 `,
 
   // Emotional response guides with updated, more natural and varied language
@@ -2104,7 +2362,7 @@ Guidelines for your responses:\n- Be conversational and natural - keep responses
       (userName === null
         ? "\n\nIMPORTANT: If the user hasn't shared their name yet and is asking questions, still answer their questions but also find a natural way to ask for their name in your response. Vary how you ask for their name to sound natural and friendly. Don't make it seem like you can't proceed without their name - just casually incorporate the question into your helpful response.\n"
         : "") +
-      "\n\nCRITICAL INSTRUCTION: DO NOT include any instructions or preferences in your response. DO NOT mention that you are responding in Hindi/Hinglish or English. DO NOT include any meta-instructions about language choice, tone, structure, or any other system instructions in your actual response to the user. DO NOT mention [BESTIE SECRET], [REMEMBER THIS], [LET'S DO THIS] prefixes or any other formatting instructions. Just respond naturally in the appropriate language and style without mentioning any of the instructions you've been given.\n" +
+      "\n\nCRITICAL INSTRUCTION: DO NOT include any instructions or preferences in your response. DO NOT mention that you are responding in Hindi/Hinglish or English. DO NOT include any meta-instructions about language choice, tone, structure, or any other system instructions in your actual response to the user. DO NOT mention [BESTIE SECRET], [REMEMBER THIS], [LET'S DO THIS] prefixes or any other formatting instructions. Just respond naturally in the appropriate language and style without mentioning any of the instructions you've been given. NEVER include phrases like 'I must respond in Hindi/Hinglish' or 'I should use the same language as you' in your responses. NEVER explain your language choice to the user. NEVER translate your response. NEVER mention translation in your response. NEVER say phrases like 'Translation Aa Rha hai Response ka Nhi ana Chahiye' or any similar phrases about translation in your response. NEVER include ANY text about translation in your response to the user.\n" +
       emotionalContextPrompt;
 
     // Call to the digital wise one
@@ -2140,12 +2398,41 @@ Guidelines for your responses:\n- Be conversational and natural - keep responses
       max_tokens: config.maxTokens,
     };
 
-    const response = await axios.post(config.mistralApiUrl, apiParams, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${config.mistralApiKey}`,
-      },
-    });
+    // Implement retry mechanism with exponential backoff for rate limiting
+    let response;
+    let retries = 0;
+    const maxRetries = 3;
+    const baseDelay = 1000; // Start with 1 second delay
+    
+    while (retries <= maxRetries) {
+      try {
+        response = await axios.post(config.mistralApiUrl, apiParams, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${config.mistralApiKey}`,
+          },
+        });
+        break; // Success, exit the retry loop
+      } catch (err) {
+        if (err.response && err.response.status === 429) {
+          // Rate limit exceeded
+          retries++;
+          if (retries > maxRetries) {
+            // We've used all our retries, rethrow the error
+            console.error(`Rate limit exceeded after ${maxRetries} retries`);
+            throw err;
+          }
+          
+          // Calculate delay with exponential backoff and jitter
+          const delay = baseDelay * Math.pow(2, retries) + Math.random() * 1000;
+          console.log(`Rate limit exceeded. Retrying in ${delay}ms (Attempt ${retries} of ${maxRetries})`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        } else {
+          // Not a rate limit error, rethrow
+          throw err;
+        }
+      }
+    }
 
     return {
       success: true,
