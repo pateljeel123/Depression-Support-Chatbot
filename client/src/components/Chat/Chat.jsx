@@ -6,8 +6,6 @@ import {
   FiPlus,
   FiTrash2,
   FiEdit2,
-  FiMoon,
-  FiSun,
   FiMenu,
   FiX,
   FiCopy,
@@ -35,8 +33,9 @@ import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
 import { Tooltip } from "./components/Tooltip";
-import { ThemeSwitcher } from "./components/ThemeSwitcher";
+
 import { ChatItem } from "./components/ChatItem";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { PromptSuggestion } from "./components/PromptSuggestion";
 import { WelcomePage } from "./components/WelcomePage";
 import { ChatInputActions } from "./components/ChatInputActions"; // Added this import
@@ -45,8 +44,7 @@ import { CrisisResources } from "./components/CrisisResources"; // Added this im
 import { VoiceVisualizer } from "./components/VoiceVisualizer"; // Added for voice visualization
 import { supabase } from "../../services/supabaseClient";
 
-const lightCodeTheme = themes.vsLight;
-const darkCodeTheme = themes.vsDark;
+const codeTheme = themes.vsDark;
 
 export default function Chat() {
   // State management
@@ -56,7 +54,7 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(false);
-  const [darkMode, setDarkMode] = useState(true); // Default to dark mode (true)
+  
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [editingChatId, setEditingChatId] = useState(null);
   const [editTitle, setEditTitle] = useState("");
@@ -81,6 +79,7 @@ export default function Chat() {
   const [audioLevel, setAudioLevel] = useState(0); // Added for voice visualization
   const audioContextRef = useRef(null);
   const analyserRef = useRef(null);
+  const [darkMode] = useState(true); // Always true since we're using dark mode exclusively
   const microphoneSourceRef = useRef(null);
   const animationFrameIdRef = useRef(null);
   const [isHistoryExpanded, setIsHistoryExpanded] = useState(true); // For chat history toggle
@@ -581,10 +580,8 @@ export default function Chat() {
     if (savedSettings) {
       setUserPreferences(JSON.parse(savedSettings));
     }
-    const savedDarkMode = localStorage.getItem("darkMode");
-    if (savedDarkMode !== null) {
-      setDarkMode(savedDarkMode === "true");
-    }
+    // Set dark mode by default
+    document.documentElement.classList.add("dark");
   }, []);
 
   // Save chats to localStorage (conditionally, if not using Supabase or as a backup)
@@ -597,10 +594,7 @@ export default function Chat() {
     }
   }, [chats, userID]);
 
-  useEffect(() => {
-    localStorage.setItem("darkMode", darkMode);
-    document.documentElement.classList.toggle("dark", darkMode);
-  }, [darkMode]);
+
 
   useEffect(() => {
     localStorage.setItem("settings", JSON.stringify(userPreferences));
@@ -1513,7 +1507,7 @@ export default function Chat() {
     e.stopPropagation();
     if (chatInputRef.current) {
       chatInputRef.current.classList.add(
-        darkMode ? "bg-gray-700" : "bg-gray-200",
+        "bg-gray-700",
         "border-indigo-500",
         "border-2",
         "border-dashed"
@@ -1526,7 +1520,7 @@ export default function Chat() {
     e.stopPropagation();
     if (chatInputRef.current) {
       chatInputRef.current.classList.remove(
-        darkMode ? "bg-gray-700" : "bg-gray-200",
+        "bg-gray-700",
         "border-indigo-500",
         "border-2",
         "border-dashed"
@@ -1539,7 +1533,7 @@ export default function Chat() {
     e.stopPropagation();
     if (chatInputRef.current) {
       chatInputRef.current.classList.remove(
-        darkMode ? "bg-gray-700" : "bg-gray-200",
+        "bg-gray-700",
         "border-indigo-500",
         "border-2",
         "border-dashed"
@@ -1568,31 +1562,18 @@ export default function Chat() {
         }
       };
     }
-  }, [darkMode, chatInputRef.current]); // Re-attach if darkmode or ref changes
+  }, [chatInputRef.current]); // Re-attach if ref changes
 
-  // Toggle dark mode with animation
-  const toggleDarkMode = () => {
-    if (userPreferences.animations) {
-      document.documentElement.classList.add("transition-colors");
-      document.documentElement.classList.add("duration-300");
-    }
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    setUserPreferences((prev) => ({ ...prev, darkMode: newDarkMode })); // Sync with userPreferences
-  };
+
 
   return (
     <div className="animated-bg">
       <div
-        className={`flex h-screen ${darkMode
-            ? "dark text-gray-100"
-            : "text-gray-900"
-          }`}
+        className="flex h-screen dark text-gray-100"
       >
         {/* Mobile sidebar toggle */}
         <button
-          className={`md:hidden fixed top-4 left-4 z-50 p-2 rounded-full ${darkMode ? "bg-gray-700 text-white" : "bg-white text-gray-800"
-            } shadow-lg transition-transform hover:scale-110`}
+          className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-full bg-gray-700 text-white shadow-lg transition-transform hover:scale-110"
           onClick={() => setSidebarOpen(!sidebarOpen)}
         >
           {sidebarOpen ? <FiX size={24} /> : <FiMenu size={24} />}
@@ -1606,8 +1587,7 @@ export default function Chat() {
               animate={{ x: 0 }}
               exit={{ x: -300 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className={`w-full max-w-[85vw] sm:max-w-[320px] md:w-72 flex-shrink-0 h-full overflow-y-auto ${darkMode ? "glass-morphism-dark bg-black md:bg-transparent" : "glass-morphism bg-white md:bg-transparent"
-                } fixed md:relative z-40 shadow-xl md:shadow-none`}
+              className="w-full max-w-[85vw] sm:max-w-[320px] md:w-72 flex-shrink-0 h-full overflow-y-auto glass-morphism-dark bg-black md:bg-transparent fixed md:relative z-40 shadow-xl md:shadow-none"
             >
               {/* Restructured sidebar with fixed header and footer, scrollable chat history */}
               <div className="flex flex-col h-full">
@@ -1615,10 +1595,7 @@ export default function Chat() {
                 <div className="p-4">
                   <button
                     onClick={handleNewChat}
-                    className={`w-full flex items-center justify-center space-x-2 py-2.5 px-4 rounded-md mb-4 text-sm font-semibold glow border border-gray-500 ${darkMode
-                        ? "glass-morphism-dark text-white"
-                        : "glass-morphism text-black"
-                      } transition-all duration-300 hover:scale-105`}
+                    className="w-full flex items-center justify-center space-x-2 py-2.5 px-4 rounded-md mb-4 text-sm font-semibold glow border border-gray-500 glass-morphism-dark text-white transition-all duration-300 hover:scale-105"
                   >
                     <FiPlus size={18} />
                     <span>New Chat</span>
@@ -1632,10 +1609,7 @@ export default function Chat() {
                       placeholder="Search chats..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className={`w-full pl-10 pr-4 py-2 rounded-md text-sm ${darkMode
-                          ? "glass-morphism-dark text-gray-200 placeholder-gray-400"
-                          : "glass-morphism text-gray-800 placeholder-gray-500"
-                        } outline-none transition-all duration-300 focus:scale-[1.02]`}
+                      className="w-full pl-10 pr-4 py-2 rounded-md text-sm glass-morphism-dark text-gray-200 placeholder-gray-400 outline-none transition-all duration-300 focus:scale-[1.02]"
                     />
                   </div>
                 </div>
@@ -1655,45 +1629,40 @@ export default function Chat() {
                   {isHistoryExpanded && (
                     <div className="space-y-1">
                       {filteredChats.map((chat) => (
-                        <ChatItem
-                          key={chat.id}
-                          chat={chat}
-                          activeChat={activeChat}
-                          darkMode={darkMode}
-                          editingChatId={editingChatId}
-                          editTitle={editTitle}
-                          setEditTitle={setEditTitle}
-                          handleSelectChat={handleSelectChat}
-                          handleStartEdit={handleStartEdit}
-                          handleSaveEdit={handleSaveEdit}
-                          handleDeleteChat={handleDeleteChat}
-                          isNewUI={true}
-                        />
+                        <ErrorBoundary key={chat.id}>
+                          <ChatItem
+                            chat={chat}
+                            activeChat={activeChat}
+                            editingChatId={editingChatId}
+                            editTitle={editTitle}
+                            setEditTitle={setEditTitle}
+                            handleSelectChat={handleSelectChat}
+                            handleStartEdit={handleStartEdit}
+                            handleSaveEdit={handleSaveEdit}
+                            handleDeleteChat={handleDeleteChat}
+                            isNewUI={true}
+                          />
+                        </ErrorBoundary>
                       ))}
                     </div>
                   )}
                 </div>
                
                 {/* Fixed Footer Navigation */}
-                <div className={`mt-auto p-3 border-t ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
+                <div className="mt-auto p-3 border-t border-gray-700">
                   <nav className="space-y-1 mb-3">
                     {[{ name: "Dashboard", icon: FiGrid, href: "/" }, { name: "Profile", icon: FiUser, href: "/profile" }].map(item => (
                       <Link
                         key={item.name}
                         to={item.href} // Changed href to to for Link component
-                        className={`flex items-center space-x-3 px-2.5 py-2 rounded-md text-sm font-medium transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-700 hover:text-white" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}>
-                        <item.icon size={18} className={`${darkMode ? "text-gray-400" : "text-gray-500"}`} />
+                        className="flex items-center space-x-3 px-2.5 py-2 rounded-md text-sm font-medium transition-colors text-gray-300 hover:bg-gray-700 hover:text-white">
+                        <item.icon size={18} className="text-gray-400" />
                         <span>{item.name}</span>
                       </Link>
                     ))}
-                    <button
-                      onClick={toggleDarkMode}
-                      className={`w-full flex items-center space-x-3 px-2.5 py-2 rounded-md text-sm font-medium transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-700 hover:text-white" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}>
-                      {darkMode ? <FiSun size={18} className="text-yellow-400" /> : <FiMoon size={18} className="text-indigo-500" />}
-                      <span>{darkMode ? "Light Mode" : "Dark Mode"}</span>
-                    </button>
+
                   </nav>
-                  <div className={`px-1.5 py-1 text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                  <div className="px-1.5 py-1 text-xs text-gray-400">
                     Logged in as <span className="font-semibold">{userPreferences.username || userPreferences.email || "Guest"}</span>
                   </div>
                 </div>
@@ -1709,17 +1678,14 @@ export default function Chat() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className={`p-3.5 flex items-center justify-between ${darkMode ? "glass-morphism-dark" : "glass-morphism"} shadow-lg z-10`}
+            className="p-3.5 flex items-center justify-between glass-morphism-dark shadow-lg z-10"
           >
             <div className="flex items-center">
               <motion.button 
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className={`p-2 rounded-full transition-all duration-200 ${darkMode 
-                  ? "text-gray-300 hover:bg-gray-700 hover:text-indigo-300" 
-                  : "text-gray-600 hover:bg-gray-100 hover:text-indigo-600"
-                }`}
+                className="p-2 rounded-full transition-all duration-200 text-gray-300 hover:bg-gray-700 hover:text-indigo-300"
               >
                 <FiMenu size={22} />
               </motion.button>
@@ -1731,7 +1697,7 @@ export default function Chat() {
                   initial={{ rotate: 0 }}
                   animate={{ rotate: [0, 10, -10, 0] }}
                   transition={{ duration: 1, repeat: Infinity, repeatDelay: 5 }}
-                  className={`mr-2 p-1.5 rounded-full ${darkMode ? "bg-gray-700" : "bg-indigo-50"}`}
+                  className={`mr-2 p-1.5 rounded-full `}
                 >
                   <RiRobot2Line className="text-indigo-500" size={22} />
                 </motion.div>
@@ -1835,7 +1801,7 @@ export default function Chat() {
                             {/* MessageMenu is now primary, copy is within it if needed or handled by it */}
                             <MessageMenu
                               message={message}
-                              darkMode={darkMode}
+    
                               onCopy={() => handleCopyMessage(message.content)}
                               onEdit={() => handleEditMessage(message)} // Connect to handleEditMessage
                               onDelete={() => handleDeleteMessage(message.id)}

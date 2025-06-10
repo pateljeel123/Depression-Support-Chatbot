@@ -8,7 +8,7 @@ import { FiMessageSquare } from "react-icons/fi"; // Added for chat icon
 export const ChatItem = ({
   chat,
   activeChat,
-  darkMode,
+
   editingChatId,
   editTitle,
   setEditTitle,
@@ -34,12 +34,8 @@ export const ChatItem = ({
       className={`flex items-start justify-between p-3 rounded-md cursor-pointer transition-all duration-200 group relative
         ${
           isActive
-            ? darkMode
-              ? "bg-gray-700 shadow-md"
-              : "bg-gray-200 shadow-sm" // Enhanced active state for new UI
-            : darkMode
-            ? "hover:bg-gray-750 hover:shadow-md"
-            : "hover:bg-gray-100 hover:shadow-sm"
+            ? "bg-gray-700 shadow-md"
+            : "hover:bg-gray-750 hover:shadow-md"
         }
         ${isNewUI ? "flex-col" : "items-center"}
         mb-2
@@ -53,11 +49,7 @@ export const ChatItem = ({
                 e.stopPropagation(); // Prevent chat selection
                 handleDeleteChat(chat.id, e);
               }}
-              className={`p-1.5 rounded-full ${
-                darkMode
-                  ? "hover:bg-red-500 hover:text-white"
-                  : "hover:bg-red-100 hover:text-red-500"
-              }`}
+              className="p-1.5 rounded-full hover:bg-red-500 hover:text-white"
             >
               <FiTrash2 size={14} />
             </button>
@@ -71,12 +63,10 @@ export const ChatItem = ({
           <div className="flex items-center">
             <FiMessageSquare
               size={14}
-              className={`mr-2 ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              className="mr-2 text-gray-400"
             />
             <span
-              className={`text-sm font-medium truncate flex-grow ${
-                darkMode ? "text-gray-200" : "text-gray-700"
-              } hover:text-indigo-500 transition-colors duration-200`}
+              className="text-sm font-medium truncate flex-grow text-gray-200 hover:text-indigo-500 transition-colors duration-200"
             >
               {chat.title}
             </span>
@@ -93,9 +83,7 @@ export const ChatItem = ({
               onBlur={handleSaveEdit}
               onKeyDown={(e) => e.key === "Enter" && handleSaveEdit(e)}
               autoFocus
-              className={`flex-grow text-sm p-1 rounded ${
-                darkMode ? "bg-gray-600 text-white" : "bg-white text-gray-800"
-              } focus:outline-none focus:ring-1 focus:ring-indigo-500`}
+              className="flex-grow text-sm p-1 rounded bg-gray-600 text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
           ) : (
             <span className="text-sm truncate flex-grow pr-2">

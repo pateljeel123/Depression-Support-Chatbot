@@ -2,13 +2,6 @@
 
 /* Glassmorphism effects */
 .glass-morphism {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
-}
-
-.glass-morphism-dark {
   background: rgba(17, 25, 40, 0.75);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.125);
@@ -39,37 +32,20 @@
 }
 
 /* Custom scrollbar styles */
-.scrollbar-light::-webkit-scrollbar {
+.scrollbar::-webkit-scrollbar {
   width: 6px;
 }
 
-.scrollbar-light::-webkit-scrollbar-track {
+.scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.scrollbar-light::-webkit-scrollbar-thumb {
+.scrollbar::-webkit-scrollbar-thumb {
   background: var(--muted);
   border-radius: 3px;
 }
 
-.scrollbar-light::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-foreground);
-}
-
-.scrollbar-dark::-webkit-scrollbar {
-  width: 6px;
-}
-
-.scrollbar-dark::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.scrollbar-dark::-webkit-scrollbar-thumb {
-  background: var(--muted);
-  border-radius: 3px;
-}
-
-.scrollbar-dark::-webkit-scrollbar-thumb:hover {
+.scrollbar::-webkit-scrollbar-thumb:hover {
   background: var(--muted-foreground);
 }
 

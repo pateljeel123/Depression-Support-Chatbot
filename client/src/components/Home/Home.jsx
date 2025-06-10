@@ -612,7 +612,7 @@ const SolutionSection = () => {
   ];
 
   return (
-    <section id="solutions" ref={ref} className="relative py-32 bg-gradient-to-b from-gray-900 to-gray-950 overflow-hidden">
+    <section id="solutions" ref={ref} className="relative bg-gradient-to-b from-gray-900 to-gray-950 overflow-hidden">
       {/* 3D floating background elements */}
       <motion.div
         style={{ y, rotateY }}
@@ -816,7 +816,7 @@ const TestimonialsSection = () => {
   };
 
   return (
-    <section id="stories-section" ref={ref} className="relative py-16 sm:py-32 overflow-hidden bg-gradient-to-b from-gray-950 to-gray-900">
+    <section id="stories-section" ref={ref} className="relative py-20 overflow-hidden bg-gradient-to-b from-gray-950 to-gray-900">
       {/* 3D Animated background - Reduced complexity for mobile */}
       <motion.div
         style={{ y: backgroundY, rotateX }}
@@ -855,7 +855,7 @@ const TestimonialsSection = () => {
         <motion.div
           ref={inViewRef}
           style={{ y }}
-          className="text-center mb-20"
+          className="text-center mb-5"
         >
           <motion.h2
             initial={{ opacity: 0, y: 50, rotateX: 45 }}
@@ -1131,16 +1131,20 @@ const BenefitsSection = () => {
               <div className="flex items-start gap-5">
                 <motion.div 
                   className={`p-4 rounded-xl bg-gradient-to-br ${benefit.color} shadow-lg text-2xl flex items-center justify-center transform-gpu`}
+                  initial={{ rotate: 0 }}
                   whileHover={{ 
                     scale: 1.1,
-                    rotate: [0, 360]
+                    rotate: 360
                   }}
                   transition={{ 
-                    duration: 0.3,
-                    ease: "easeInOut",
+                    scale: {
+                      duration: 0.3,
+                      ease: "easeInOut"
+                    },
                     rotate: {
-                      duration: 0.5,
-                      ease: "linear"
+                      duration: 1.5,
+                      ease: "easeInOut",
+                      type: "tween"
                     }
                   }}
                 >

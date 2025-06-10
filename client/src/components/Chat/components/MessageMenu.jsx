@@ -4,7 +4,7 @@ import { IoMdVolumeHigh } from 'react-icons/io';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tooltip } from './Tooltip';
 
-export const MessageMenu = ({ message, darkMode, onCopy, onEdit, onDelete, onStar, onShare, onReply, onReact, onSpeak }) => {
+export const MessageMenu = ({ message, onCopy, onEdit, onDelete, onStar, onShare, onReply, onReact, onSpeak }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
 
