@@ -3,7 +3,7 @@ const config = require("../config/config");
 
 // Track repeated user messages per session
 let userMessageTracker = {
-  sessions: {}
+  sessions: {},
 };
 
 /**
@@ -16,25 +16,28 @@ let userMessageTracker = {
  * @param {String} message - The user message
  * @returns {Object} - Information about message repetition
  */
-const checkRepeatedMessage = async (message, userId = 'default') => {
+const checkRepeatedMessage = async (message, userId = "default") => {
   const normalizedMessage = message.trim().toLowerCase();
-  
+
   // Initialize session data if it doesn't exist
   if (!userMessageTracker.sessions[userId]) {
     userMessageTracker.sessions[userId] = {
       messages: {},
       lastMessage: "",
-      usedResponses: {}
+      usedResponses: {},
+      vagueModeActive: false,
+      vagueMessageCount: 0,
+      lastMeaningfulResponse: null,
     };
   }
-  
+
   // Get session-specific tracker
   const sessionTracker = userMessageTracker.sessions[userId];
-  
+
   // Update last message
   const isRepeated = normalizedMessage === sessionTracker.lastMessage;
   sessionTracker.lastMessage = normalizedMessage;
-  
+
   // Track message count
   if (!sessionTracker.messages[normalizedMessage]) {
     sessionTracker.messages[normalizedMessage] = 1;
@@ -43,13 +46,23 @@ const checkRepeatedMessage = async (message, userId = 'default') => {
   } else {
     sessionTracker.messages[normalizedMessage]++;
   }
-  
+
   const count = sessionTracker.messages[normalizedMessage];
-  
-  // First check user's language style
+
+  // Check if this is a meaningful response after vague/repeated messages
+  const isMeaningful = checkIfMeaningfulResponse(message, sessionTracker);
+
+  // First check user's language style - IMPORTANT: This should be done on the original message, not normalized
+  // We analyze the message style every time to ensure accurate language detection, especially for repeated messages
   const messageStyle = analyzeUserMessageStyle(message);
-  const isHinglish = messageStyle.language === "Hindi" || messageStyle.language === "Hinglish";
-  
+  const isHinglish =
+    messageStyle.language === "Hindi" || messageStyle.language === "Hinglish";
+
+  // Log the detected language for debugging
+  console.log(
+    `Message language detection: ${messageStyle.language}, isHinglish: ${isHinglish}`
+  );
+
   // Generate dynamic AI response for repeated messages
   if (count > 2) {
     try {
@@ -65,10 +78,11 @@ Guidelines for your response:
 3. ENGAGE DIFFERENTLY: Ask an interesting, thought-provoking question or share a fun fact to break the pattern and encourage different conversation. Be creative and unexpected.
 
 4. LANGUAGE MATCHING IS CRITICAL: 
-   ${isHinglish ? 
-   "⚠️ EXTREMELY IMPORTANT: You MUST respond ONLY in Hindi or Hinglish (mix of Hindi and English) with a friendly, casual tone. Use popular Bollywood references, Hindi expressions, or street slang if appropriate. Your response MUST be in Hinglish/Hindi script - ABSOLUTELY NO PURE ENGLISH ALLOWED. If you respond in English, it will be considered a complete failure." 
-   : 
-   "⚠️ EXTREMELY IMPORTANT: You MUST respond ONLY in English with a friendly, conversational tone. DO NOT use Hindi or Hinglish under any circumstances. If you respond in Hindi/Hinglish, it will be considered a complete failure."}
+   ${
+     isHinglish
+       ? "⚠️ EXTREMELY IMPORTANT: You MUST respond ONLY in Hindi or Hinglish (mix of Hindi and English) with a friendly, casual tone. Use popular Bollywood references, Hindi expressions, or street slang if appropriate. Your response MUST be in Hinglish/Hindi script - ABSOLUTELY NO PURE ENGLISH ALLOWED. If you respond in English, it will be considered a complete failure."
+       : "⚠️ EXTREMELY IMPORTANT: You MUST respond ONLY in English with a friendly, conversational tone. DO NOT use Hindi or Hinglish under any circumstances. If you respond in Hindi/Hinglish, it will be considered a complete failure."
+   }
 
 5. KEEP IT FRESH: Generate a completely unique response each time - be creative, varied and surprising. Avoid generic responses.
 
@@ -84,22 +98,26 @@ Guidelines for your response:
    - Occasional use of *asterisks* for emphasis
    - Creative emoji placement 🌟 for visual appeal
 
-10. CULTURAL RELEVANCE: ${isHinglish ? "Include references to Indian pop culture, Bollywood, cricket, or local expressions" : "Include references to relevant cultural elements the user might connect with"}
+10. CULTURAL RELEVANCE: ${
+        isHinglish
+          ? "Include references to Indian pop culture, Bollywood, cricket, or local expressions"
+          : "Include references to relevant cultural elements the user might connect with"
+      }
 
 Your response should feel like a friend gently nudging the conversation in a new direction with humor and creativity, not like you're calling them out for repetition.`;
-      
+
       // Create a mock conversation with the repeated message
       const mockConversation = [
         {
           role: "system",
-          content: repeatMessagePrompt
+          content: repeatMessagePrompt,
         },
         {
           role: "user",
-          content: message
-        }
+          content: message, // Use original message here, not normalized
+        },
       ];
-      
+
       // Call the Mistral API to generate a dynamic response with higher creativity
       const apiParams = {
         model: config.mistralModel,
@@ -108,55 +126,69 @@ Your response should feel like a friend gently nudging the conversation in a new
         max_tokens: 200, // Allow slightly longer responses for better formatting
         top_p: 0.95, // Slightly more diverse token selection
       };
-      
+
       const response = await axios.post(config.mistralApiUrl, apiParams, {
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${config.mistralApiKey}`,
+          Authorization: `Bearer ${config.mistralApiKey}`,
         },
       });
-      
+
       // Extract the AI-generated response
       const aiResponse = response.data.choices[0].message.content;
-      
+
       // Track this response to avoid duplicates in future
       sessionTracker.usedResponses[normalizedMessage].push(aiResponse);
-      
+
       return {
         isRepeated: true,
         count: count,
         response: aiResponse,
-        isDynamicResponse: true
+        isDynamicResponse: true,
       };
     } catch (error) {
-      console.error("Error generating dynamic response for repeated message:", error);
-      
+      console.error(
+        "Error generating dynamic response for repeated message:",
+        error
+      );
+
       // Try again with a simpler prompt if the first attempt failed
       try {
         console.log("Retrying with a simpler prompt for repeated message...");
-        
+
+        // Re-analyze the message style to ensure accurate language detection for the retry attempt
+        const updatedMessageStyle = analyzeUserMessageStyle(message);
+        const updatedIsHinglish =
+          updatedMessageStyle.language === "Hindi" ||
+          updatedMessageStyle.language === "Hinglish";
+
+        console.log(
+          `Retry - Message language detection: ${updatedMessageStyle.language}, isHinglish: ${updatedIsHinglish}`
+        );
+
         // Create a simpler system prompt for repeated message handling
         const simpleRepeatPrompt = `Generate a creative, friendly response to a user who has sent the same message "${normalizedMessage}" multiple times. 
 
-${isHinglish ? 
-"⚠️ CRITICAL: RESPOND ONLY IN HINDI/HINGLISH. DO NOT USE ENGLISH AT ALL. Use Hindi/Roman script with some English words mixed in if needed." 
-: 
-"⚠️ CRITICAL: RESPOND ONLY IN ENGLISH. DO NOT USE HINDI/HINGLISH AT ALL."}
+${
+  updatedIsHinglish
+    ? "⚠️ CRITICAL: RESPOND ONLY IN HINDI/HINGLISH. DO NOT USE ENGLISH AT ALL. Use Hindi/Roman script with some English words mixed in if needed."
+    : "⚠️ CRITICAL: RESPOND ONLY IN ENGLISH. DO NOT USE HINDI/HINGLISH AT ALL."
+}
 
 Keep it short (2-3 sentences), include 1-2 emojis, and be conversational and engaging. Acknowledge the repetition in a friendly way and try to move the conversation forward.`;
-        
+
         // Create a mock conversation with the repeated message
         const simpleMockConversation = [
           {
             role: "system",
-            content: simpleRepeatPrompt
+            content: simpleRepeatPrompt,
           },
           {
             role: "user",
-            content: message
-          }
+            content: message, // Use original message here
+          },
         ];
-        
+
         // Call the Mistral API with simpler parameters
         const simpleApiParams = {
           model: config.mistralModel,
@@ -164,68 +196,248 @@ Keep it short (2-3 sentences), include 1-2 emojis, and be conversational and eng
           temperature: 0.85,
           max_tokens: 120,
         };
-        
-        const retryResponse = await axios.post(config.mistralApiUrl, simpleApiParams, {
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${config.mistralApiKey}`,
-          },
-        });
-        
+
+        const retryResponse = await axios.post(
+          config.mistralApiUrl,
+          simpleApiParams,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${config.mistralApiKey}`,
+            },
+          }
+        );
+
         // Extract the AI-generated response
         const retryAiResponse = retryResponse.data.choices[0].message.content;
-        
+
         // Track this response to avoid duplicates in future
         sessionTracker.usedResponses[normalizedMessage].push(retryAiResponse);
-        
+
         return {
           isRepeated: true,
           count: count,
           response: retryAiResponse,
-          isDynamicResponse: true
+          isDynamicResponse: true,
         };
       } catch (retryError) {
-        console.error("Second attempt at generating response also failed:", retryError);
-        
+        console.error(
+          "Second attempt at generating response also failed:",
+          retryError
+        );
+
         // If both attempts fail, return a more varied generic response based on language
+        // Re-analyze the message style one final time to ensure accurate language detection
+        const finalMessageStyle = analyzeUserMessageStyle(message);
+        const finalIsHinglish =
+          finalMessageStyle.language === "Hindi" ||
+          finalMessageStyle.language === "Hinglish";
+
+        console.log(
+          `Final fallback - Message language detection: ${finalMessageStyle.language}, isHinglish: ${finalIsHinglish}`
+        );
+
         const hinglishResponses = [
           "Arey yaar, aap yeh baat baar baar keh rahe ho! Kuch naya batao na? 😊",
           "Oho! Ek hi baat kitni baar? Koi nayi baat karte hain! 🌟",
           "Lagta hai aapko yeh baat bohot pasand hai, par thoda topic change karein? 😄",
           "Arre bhai, same cheez phir se? Kuch aur interesting batao na! 🙂",
-          "Yeh toh déjà vu ho gaya! Kuch naya socho, main sun raha hoon. 🎧"
+          "Yeh toh déjà vu ho gaya! Kuch naya socho, main sun raha hoon. 🎧",
         ];
-        
+
         const englishResponses = [
           "I notice you're saying the same thing again. Let's try a different topic? 😊",
           "Hmm, you seem to be repeating yourself. Anything else on your mind? 🌟",
           "I see this message is important to you, but maybe we could chat about something new? 😄",
           "Same message again? Let's mix things up a bit! What else is going on? 🙂",
-          "I'm experiencing a bit of déjà vu! Let's try a fresh conversation direction. 🎧"
+          "I'm experiencing a bit of déjà vu! Let's try a fresh conversation direction. 🎧",
         ];
-        
+
         // Select a random response based on language
         const randomIndex = Math.floor(Math.random() * 5);
-        const genericResponse = isHinglish ? hinglishResponses[randomIndex] : englishResponses[randomIndex];
-        
+        const genericResponse = finalIsHinglish
+          ? hinglishResponses[randomIndex]
+          : englishResponses[randomIndex];
+
         return {
           isRepeated: true,
           count: count,
           response: genericResponse,
-          isDynamicResponse: false
+          isDynamicResponse: false,
         };
       }
     }
   }
-  
+
+  // Check if this is a meaningful response after vague/repeated messages
+  // If so, generate an expressive reaction
+  if (isMeaningful && sessionTracker.vagueModeActive) {
+    try {
+      // First check user's language style for the meaningful response
+      const meaningfulMessageStyle = analyzeUserMessageStyle(message);
+      const isHinglish =
+        meaningfulMessageStyle.language === "Hindi" ||
+        meaningfulMessageStyle.language === "Hinglish";
+
+      console.log(
+        `Meaningful response detected! Language: ${meaningfulMessageStyle.language}, isHinglish: ${isHinglish}`
+      );
+
+      // Create a special system prompt for meaningful response handling
+      const meaningfulResponsePrompt = `You are responding to a user who has finally given a clear, meaningful response after sending ${
+        sessionTracker.vagueMessageCount
+      } vague or repeated messages.
+
+Guidelines for your response:
+
+1. EXPRESS RELIEF AND APPRECIATION: Show that you're happy to finally get a clear response, but do it in a friendly, non-judgmental way with warmth.
+
+2. CONTEXT-AWARE RESPONSE: Your response should acknowledge their meaningful answer and be contextually relevant to what they're saying.
+
+3. LANGUAGE MATCHING IS CRITICAL: 
+   ${
+     isHinglish
+       ? "⚠️ EXTREMELY IMPORTANT: You MUST respond ONLY in Hindi or Hinglish (mix of Hindi and English) with a friendly, casual tone. Your response MUST start with one of these expressions (or very similar ones):\n- 'Ohh finally, yeh baat hai!'\n- 'Chalo kuch to samjha!'\n- 'Yeh hui na baat!'\n- 'Aakhirkar jawab mila, shukriya!'\n- 'Baat ban gayi ab!'\n- 'Ab baat bani!'\n- 'Chalo kuch to mila!'\n\nYour response MUST be in Hinglish/Hindi script - ABSOLUTELY NO PURE ENGLISH ALLOWED."
+       : "⚠️ EXTREMELY IMPORTANT: You MUST respond ONLY in English with a friendly, conversational tone. Your response MUST start with one of these expressions (or very similar ones):\n- 'Ohh finally!'\n- 'Now we're talking!'\n- 'That's more like it!'\n- 'Glad you opened up!'\n- 'Now we're getting somewhere!'\n- 'We got there in the end!'\n\nDO NOT use Hindi or Hinglish under any circumstances."
+   }
+
+4. TONE: Be playful, light-hearted, and friendly. Use a conversational style like you're texting a friend who finally answered your question properly.
+
+5. LENGTH: Keep your response concise (2-3 sentences) but make it visually engaging.
+
+6. INCLUDE EMOJIS: Use 1-2 appropriate emojis to make your response more engaging and expressive.
+
+Your response should feel like a friend who is relieved to finally get a clear answer, expressed in a friendly, non-sarcastic way.`;
+
+      // Create a mock conversation with the meaningful response
+      const mockConversation = [
+        {
+          role: "system",
+          content: meaningfulResponsePrompt,
+        },
+        {
+          role: "user",
+          content: message, // Use original message here
+        },
+      ];
+
+      // Call the Mistral API to generate a dynamic response
+      const apiParams = {
+        model: config.mistralModel,
+        messages: mockConversation,
+        temperature: 0.9, // Higher temperature for more creative responses
+        max_tokens: 100, // Short responses for the reaction
+        top_p: 0.9, // Slightly more diverse token selection
+      };
+
+      const response = await axios.post(config.mistralApiUrl, apiParams, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${config.mistralApiKey}`,
+        },
+      });
+
+      // Extract the AI-generated response
+      const aiResponse = response.data.choices[0].message.content;
+
+      // Reset the vague mode since we got a meaningful response
+      sessionTracker.vagueModeActive = false;
+      sessionTracker.vagueMessageCount = 0;
+      sessionTracker.lastMeaningfulResponse = message;
+
+      return {
+        isRepeated: false,
+        count: count,
+        response: aiResponse,
+        isDynamicResponse: true,
+        isMeaningfulResponse: true,
+      };
+    } catch (error) {
+      console.error("Error generating response for meaningful message:", error);
+
+      // If API call fails, still reset vague mode but return null response
+      sessionTracker.vagueModeActive = false;
+      sessionTracker.vagueMessageCount = 0;
+      sessionTracker.lastMeaningfulResponse = message;
+    }
+  }
+
   return {
     isRepeated: isRepeated,
     count: count,
-    response: null
+    response: null,
   };
 };
 
+/**
+ * Checks if a message is a meaningful response after vague/repeated messages
+ * @param {String} message - The user message
+ * @param {Object} sessionTracker - The session tracker object
+ * @returns {Boolean} - Whether the message is a meaningful response
+ */
+const checkIfMeaningfulResponse = (message, sessionTracker) => {
+  // If vague mode is not active, check if we should activate it
+  if (!sessionTracker.vagueModeActive) {
+    // If the message is repeated more than twice, activate vague mode
+    if (sessionTracker.messages[message.trim().toLowerCase()] > 2) {
+      sessionTracker.vagueModeActive = true;
+      sessionTracker.vagueMessageCount = 1;
+      console.log("Vague mode activated due to repeated messages");
+      return false;
+    }
+    return false;
+  }
 
+  // Vague mode is active, check if this is a meaningful response
+
+  // Increment vague message count
+  sessionTracker.vagueMessageCount++;
+
+  // Check message length - meaningful responses tend to be longer
+  if (message.length < 15) {
+    console.log("Message too short to be meaningful");
+    return false;
+  }
+
+  // Check if message is repeated - repeated messages are not meaningful
+  if (sessionTracker.messages[message.trim().toLowerCase()] > 1) {
+    console.log("Repeated message, not meaningful");
+    return false;
+  }
+
+  // Check for question marks - questions are usually meaningful
+  if (message.includes("?")) {
+    console.log("Question detected, likely meaningful");
+    return true;
+  }
+
+  // Check for multiple words - more words usually means more meaningful
+  const wordCount = message.split(/\s+/).length;
+  if (wordCount >= 5) {
+    console.log(`Message has ${wordCount} words, likely meaningful`);
+    return true;
+  }
+
+  // Check for punctuation - proper punctuation often indicates thoughtfulness
+  if (/[.!,;:]/.test(message)) {
+    console.log("Punctuation detected, likely meaningful");
+    return true;
+  }
+
+  // If we've had 3+ vague messages and this one is different, consider it meaningful
+  if (
+    sessionTracker.vagueMessageCount >= 3 &&
+    message.trim().toLowerCase() !== sessionTracker.lastMessage
+  ) {
+    console.log(
+      "Different message after multiple vague ones, likely meaningful"
+    );
+    return true;
+  }
+
+  // Default to not meaningful
+  return false;
+};
 
 /**
  * Emotion Detection Patterns
@@ -327,7 +539,7 @@ const emotionalPrompts = {
       "Kya haal hai mere yaar? Sab badhiya?",
     ],
   },
-  
+
   // Awesome/positive response phrases
   awesome: {
     english: [
@@ -789,8 +1001,14 @@ const analyzeUserMessageStyle = (messageContent) => {
   let tone = "neutral"; // Default tone
   const speechPatterns = { codeSwitching: "moderate" }; // Default for Hinglish
 
-  // Basic language detection (can be expanded)
+  // Enhanced language detection with multiple methods
+
+  // 1. Check for Devanagari script (Hindi characters)
+  const containsDevanagari = /[\u0900-\u097F]/.test(messageContent);
+
+  // 2. Expanded list of Hindi/Hinglish keywords and phrases
   const hindiKeywords = [
+    // Original keywords
     "bhai",
     "dost",
     "yaar",
@@ -805,7 +1023,130 @@ const analyzeUserMessageStyle = (messageContent) => {
     "धन्यवाद",
     "कैसे",
     "आप",
+
+    // Common Hindi/Hinglish words
+    "main",
+    "mujhe",
+    "tum",
+    "tumhara",
+    "mera",
+    "hamara",
+    "unka",
+    "uska",
+    "iska",
+    "kaise",
+    "kyun",
+    "kyon",
+    "kaun",
+    "kahan",
+    "kab",
+    "kitna",
+    "kuch",
+    "bahut",
+    "thoda",
+    "zyada",
+    "kam",
+    "accha",
+    "bura",
+    "pyaar",
+    "dil",
+    "mann",
+    "dimaag",
+    "samajh",
+    "jaanta",
+    "pata",
+    "maloom",
+    "dekho",
+    "suno",
+    "bolo",
+    "karo",
+    "jao",
+    "aao",
+    "khao",
+    "piyo",
+    "socho",
+    "samjho",
+    "batao",
+    "pucho",
+    "likho",
+    "padho",
+
+    // Common Hindi/Hinglish expressions
+    "kya kar rahe ho",
+    "kaise ho",
+    "theek hai",
+    "acha hai",
+    "bura hai",
+    "pata nahi",
+    "mujhe nahi pata",
+    "mujhe batao",
+    "mujhe samajh nahi aaya",
+    "main samajh gaya",
+    "chalo",
+    "thik hai",
+    "acha laga",
+    "bura laga",
+    "dard",
+    "khushi",
+    "udaas",
+    "gussa",
+    "naraz",
+    "khush",
+    "dukhi",
+    "pareshan",
+    "tension",
+    "fikar",
+    "chinta",
+    "fikr mat karo",
+    "chinta mat karo",
+    "tension mat lo",
+    "sab theek ho jayega",
+    "koi baat nahi",
+
+    // Colloquial Hinglish
+    "chill",
+    "chill kar",
+    "relax",
+    "tension",
+    "scene",
+    "vibe",
+    "feel",
+    "mood",
+    "bro",
+    "yar",
+    "yr",
+    "bhai",
+    "bhaiya",
+    "didi",
+    "boss",
+    "sir",
+    "madam",
+    "matlab",
+    "basically",
+    "actually",
+    "seriously",
+    "obviously",
+    "exactly",
+    "haina",
+    "na",
+    "naa",
+    "bilkul",
+    "ekdum",
+    "full",
+    "ekdam",
+    "totally",
+
+    // Common sentence endings
+    "hai na",
+    "hai kya",
+    "na",
+    "naa",
+    "yaar",
+    "bhai",
+    "bro",
+    "dost",
   ];
+
   const englishKeywords = [
     "bro",
     "sis",
@@ -820,28 +1161,140 @@ const analyzeUserMessageStyle = (messageContent) => {
     "thanks",
     "how",
     "you",
+    "are",
+    "am",
+    "was",
+    "were",
+    "will",
+    "would",
+    "should",
+    "could",
+    "can",
+    "may",
+    "might",
+    "must",
+    "have",
+    "has",
+    "had",
+    "do",
+    "does",
+    "did",
+    "done",
+    "go",
+    "went",
+    "gone",
+    "come",
+    "came",
+    "see",
+    "saw",
+    "seen",
+    "know",
+    "knew",
+    "known",
+    "think",
+    "thought",
+    "feel",
+    "felt",
+    "want",
+    "wanted",
+    "need",
+    "needed",
+    "like",
+    "liked",
+    "love",
+    "loved",
+    "hate",
+    "hated",
+    "help",
+    "helped",
+    "try",
+    "tried",
+    "work",
+    "worked",
+    "talk",
+    "talked",
+    "say",
+    "said",
+    "tell",
+    "told",
+    "ask",
+    "asked",
+    "answer",
+    "answered",
+    "write",
+    "wrote",
+    "read",
+    "good",
+    "bad",
+    "nice",
+    "great",
+    "awesome",
+    "terrible",
+    "horrible",
+    "wonderful",
+    "beautiful",
+    "ugly",
+    "happy",
+    "sad",
+    "angry",
+    "scared",
+    "tired",
+    "excited",
+    "bored",
+    "interested",
+    "confused",
+    "surprised",
+    "shocked",
+    "worried",
+    "anxious",
+    "depressed",
+    "stressed",
+    "relaxed",
+    "calm",
+    "peaceful",
+    "quiet",
+    "loud",
+    "noisy",
   ];
 
   let hindiCount = 0;
   let englishCount = 0;
 
+  // If Devanagari script is detected, immediately set language to Hindi
+  if (containsDevanagari) {
+    language = "Hindi";
+    hindiCount = 10; // Give it a high weight
+    console.log(`Detected Devanagari script - setting as Hindi`);
+  }
+
+  // Check for Hindi/Hinglish keywords
   hindiKeywords.forEach((kw) => {
     if (lowerCaseContent.includes(kw)) {
       hindiCount++;
-      if (["bhai", "dost", "yaar", "ji"].includes(kw)) colloquialisms.push(kw);
+      if (["bhai", "dost", "yaar", "ji", "yr", "bhaiya", "didi"].includes(kw)) {
+        colloquialisms.push(kw);
+      }
     }
   });
 
+  // Check for English keywords
   englishKeywords.forEach((kw) => {
-    if (lowerCaseContent.includes(kw)) {
+    // Only count whole words (with word boundaries) to avoid false positives
+    const regex = new RegExp(`\\b${kw}\\b`, "i");
+    if (regex.test(lowerCaseContent)) {
       englishCount++;
-      if (["bro", "sis", "dude", "mate"].includes(kw)) colloquialisms.push(kw);
+      if (["bro", "sis", "dude", "mate"].includes(kw)) {
+        colloquialisms.push(kw);
+      }
     }
   });
 
   // Debug language detection
-  console.log(`Language detection - Hindi keywords: ${hindiCount}, English keywords: ${englishCount}`);
-  
+  console.log(
+    `Language detection - Hindi keywords: ${hindiCount}, English keywords: ${englishCount}, Devanagari: ${containsDevanagari}`
+  );
+
+  // Determine language based on keyword counts and Devanagari presence
   if (hindiCount > 0 && englishCount > 0) {
     language = "Hinglish";
     if (hindiCount / (hindiCount + englishCount) > 0.66) {
@@ -851,10 +1304,12 @@ const analyzeUserMessageStyle = (messageContent) => {
     } else {
       speechPatterns.codeSwitching = "moderate";
     }
-    console.log(`Detected Hinglish with code switching: ${speechPatterns.codeSwitching}`);
-  } else if (hindiCount > 0) {
+    console.log(
+      `Detected Hinglish with code switching: ${speechPatterns.codeSwitching}`
+    );
+  } else if (hindiCount > 0 || containsDevanagari) {
     language = "Hindi";
-    console.log(`Detected pure Hindi`);
+    console.log(`Detected Hindi`);
   } else {
     language = "English";
     console.log(`Detected English (default)`);
@@ -919,7 +1374,7 @@ const analyzeUserMessageStyle = (messageContent) => {
 /**
  * Extracts a user's name from messages if mentioned
  * @param {Array} messages - The conversation history
- * @returns {String|null} - The detected name or null if none found
+ * @returns {String|null} - The detected name o-r null if none found
  */
 const extractUserName = (messages) => {
   // Common name introduction patterns with more specific context
@@ -1169,29 +1624,41 @@ exports.sendChatMessage = async (messages, userId) => {
     // Use the current emotion for immediate response
     const detectedEmotion = emotionalContext.currentEmotion;
     const lastUserMessage = messages.filter((msg) => msg.role === "user").pop();
-    
+
     // Check for repeated messages
     if (lastUserMessage) {
-      const repeatedCheck = await checkRepeatedMessage(lastUserMessage.content, userId);
-      
+      const repeatedCheck = await checkRepeatedMessage(
+        lastUserMessage.content,
+        userId
+      );
+
       // If message is repeated too many times, return custom response
       if (repeatedCheck.isRepeated && repeatedCheck.response) {
-        console.log(`Sending repeated message response: ${repeatedCheck.response.substring(0, 50)}...`);
-        
+        console.log(
+          `Sending repeated message response: ${repeatedCheck.response.substring(
+            0,
+            50
+          )}...`
+        );
+
         // Add information about whether this is a dynamic AI-generated response
-        const responseType = repeatedCheck.isDynamicResponse ? "dynamic AI" : "fallback";
+        const responseType = repeatedCheck.isDynamicResponse
+          ? "dynamic AI"
+          : "fallback";
         console.log(`Response type for repeated message: ${responseType}`);
-        
+
         return {
           success: true,
           data: {
-            choices: [{
-              message: {
-                content: repeatedCheck.response
-              }
-            }]
+            choices: [
+              {
+                message: {
+                  content: repeatedCheck.response,
+                },
+              },
+            ],
           },
-          emotion: "default"
+          emotion: "default",
         };
       }
     }
@@ -1637,6 +2104,7 @@ Guidelines for your responses:\n- Be conversational and natural - keep responses
       (userName === null
         ? "\n\nIMPORTANT: If the user hasn't shared their name yet and is asking questions, still answer their questions but also find a natural way to ask for their name in your response. Vary how you ask for their name to sound natural and friendly. Don't make it seem like you can't proceed without their name - just casually incorporate the question into your helpful response.\n"
         : "") +
+      "\n\nCRITICAL INSTRUCTION: DO NOT include any instructions or preferences in your response. DO NOT mention that you are responding in Hindi/Hinglish or English. DO NOT include any meta-instructions about language choice, tone, structure, or any other system instructions in your actual response to the user. DO NOT mention [BESTIE SECRET], [REMEMBER THIS], [LET'S DO THIS] prefixes or any other formatting instructions. Just respond naturally in the appropriate language and style without mentioning any of the instructions you've been given.\n" +
       emotionalContextPrompt;
 
     // Call to the digital wise one
@@ -1675,7 +2143,7 @@ Guidelines for your responses:\n- Be conversational and natural - keep responses
     const response = await axios.post(config.mistralApiUrl, apiParams, {
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${config.mistralApiKey}`,
+        Authorization: `Bearer ${config.mistralApiKey}`,
       },
     });
 
