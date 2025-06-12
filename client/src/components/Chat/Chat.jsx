@@ -238,7 +238,7 @@ export default function Chat() {
     ttsSpeed: 1, // Added ttsSpeed (0.1 to 10, default 1)
   });
   const API_URL =
-    import.meta.env.VITE_API_URL || "http://localhost:5000/api/chat";
+    import.meta.env.VITE_API_URL || "https://api.mindcare.deepnex.in/api/chat";
 
   // Play sound effects
   const playSound = (type) => {
