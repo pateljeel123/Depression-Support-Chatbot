@@ -11,7 +11,7 @@ const app = express();
 app.use(
   cors(
     {
-    origin: "https://mindcare.deepnex.in/",
+    origin: "https://mindcare.deepnex.in",
     credentials: true
   }
   )
