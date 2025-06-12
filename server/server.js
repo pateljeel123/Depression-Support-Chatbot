@@ -9,7 +9,12 @@ const app = express();
 
 // Middleware
 app.use(
-  cors()
+  cors(
+    {
+    origin: "https://mindcare.deepnex.in",
+    credentials: true
+  }
+  )
 );
 app.use(express.json());
 
